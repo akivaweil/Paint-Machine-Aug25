@@ -18,13 +18,13 @@
 #define MICROSTEPPING 1            // No microstepping (full steps)
 #define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch)
 
-// Speed and acceleration settings
-#define MAX_SPEED_INCHES_PER_SEC 2.0    // Maximum speed in inches per second
-#define ACCELERATION_INCHES_PER_SEC2 20.0 // Acceleration in inches per second squared
+// Speed and acceleration settings (in steps per second)
+#define MAX_SPEED_STEPS_PER_SEC 508    // Maximum speed in steps per second (2.0 in/s * 254 steps/in)
+#define ACCELERATION_STEPS_PER_SEC2 5080 // Acceleration in steps per second squared (20.0 in/s² * 254 steps/in)
 
-// Home switch configuration
-#define HOME_SPEED_INCHES_PER_SEC 0.4   // Speed for homing operation
-#define HOME_ACCELERATION_INCHES_PER_SEC2 8.0 // Acceleration for homing
+// Home switch configuration (in steps per second)
+#define HOME_SPEED_STEPS_PER_SEC 102   // Speed for homing operation (0.4 in/s * 254 steps/in)
+#define HOME_ACCELERATION_STEPS_PER_SEC2 2032 // Acceleration for homing (8.0 in/s² * 254 steps/in)
 
 // Safety settings
 #define MAX_TRAVEL_INCHES 40.0         // Maximum travel distance in inches

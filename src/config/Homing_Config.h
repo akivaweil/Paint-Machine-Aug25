@@ -5,21 +5,21 @@
 //* ************************ HOMING CONFIGURATION ***************************
 //* ************************************************************************
 
-// X1 Motor Homing Settings
-#define X1_HOME_SPEED_INCHES_PER_SEC 2.0      // Speed for X1 homing operation
-#define X1_HOME_ACCELERATION_INCHES_PER_SEC2 12.0 // Acceleration for X1 homing
+// X1 Motor Homing Settings (in steps per second)
+#define X1_HOME_SPEED_STEPS_PER_SEC 508      // Speed for X1 homing operation (2.0 in/s * 254 steps/in)
+#define X1_HOME_ACCELERATION_STEPS_PER_SEC2 3048 // Acceleration for X1 homing (12.0 in/s² * 254 steps/in)
 
-// X2 Motor Homing Settings
-#define X2_HOME_SPEED_INCHES_PER_SEC 2.0      // Speed for X2 homing operation
-#define X2_HOME_ACCELERATION_INCHES_PER_SEC2 12.0 // Acceleration for X2 homing
+// X2 Motor Homing Settings (in steps per second)
+#define X2_HOME_SPEED_STEPS_PER_SEC 508      // Speed for X2 homing operation (2.0 in/s * 254 steps/in)
+#define X2_HOME_ACCELERATION_STEPS_PER_SEC2 3048 // Acceleration for X2 homing (12.0 in/s² * 254 steps/in)
 
-// Y Motor Homing Settings
-#define Y_HOME_SPEED_INCHES_PER_SEC 2.0       // Speed for Y homing operation
-#define Y_HOME_ACCELERATION_INCHES_PER_SEC2 16.0 // Acceleration for Y homing
+// Y Motor Homing Settings (in steps per second)
+#define Y_HOME_SPEED_STEPS_PER_SEC 508       // Speed for Y homing operation (2.0 in/s * 254 steps/in)
+#define Y_HOME_ACCELERATION_STEPS_PER_SEC2 4064 // Acceleration for Y homing (16.0 in/s² * 254 steps/in)
 
-// Fork Motor Homing Settings
-#define FORK_HOME_SPEED_INCHES_PER_SEC 2.0    // Speed for Fork homing operation
-#define FORK_HOME_ACCELERATION_INCHES_PER_SEC2 8.0 // Acceleration for Fork homing
+// Fork Motor Homing Settings (in steps per second)
+#define FORK_HOME_SPEED_STEPS_PER_SEC 508    // Speed for Fork homing operation (2.0 in/s * 254 steps/in)
+#define FORK_HOME_ACCELERATION_STEPS_PER_SEC2 2032 // Acceleration for Fork homing (8.0 in/s² * 254 steps/in)
 
 // Homing timeout settings
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
