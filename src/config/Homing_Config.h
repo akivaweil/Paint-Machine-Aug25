@@ -25,6 +25,10 @@
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
 
+// Home switch debounce settings (in milliseconds)
+#define HOME_SWITCH_DEBOUNCE_MS 5         // Debounce time for home switches to prevent false triggers
+#define HOME_SWITCH_CONFIRMATION_MS 100    // Additional confirmation time after debounce to ensure stable trigger
+
 // Homing direction settings (true = positive direction, false = negative direction)
 #define X1_HOME_DIRECTION_POSITIVE true    // X1 homes in positive direction
 #define X2_HOME_DIRECTION_POSITIVE true    // X2 homes in positive direction
