@@ -20,10 +20,10 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, c
     _stepper = nullptr;
     
     // Initialize Bounce2 objects
-    _homeSwitchBounce.attach(_homePin, INPUT_PULLDOWN);
+    _homeSwitchBounce.attach(_homePin, INPUT);
     _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
     
-    _limitSwitchBounce.attach(_limitPin, INPUT_PULLUP);
+    _limitSwitchBounce.attach(_limitPin, INPUT_PULLDOWN);
     _limitSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS); // Use same debounce time for limit switches
 }
 
@@ -124,7 +124,7 @@ bool StepperMotor::isHomeSwitchTriggered() {
 }
 
 bool StepperMotor::isLimitSwitchTriggered() {
-    return _limitSwitchBounce.read() == LOW; // Active LOW
+    return _limitSwitchBounce.read() == HIGH; // Active HIGH
 }
 
 void StepperMotor::update() {
