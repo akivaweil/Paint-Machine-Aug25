@@ -59,6 +59,12 @@ public:
     
     // Test move away direction (prints direction without moving)
     void testMoveAwayDirection();
+    
+    // Start continuous movement (for storage motor spinning)
+    void startContinuousMovement(float speed);
+    
+    // Stop continuous movement
+    void stopContinuousMovement();
 
 private:
     // Motor pins

@@ -1,6 +1,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "config/Homing_Config.h"
 #include "config/Config.h"
+#include "config/Carousel_Config.h"
 
 //* ************************************************************************
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
@@ -147,6 +148,28 @@ void StepperMotor::update() {
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
+    //! ************************************************************************
+    //! STEP 1: HOME SWITCH PROTECTION DURING NORMAL OPERATION
+    //! ************************************************************************
+    // Check if home switch is triggered during normal movement (not homing)
+    // This prevents motors from moving past the home switch
+    if (_isMoving && isHomeSwitchTriggered()) {
+        // Check if we're trying to move towards home (negative direction from current position)
+        long currentSteps = _stepper->getCurrentPosition();
+        long targetSteps = _stepper->getTargetPosition();
+        
+        // If target is closer to home than current position, stop movement
+        if (abs(targetSteps) < abs(currentSteps)) {
+            _stepper->forceStop();
+            _isMoving = false;
+            _currentPosition = 0.0; // Set to home position
+            _stepper->setCurrentPosition(0);
+            
+            Serial.print(_axisName);
+            Serial.println(" stopped at home switch during normal operation");
+        }
+    }
+    
     // Check if movement is complete
     if (!_stepper->isRunning()) {
         _isMoving = false;
@@ -208,37 +231,61 @@ void StepperMotor::moveToPosition(float position) {
     }
     
     //! ************************************************************************
-    //! STEP 1: VALIDATE POSITION BOUNDS
+    //! STEP 1: VALIDATE POSITION BOUNDS (SKIP FOR STORAGE MOTOR)
     //! ************************************************************************
-    // Check if position is within safe limits
-    if (position < MIN_TRAVEL_INCHES) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.print(" position ");
-        Serial.print(position);
-        Serial.print(" inches is below minimum ");
-        Serial.print(MIN_TRAVEL_INCHES);
-        Serial.println(" inches");
-        return;
+    // Check if position is within safe limits (skip for storage motor - no limits)
+    if (strcmp(_axisName, "Storage") != 0) {
+        if (position < MIN_TRAVEL_INCHES) {
+            Serial.print("ERROR: ");
+            Serial.print(_axisName);
+            Serial.print(" position ");
+            Serial.print(position);
+            Serial.print(" inches is below minimum ");
+            Serial.print(MIN_TRAVEL_INCHES);
+            Serial.println(" inches");
+            return;
+        }
+        
+        if (position > MAX_TRAVEL_INCHES) {
+            Serial.print("ERROR: ");
+            Serial.print(_axisName);
+            Serial.print(" position ");
+            Serial.print(position);
+            Serial.print(" inches is above maximum ");
+            Serial.print(MAX_TRAVEL_INCHES);
+            Serial.println(" inches");
+            return;
+        }
     }
     
-    if (position > MAX_TRAVEL_INCHES) {
+    //! ************************************************************************
+    //! STEP 2: HOME SWITCH PROTECTION - PREVENT MOVING PAST HOME
+    //! ************************************************************************
+    // Check if home switch is currently triggered and we're trying to move past it
+    if (isHomeSwitchTriggered() && position < _currentPosition) {
         Serial.print("ERROR: ");
         Serial.print(_axisName);
-        Serial.print(" position ");
+        Serial.print(" cannot move to ");
         Serial.print(position);
-        Serial.print(" inches is above maximum ");
-        Serial.print(MAX_TRAVEL_INCHES);
-        Serial.println(" inches");
+        Serial.print(" inches - would require moving past home switch (current: ");
+        Serial.print(_currentPosition);
+        Serial.println(" inches)");
         return;
     }
     
     // Convert position to steps
     long targetSteps = inchesToSteps(position);
     
-    // Set normal operation speed and acceleration
-    _stepper->setAcceleration(MAX_ACCEL);
-    _stepper->setSpeedInHz(MAX_SPEED);
+    // Set speed and acceleration based on motor type
+    if (strcmp(_axisName, "Storage") == 0) {
+        // Use storage-specific settings
+        _stepper->setAcceleration(STORAGE_MOTOR_ACCEL);
+        _stepper->setSpeedInHz(STORAGE_MOTOR_SPEED);
+    } else {
+        // Use standard settings for other motors
+        _stepper->setAcceleration(MAX_ACCEL);
+        _stepper->setSpeedInHz(MAX_SPEED);
+    }
     
     // Move to target position
     _stepper->moveTo(targetSteps);
@@ -375,9 +422,16 @@ void StepperMotor::moveAwayFromHome() {
     long currentSteps = _stepper->getCurrentPosition();
     long targetSteps = currentSteps + inchesToSteps(moveDistance);
     
-    // Set normal operation speed and acceleration
-    _stepper->setAcceleration(MAX_ACCEL);
-    _stepper->setSpeedInHz(MAX_SPEED);
+    // Set speed and acceleration based on motor type
+    if (strcmp(_axisName, "Storage") == 0) {
+        // Use storage-specific settings
+        _stepper->setAcceleration(STORAGE_MOTOR_ACCEL);
+        _stepper->setSpeedInHz(STORAGE_MOTOR_SPEED);
+    } else {
+        // Use standard settings for other motors
+        _stepper->setAcceleration(MAX_ACCEL);
+        _stepper->setSpeedInHz(MAX_SPEED);
+    }
     
     // Move to target position
     _stepper->moveTo(targetSteps);
@@ -428,4 +482,48 @@ void StepperMotor::testMoveAwayDirection() {
     Serial.print(", Distance: ");
     Serial.print(MOVE_AWAY_FROM_HOME_DISTANCE);
     Serial.println(" inches");
+}
+
+void StepperMotor::startContinuousMovement(float speed) {
+    if (!_stepper) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.println(" stepper not initialized");
+        return;
+    }
+    
+    //! ************************************************************************
+    //! STEP 1: START CONTINUOUS MOVEMENT FOR STORAGE MOTOR
+    //! ************************************************************************
+    // Set speed for continuous movement (use storage-specific speed if no speed provided)
+    float continuousSpeed = (speed > 0) ? speed : STORAGE_MOTOR_CONTINUOUS_SPEED;
+    _stepper->setSpeedInHz(continuousSpeed);
+    
+    // Start continuous movement in positive direction
+    _stepper->runForward();
+    _isMoving = true;
+    
+    Serial.print(_axisName);
+    Serial.print(" starting continuous movement at ");
+    Serial.print(speed);
+    Serial.println(" Hz");
+}
+
+void StepperMotor::stopContinuousMovement() {
+    if (!_stepper) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.println(" stepper not initialized");
+        return;
+    }
+    
+    //! ************************************************************************
+    //! STEP 1: STOP CONTINUOUS MOVEMENT
+    //! ************************************************************************
+    // Stop the motor immediately
+    _stepper->forceStop();
+    _isMoving = false;
+    
+    Serial.print(_axisName);
+    Serial.println(" continuous movement stopped");
 } 

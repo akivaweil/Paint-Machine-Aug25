@@ -5,6 +5,11 @@
 //* ************************ CAROUSEL STORAGE CONFIG ************************
 //* ************************************************************************
 
+// Storage motor speed and acceleration settings (in steps per second)
+#define STORAGE_MOTOR_SPEED 50              // Storage motor speed for normal operation
+#define STORAGE_MOTOR_ACCEL 200              // Storage motor acceleration for normal operation
+#define STORAGE_MOTOR_CONTINUOUS_SPEED 50   // Storage motor speed for continuous spinning
+
 // Carousel storage grid configuration
 #define CAROUSEL_COLUMNS 6          // Number of columns in carousel
 #define CAROUSEL_ROWS 6             // Number of rows in carousel

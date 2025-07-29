@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
+#include "config/Carousel_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 // External motor objects (declared in main.cpp)
@@ -241,17 +242,17 @@ int processCommand(String command) {
             // Start continuous spinning
             Serial.println("Starting storage motor continuous spinning...");
             storageMotorSpinning = true;
-            // Start continuous movement by moving to a very large distance
+            // Start continuous movement by moving to a very large distance (no limits for storage)
             if (storageMotor) {
-                // Set high speed for continuous spinning
-                storageMotor->moveToPosition(10000.0); // Very large distance for continuous movement
+                // Use storage-specific continuous speed for spinning
+                storageMotor->startContinuousMovement(STORAGE_MOTOR_CONTINUOUS_SPEED);
             }
         } else {
             // Stop spinning
             Serial.println("Stopping storage motor...");
             storageMotorSpinning = false;
             if (storageMotor) {
-                storageMotor->forceStop();
+                storageMotor->stopContinuousMovement();
             }
         }
         return 2; // Stay in test state
