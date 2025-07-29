@@ -107,7 +107,6 @@ int runHomingState() {
                 yMotor->forceStop(); // Immediate stop when switch is triggered
                 yMotor->setCurrentPositionAsZero();
                 Serial.println("Y motor homed - IMMEDIATE STOP");
-                yMotor->moveAwayFromHome();
             }
             
             if (!forkHomed && forkMotor->isHomeSwitchTriggered()) {
@@ -115,19 +114,23 @@ int runHomingState() {
                 forkMotor->forceStop(); // Immediate stop when switch is triggered
                 forkMotor->setCurrentPositionAsZero();
                 Serial.println("Fork motor homed - IMMEDIATE STOP");
-                forkMotor->moveAwayFromHome();
             }
             
             //! ************************************************************************
-            //! STEP 2: MOVE X MOTORS AWAY TOGETHER WHEN BOTH ARE HOMED
+            //! STEP 2: MOVE ALL MOTORS AWAY TOGETHER WHEN ALL ARE HOMED
             //! ************************************************************************
-            // Move X motors away together when both are homed
-            if (x1Homed && x2Homed && !x1MovedAway && !x2MovedAway) {
-                Serial.println("Both X motors homed - moving away 2.0 inches from home switch");
+            // Move all motors away together when all are homed
+            if (x1Homed && x2Homed && yHomed && forkHomed && 
+                !x1MovedAway && !x2MovedAway && !yMovedAway && !forkMovedAway) {
+                Serial.println("All motors homed - moving away 2.0 inches from home switch");
                 x1Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
                 x2Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
+                yMotor->moveAwayFromHome(); // Move 2.0 inches away from home switch
+                forkMotor->moveAwayFromHome(); // Move 2.0 inches away from home switch
                 x1MovedAway = true;
                 x2MovedAway = true;
+                yMovedAway = true;
+                forkMovedAway = true;
             }
             
             // Check if all motors have finished homing and moving away
@@ -169,16 +172,20 @@ int runHomingState() {
                     Serial.print("MOVING");
                 }
                 Serial.print(", Y: ");
-                if (yHomed) {
+                if (yHomed && yMovedAway) {
                     Serial.print(yMotor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (yHomed) {
+                    Serial.print("HOMED_WAITING");
                 } else if (yMotor->isHomeSwitchTriggered()) {
                     Serial.print(yMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
                 } else {
                     Serial.print("MOVING");
                 }
                 Serial.print(", Fork: ");
-                if (forkHomed) {
+                if (forkHomed && forkMovedAway) {
                     Serial.print(forkMotor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (forkHomed) {
+                    Serial.print("HOMED_WAITING");
                 } else if (forkMotor->isHomeSwitchTriggered()) {
                     Serial.print(forkMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
                 } else {
