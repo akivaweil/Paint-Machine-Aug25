@@ -26,7 +26,7 @@
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
 
 // Home switch debounce settings (in milliseconds)
-#define HOME_SWITCH_DEBOUNCE_MS 10         // Debounce time for home switches to prevent false triggers
+#define HOME_SWITCH_DEBOUNCE_MS 2         // Debounce time for home switches to prevent false triggers
 
 // Homing direction settings (true = positive direction, false = negative direction)
 #define X1_HOME_DIRECTION_POSITIVE false   // X1 homes in negative direction
