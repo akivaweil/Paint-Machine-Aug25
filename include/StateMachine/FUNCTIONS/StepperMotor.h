@@ -14,7 +14,7 @@
 class StepperMotor {
 public:
     // Constructor
-    StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, const char* axisName);
+    StepperMotor(int stepPin, int dirPin, int homePin, const char* axisName);
     
     // Initialize the motor
     void initialize();
@@ -34,8 +34,7 @@ public:
     // Check if home switch is triggered
     bool isHomeSwitchTriggered();
     
-    // Check if limit switch is triggered
-    bool isLimitSwitchTriggered();
+
     
     // Update motor (call in main loop)
     void update();
@@ -66,7 +65,6 @@ private:
     int _stepPin;
     int _dirPin;
     int _homePin;
-    int _limitPin;
     
     // Motor properties
     const char* _axisName;
@@ -78,7 +76,6 @@ private:
     
     // Bounce2 debouncing objects
     Bounce _homeSwitchBounce;
-    Bounce _limitSwitchBounce;
     
     // Helper functions for individual motor homing settings
     float getHomingSpeed();

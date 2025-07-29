@@ -33,11 +33,11 @@ void setup() {
     Serial.println("=== Paint Machine Starting ===");
     
     // Create motor objects
-    x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_HOME_PIN, X1_LIMIT_PIN, "X1");
-    x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_HOME_PIN, X2_LIMIT_PIN, "X2");
-    yMotor = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, Y_HOME_PIN, Y_LIMIT_PIN, "Y");
-    forkMotor = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, FORK_HOME_PIN, FORK_LIMIT_PIN, "Fork");
-    storageMotor = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, -1, -1, "Storage"); // No home/limit switches for storage motor
+    x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_HOME_PIN, "X1");
+    x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_HOME_PIN, "X2");
+    yMotor = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, Y_HOME_PIN, "Y");
+    forkMotor = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, FORK_HOME_PIN, "Fork");
+    storageMotor = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, -1, "Storage"); // No home switch for storage motor
     
     // Initialize motors
     x1Motor->initialize();
@@ -60,25 +60,15 @@ void setup() {
     delay(2000);
     Serial.println("=== SWITCH STATES AFTER INITIALIZATION ===");
     Serial.print("X1 - Home: ");
-    Serial.print(x1Motor->isHomeSwitchTriggered());
-    Serial.print(", Limit: ");
-    Serial.println(x1Motor->isLimitSwitchTriggered());
+    Serial.println(x1Motor->isHomeSwitchTriggered());
     Serial.print("X2 - Home: ");
-    Serial.print(x2Motor->isHomeSwitchTriggered());
-    Serial.print(", Limit: ");
-    Serial.println(x2Motor->isLimitSwitchTriggered());
+    Serial.println(x2Motor->isHomeSwitchTriggered());
     Serial.print("Y - Home: ");
-    Serial.print(yMotor->isHomeSwitchTriggered());
-    Serial.print(", Limit: ");
-    Serial.println(yMotor->isLimitSwitchTriggered());
+    Serial.println(yMotor->isHomeSwitchTriggered());
     Serial.print("Fork - Home: ");
-    Serial.print(forkMotor->isHomeSwitchTriggered());
-    Serial.print(", Limit: ");
-    Serial.println(forkMotor->isLimitSwitchTriggered());
+    Serial.println(forkMotor->isHomeSwitchTriggered());
     Serial.print("Storage - Home: ");
-    Serial.print(storageMotor->isHomeSwitchTriggered());
-    Serial.print(", Limit: ");
-    Serial.println(storageMotor->isLimitSwitchTriggered());
+    Serial.println(storageMotor->isHomeSwitchTriggered());
     Serial.println("==========================================");
     
     // Test move away directions for debugging

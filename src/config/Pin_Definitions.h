@@ -27,12 +27,6 @@
 #define Y_HOME_PIN 4
 #define FORK_HOME_PIN 5
 
-// Limit switches (Active LOW with pullup)
-#define X1_LIMIT_PIN 14
-#define X2_LIMIT_PIN 15
-#define Y_LIMIT_PIN 16
-#define FORK_LIMIT_PIN 17
-
 // Storage Stepper Motor
 #define STORAGE_STEP_PIN 21
 #define STORAGE_DIR_PIN 47

@@ -23,7 +23,7 @@
 #define MAX_ACCEL 10000             // Maximum acceleration in steps per second squared
 
 // Home switch configuration (in steps per second)
-#define HOME_SPEED 200             // Speed for homing operation
+#define HOME_SPEED 500             // Speed for homing operation
 #define HOME_ACCEL 2000            // Acceleration for homing
 
 // Safety settings

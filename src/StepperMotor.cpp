@@ -5,11 +5,10 @@
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
 //* ************************************************************************
 
-StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, const char* axisName) {
+StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axisName) {
     _stepPin = stepPin;
     _dirPin = dirPin;
     _homePin = homePin;
-    _limitPin = limitPin;
     _axisName = axisName;
     
     // Initialize motor properties
@@ -24,11 +23,6 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, c
         _homeSwitchBounce.attach(_homePin, INPUT);
         _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
     }
-    
-    if (_limitPin >= 0) {
-        _limitSwitchBounce.attach(_limitPin, INPUT_PULLDOWN);
-        _limitSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS); // Use same debounce time for limit switches
-    }
 }
 
 void StepperMotor::initialize() {
@@ -41,12 +35,6 @@ void StepperMotor::initialize() {
         Serial.print(_homeSwitchBounce.read());
     } else {
         Serial.print(" - No home switch");
-    }
-    if (_limitPin >= 0) {
-        Serial.print(", Limit pin state: ");
-        Serial.print(_limitSwitchBounce.read());
-    } else {
-        Serial.print(", No limit switch");
     }
     Serial.println();
     
@@ -147,14 +135,7 @@ bool StepperMotor::isHomeSwitchTriggered() {
     // Note: Bounce2 library with 1ms debounce provides fast response while preventing false triggers
 }
 
-bool StepperMotor::isLimitSwitchTriggered() {
-    // Check if limit switch exists
-    if (_limitPin < 0) {
-        return false; // No limit switch
-    }
-    
-    return _limitSwitchBounce.read() == HIGH; // Active HIGH
-}
+
 
 void StepperMotor::update() {
     if (!_stepper) return;
@@ -164,16 +145,6 @@ void StepperMotor::update() {
     
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
-    
-    // TEMPORARILY DISABLED: Check if limit switch is triggered (always check for safety)
-    // if (isLimitSwitchTriggered()) {
-    //     _stepper->stopMove();
-    //     _isMoving = false;
-    //     
-    //     Serial.print(_axisName);
-    //     Serial.println(" limit switch triggered - stopping");
-    //     return;
-    // }
     
     // Check if movement is complete
     if (!_stepper->isRunning()) {
@@ -259,11 +230,7 @@ void StepperMotor::updateSwitches() {
     // Only update if switches exist
     if (_homePin >= 0) {
         _homeSwitchBounce.update();
-    }
-    if (_limitPin >= 0) {
-        _limitSwitchBounce.update();
-    }
-    
+    }    
     // Note: This method should be called as frequently as possible during homing operations
 }
 
@@ -319,15 +286,7 @@ void StepperMotor::updateHoming() {
         lastHomeDebugTime = millis();
     }
     
-    // TEMPORARILY DISABLED: Check if limit switch is triggered (always check for safety)
-    // if (isLimitSwitchTriggered()) {
-    //     _stepper->stopMove();
-    //     _isMoving = false;
-    //     
-    //     Serial.print(_axisName);
-    //     Serial.println(" limit switch triggered - stopping");
-    //     return;
-    // }
+ 
     
     // Check if movement is complete
     if (!_stepper->isRunning()) {
