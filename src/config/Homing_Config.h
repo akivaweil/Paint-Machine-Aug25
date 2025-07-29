@@ -43,4 +43,11 @@
 // Move away from home switch distance (in inches)
 #define MOVE_AWAY_FROM_HOME_DISTANCE 0.5   // Distance to move away from home switch after homing
 
+// Move away direction settings (true = positive direction, false = negative direction)
+// These should be set based on the physical layout of your machine
+#define X1_MOVE_AWAY_DIRECTION_POSITIVE true    // X1 moves positive to get away from home switch
+#define X2_MOVE_AWAY_DIRECTION_POSITIVE true    // X2 moves positive to get away from home switch
+#define Y_MOVE_AWAY_DIRECTION_POSITIVE true     // Y moves positive to get away from home switch
+#define FORK_MOVE_AWAY_DIRECTION_POSITIVE true  // Fork moves positive to get away from home switch
+
 #endif // HOMING_CONFIG_H 

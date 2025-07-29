@@ -272,17 +272,34 @@ void StepperMotor::moveAwayFromHome() {
         return;
     }
     
-    // Move away from home position using configured distance
-    // Determine direction based on homing direction
+    // Move away from home position using configured distance and direction
     float moveDistance = MOVE_AWAY_FROM_HOME_DISTANCE; // Use configured distance
     
-    // If homing direction is positive, move negative to get away from home
-    // If homing direction is negative, move positive to get away from home
-    if (strcmp(_axisName, "X1") == 0 && X1_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
-    else if (strcmp(_axisName, "X2") == 0 && X2_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
-    else if (strcmp(_axisName, "Y") == 0 && Y_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
-    else if (strcmp(_axisName, "Fork") == 0 && FORK_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
-    else moveDistance = MOVE_AWAY_FROM_HOME_DISTANCE; // Default to positive if homing direction is negative
+    // Use explicit move away direction configuration (not based on homing direction)
+    if (strcmp(_axisName, "X1") == 0) {
+        moveDistance = X1_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+    } else if (strcmp(_axisName, "X2") == 0) {
+        moveDistance = X2_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+    } else if (strcmp(_axisName, "Y") == 0) {
+        moveDistance = Y_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+    } else if (strcmp(_axisName, "Fork") == 0) {
+        moveDistance = FORK_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+    }
+    
+    // Debug: Show current position and move direction
+    Serial.print(_axisName);
+    Serial.print(" current position: ");
+    Serial.print(_currentPosition);
+    Serial.print(" inches, moving away: ");
+    Serial.print(moveDistance);
+    Serial.println(" inches");
+    
+    // Safety check: Don't move if home switch is still triggered
+    if (isHomeSwitchTriggered()) {
+        Serial.print(_axisName);
+        Serial.println(" WARNING: Home switch still triggered - not moving away");
+        return;
+    }
     
     // Convert to steps
     long targetSteps = inchesToSteps(moveDistance);
@@ -298,5 +315,38 @@ void StepperMotor::moveAwayFromHome() {
     Serial.print(_axisName);
     Serial.print(" moving away from home: ");
     Serial.print(moveDistance);
+    Serial.println(" inches");
+}
+
+void StepperMotor::testMoveAwayDirection() {
+    Serial.print(_axisName);
+    Serial.print(" - Homing direction: ");
+    
+    // Show homing direction
+    if (strcmp(_axisName, "X1") == 0) {
+        Serial.print(X1_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "X2") == 0) {
+        Serial.print(X2_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "Y") == 0) {
+        Serial.print(Y_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "Fork") == 0) {
+        Serial.print(FORK_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    }
+    
+    Serial.print(", Move away direction: ");
+    
+    // Show move away direction
+    if (strcmp(_axisName, "X1") == 0) {
+        Serial.print(X1_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "X2") == 0) {
+        Serial.print(X2_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "Y") == 0) {
+        Serial.print(Y_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "Fork") == 0) {
+        Serial.print(FORK_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    }
+    
+    Serial.print(", Distance: ");
+    Serial.print(MOVE_AWAY_FROM_HOME_DISTANCE);
     Serial.println(" inches");
 } 

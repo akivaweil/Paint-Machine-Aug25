@@ -60,6 +60,14 @@ void setup() {
     Serial.println(digitalRead(FORK_LIMIT_PIN));
     Serial.println("==========================================");
     
+    // Test move away directions for debugging
+    Serial.println("=== MOVE AWAY DIRECTION TEST ===");
+    x1Motor->testMoveAwayDirection();
+    x2Motor->testMoveAwayDirection();
+    yMotor->testMoveAwayDirection();
+    forkMotor->testMoveAwayDirection();
+    Serial.println("=================================");
+    
     // Start in homing state for automatic homing on startup
     currentState = 1;
     stateInitialized = false;

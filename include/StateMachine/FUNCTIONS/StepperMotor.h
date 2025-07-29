@@ -53,6 +53,9 @@ public:
     
     // Move away from home position (0.5 inches)
     void moveAwayFromHome();
+    
+    // Test move away direction (prints direction without moving)
+    void testMoveAwayDirection();
 
 private:
     // Motor pins
