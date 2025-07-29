@@ -20,11 +20,31 @@ extern StepperMotor* forkMotor;
 bool homingStateInitialized = false;
 int homingPhase = 0; // 0 = homing, 1 = moving away from home
 
+// Individual motor tracking
+bool x1Homed = false;
+bool x2Homed = false;
+bool yHomed = false;
+bool forkHomed = false;
+bool x1MovedAway = false;
+bool x2MovedAway = false;
+bool yMovedAway = false;
+bool forkMovedAway = false;
+
 // Function to initialize homing state
 void initializeHomingState() {
     if (!homingStateInitialized) {
         Serial.println("=== HOMING STATE ===");
         Serial.println("Starting homing sequence - All motors simultaneously");
+        
+        // Reset tracking variables
+        x1Homed = false;
+        x2Homed = false;
+        yHomed = false;
+        forkHomed = false;
+        x1MovedAway = false;
+        x2MovedAway = false;
+        yMovedAway = false;
+        forkMovedAway = false;
         
         // Start all motors homing
         x1Motor->home();
@@ -51,87 +71,88 @@ int runHomingState() {
     // Declare variables for homing status
     bool x1Homed, x2Homed, yHomed, forkHomed;
     
-    // Handle different homing phases
+    // Handle independent motor homing and moving away
     switch (homingPhase) {
         case 0: // All motors homing simultaneously
-            // Check if all motors have reached home switches AND stopped moving
-            x1Homed = x1Motor->isHomingComplete();
-            x2Homed = x2Motor->isHomingComplete();
-            yHomed = yMotor->isHomingComplete();
-            forkHomed = forkMotor->isHomingComplete();
-            
-            if (x1Homed && x2Homed && yHomed && forkHomed) {
-                // All motors have reached home switches and stopped
+            // Check each motor individually for homing completion
+            if (!x1Homed && x1Motor->isHomingComplete()) {
+                x1Homed = true;
                 x1Motor->forceStop();
-                x2Motor->forceStop();
-                yMotor->forceStop();
-                forkMotor->forceStop();
                 x1Motor->setCurrentPositionAsZero();
+                Serial.println("X1 motor homed - moving away 0.5 inches positive");
+                x1Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
+            }
+            
+            if (!x2Homed && x2Motor->isHomingComplete()) {
+                x2Homed = true;
+                x2Motor->forceStop();
                 x2Motor->setCurrentPositionAsZero();
+                Serial.println("X2 motor homed - moving away 0.5 inches positive");
+                x2Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
+            }
+            
+            if (!yHomed && yMotor->isHomingComplete()) {
+                yHomed = true;
+                yMotor->forceStop();
                 yMotor->setCurrentPositionAsZero();
-                forkMotor->setCurrentPositionAsZero();
-                
-                Serial.println("All motors homing complete - moving away from home");
-                homingPhase = 1;
-                x1Motor->moveAwayFromHome();
-                x2Motor->moveAwayFromHome();
+                Serial.println("Y motor homed - moving away from home");
                 yMotor->moveAwayFromHome();
+            }
+            
+            if (!forkHomed && forkMotor->isHomingComplete()) {
+                forkHomed = true;
+                forkMotor->forceStop();
+                forkMotor->setCurrentPositionAsZero();
+                Serial.println("Fork motor homed - moving away from home");
                 forkMotor->moveAwayFromHome();
-            } else {
-                // Still homing - provide status updates
-                static unsigned long lastStatusTime = 0;
-                if (millis() - lastStatusTime > 1000) {
-                    Serial.print("Homing - X1: ");
-                    if (x1Motor->isHomeSwitchTriggered()) {
-                        Serial.print(x1Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
-                    } else {
-                        Serial.print("MOVING");
-                    }
-                    Serial.print(", X2: ");
-                    if (x2Motor->isHomeSwitchTriggered()) {
-                        Serial.print(x2Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
-                    } else {
-                        Serial.print("MOVING");
-                    }
-                    Serial.print(", Y: ");
-                    if (yMotor->isHomeSwitchTriggered()) {
-                        Serial.print(yMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
-                    } else {
-                        Serial.print("MOVING");
-                    }
-                    Serial.print(", Fork: ");
-                    if (forkMotor->isHomeSwitchTriggered()) {
-                        Serial.println(forkMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
-                    } else {
-                        Serial.println("MOVING");
-                    }
-                    lastStatusTime = millis();
+            }
+            
+            // Check if all motors have finished homing and moving away
+            if (x1Homed && x2Homed && yHomed && forkHomed) {
+                // Check if all motors have finished moving away
+                if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving() && !forkMotor->isMoving()) {
+                    Serial.println("All motors homed and moved away successfully - returning to IDLE state");
+                    return 0; // Transition to IDLE state
                 }
             }
-            break;
             
-        case 1: // All motors moving away from home
-            // Check if all motors have finished moving away
-            if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving() && !forkMotor->isMoving()) {
-                Serial.println("All motors moved away from home");
-                Serial.println("All motors homed successfully - returning to IDLE state");
-                
-                // Return to idle state
-                return 0; // Transition to IDLE state
-            } else {
-                // Still moving away from home - provide status updates
-                static unsigned long lastMoveTime = 0;
-                if (millis() - lastMoveTime > 1000) {
-                    Serial.print("Moving away - X1: ");
-                    Serial.print(x1Motor->isMoving() ? "MOVING" : "STOPPED");
-                    Serial.print(", X2: ");
-                    Serial.print(x2Motor->isMoving() ? "MOVING" : "STOPPED");
-                    Serial.print(", Y: ");
-                    Serial.print(yMotor->isMoving() ? "MOVING" : "STOPPED");
-                    Serial.print(", Fork: ");
-                    Serial.println(forkMotor->isMoving() ? "MOVING" : "STOPPED");
-                    lastMoveTime = millis();
+            // Provide status updates
+            static unsigned long lastStatusTime = 0;
+            if (millis() - lastStatusTime > 1000) {
+                Serial.print("Homing - X1: ");
+                if (x1Homed) {
+                    Serial.print(x1Motor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (x1Motor->isHomeSwitchTriggered()) {
+                    Serial.print(x1Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                } else {
+                    Serial.print("MOVING");
                 }
+                Serial.print(", X2: ");
+                if (x2Homed) {
+                    Serial.print(x2Motor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (x2Motor->isHomeSwitchTriggered()) {
+                    Serial.print(x2Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                } else {
+                    Serial.print("MOVING");
+                }
+                Serial.print(", Y: ");
+                if (yHomed) {
+                    Serial.print(yMotor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (yMotor->isHomeSwitchTriggered()) {
+                    Serial.print(yMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                } else {
+                    Serial.print("MOVING");
+                }
+                Serial.print(", Fork: ");
+                if (forkHomed) {
+                    Serial.print(forkMotor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (forkMotor->isHomeSwitchTriggered()) {
+                    Serial.print(forkMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                } else {
+                    Serial.print("MOVING");
+                }
+                Serial.println();
+                lastStatusTime = millis();
             }
             break;
     }
@@ -144,4 +165,14 @@ int runHomingState() {
 void resetHomingState() {
     homingStateInitialized = false;
     homingPhase = 0;
+    
+    // Reset tracking variables
+    x1Homed = false;
+    x2Homed = false;
+    yHomed = false;
+    forkHomed = false;
+    x1MovedAway = false;
+    x2MovedAway = false;
+    yMovedAway = false;
+    forkMovedAway = false;
 } 
