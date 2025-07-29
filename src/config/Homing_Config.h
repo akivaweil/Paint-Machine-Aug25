@@ -29,8 +29,8 @@
 #define HOME_SWITCH_DEBOUNCE_MS 50         // Debounce time for home switches to prevent false triggers
 
 // Homing direction settings (true = positive direction, false = negative direction)
-#define X1_HOME_DIRECTION_POSITIVE true    // X1 homes in positive direction
-#define X2_HOME_DIRECTION_POSITIVE true    // X2 homes in positive direction
+#define X1_HOME_DIRECTION_POSITIVE true    // X1 homes in positive direction (away from home switch)
+#define X2_HOME_DIRECTION_POSITIVE true    // X2 homes in positive direction (away from home switch)
 #define Y_HOME_DIRECTION_POSITIVE false    // Y homes in negative direction
 #define FORK_HOME_DIRECTION_POSITIVE false  // Fork homes in negative direction
 
