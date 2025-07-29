@@ -1,87 +1,35 @@
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
-#include "StateMachine/STATES/00_IDLE.h"
-#include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
-#include "StateMachine/FUNCTIONS/HomeSwitch.h"
 
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
 //* ************************************************************************
 
-// Global motor objects
+// Global motor objects - all motors needed
 StepperMotor* x1Motor = nullptr;
 StepperMotor* x2Motor = nullptr;
 StepperMotor* yMotor = nullptr;
 StepperMotor* forkMotor = nullptr;
 
-// Global home switch objects
-HomeSwitch* x1HomeSwitch = nullptr;
-HomeSwitch* x2HomeSwitch = nullptr;
-HomeSwitch* yHomeSwitch = nullptr;
-HomeSwitch* forkHomeSwitch = nullptr;
-
 // State machine variables
-int currentState = 0;
-int nextState = 0;
+int currentState = 0; // 0 = IDLE, 1 = HOMING
 bool stateInitialized = false;
 
-// Function pointers for state functions
-typedef void (*StateInitFunc)();
-typedef void (*StateRunFunc)();
-typedef bool (*StateTransitionFunc)();
-typedef int (*StateNextFunc)();
-typedef void (*StateCleanupFunc)();
-
-// State function arrays
-StateInitFunc stateInitFunctions[] = {
-    IdleState::initialize,
-    HomingState::initialize
-};
-
-StateRunFunc stateRunFunctions[] = {
-    IdleState::run,
-    HomingState::run
-};
-
-StateTransitionFunc stateTransitionFunctions[] = {
-    IdleState::shouldTransition,
-    HomingState::shouldTransition
-};
-
-StateNextFunc stateNextFunctions[] = {
-    IdleState::getNextState,
-    HomingState::getNextState
-};
-
-StateCleanupFunc stateCleanupFunctions[] = {
-    IdleState::cleanup,
-    HomingState::cleanup
-};
+// Homing sequence tracking
+int homingPhase = 0; // 0 = X motors, 1 = Y motor, 2 = Fork motor
 
 void setup() {
     // Initialize serial communication
     Serial.begin(115200);
-    
-    // Initialize input pins
-    pinMode(START_BUTTON_PIN, INPUT_PULLDOWN);
-    pinMode(STOP_BUTTON_PIN, INPUT_PULLDOWN);
-    pinMode(E_STOP_PIN, INPUT_PULLDOWN);
-    pinMode(RESET_PIN, INPUT_PULLDOWN);
-    pinMode(PAUSE_PIN, INPUT_PULLDOWN);
-    
-    // Initialize status LEDs
-    pinMode(STATUS_LED_PIN, OUTPUT);
-    pinMode(ERROR_LED_PIN, OUTPUT);
-    digitalWrite(STATUS_LED_PIN, LOW);
-    digitalWrite(ERROR_LED_PIN, LOW);
+    Serial.println("=== Paint Machine Starting ===");
     
     // Create motor objects
-    x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_ENABLE_PIN, X1_HOME_PIN, X1_LIMIT_PIN, "X1");
-    x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_ENABLE_PIN, X2_HOME_PIN, X2_LIMIT_PIN, "X2");
-    yMotor = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_HOME_PIN, Y_LIMIT_PIN, "Y");
-    forkMotor = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, FORK_ENABLE_PIN, FORK_HOME_PIN, FORK_LIMIT_PIN, "Fork");
+    x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_HOME_PIN, X1_LIMIT_PIN, "X1");
+    x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_HOME_PIN, X2_LIMIT_PIN, "X2");
+    yMotor = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, Y_HOME_PIN, Y_LIMIT_PIN, "Y");
+    forkMotor = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, FORK_HOME_PIN, FORK_LIMIT_PIN, "Fork");
     
     // Initialize motors
     x1Motor->initialize();
@@ -89,66 +37,148 @@ void setup() {
     yMotor->initialize();
     forkMotor->initialize();
     
-    // Create home switch objects
-    x1HomeSwitch = new HomeSwitch(X1_HOME_PIN, "X1 Home");
-    x2HomeSwitch = new HomeSwitch(X2_HOME_PIN, "X2 Home");
-    yHomeSwitch = new HomeSwitch(Y_HOME_PIN, "Y Home");
-    forkHomeSwitch = new HomeSwitch(FORK_HOME_PIN, "Fork Home");
-    
-    // Initialize home switches
-    x1HomeSwitch->initialize();
-    x2HomeSwitch->initialize();
-    yHomeSwitch->initialize();
-    forkHomeSwitch->initialize();
+    Serial.println("All motors initialized");
     
     // Start in idle state
     currentState = 0;
-    nextState = 0;
     stateInitialized = false;
-    
-    // Initial status indication
-    digitalWrite(STATUS_LED_PIN, HIGH);
-    delay(1000);
-    digitalWrite(STATUS_LED_PIN, LOW);
+    homingPhase = 0;
 }
 
 void loop() {
-    // Update home switches
-    if (x1HomeSwitch) x1HomeSwitch->update();
-    if (x2HomeSwitch) x2HomeSwitch->update();
-    if (yHomeSwitch) yHomeSwitch->update();
-    if (forkHomeSwitch) forkHomeSwitch->update();
-    
     // State machine logic
     if (!stateInitialized) {
         // Initialize current state
-        if (currentState < sizeof(stateInitFunctions) / sizeof(stateInitFunctions[0])) {
-            stateInitFunctions[currentState]();
+        if (currentState == 0) {
+            // IDLE state initialization
+            Serial.println("Entering IDLE state");
+            stateInitialized = true;
+        } else if (currentState == 1) {
+            // HOMING state initialization
+            Serial.println("Starting homing sequence - Phase 1: X motors (simultaneously)");
+            x1Motor->home();
+            x2Motor->home();
+            homingPhase = 0;
+            stateInitialized = true;
         }
-        stateInitialized = true;
     }
     
     // Run current state
-    if (currentState < sizeof(stateRunFunctions) / sizeof(stateRunFunctions[0])) {
-        stateRunFunctions[currentState]();
-    }
-    
-    // Check for state transition
-    if (currentState < sizeof(stateTransitionFunctions) / sizeof(stateTransitionFunctions[0])) {
-        if (stateTransitionFunctions[currentState]()) {
-            // Get next state
-            if (currentState < sizeof(stateNextFunctions) / sizeof(stateNextFunctions[0])) {
-                nextState = stateNextFunctions[currentState]();
+    if (currentState == 0) {
+        // IDLE state - check for homing command
+        if (Serial.available()) {
+            String command = Serial.readString();
+            command.trim();
+            if (command == "home" || command == "h") {
+                Serial.println("Homing command received - transitioning to homing state");
+                currentState = 1;
+                stateInitialized = false;
             }
-            
-            // Cleanup current state
-            if (currentState < sizeof(stateCleanupFunctions) / sizeof(stateCleanupFunctions[0])) {
-                stateCleanupFunctions[currentState]();
-            }
-            
-            // Transition to next state
-            currentState = nextState;
-            stateInitialized = false;
+        }
+    } else if (currentState == 1) {
+        // HOMING state
+        // Update all motor states
+        x1Motor->update();
+        x2Motor->update();
+        yMotor->update();
+        forkMotor->update();
+        
+        // Declare variables outside switch to avoid compilation errors
+        bool x1Homed, x2Homed, yHomed, forkHomed;
+        
+        // Handle different homing phases
+        switch (homingPhase) {
+            case 0: // X motors (both simultaneously)
+                // Check if both X motors have reached home switches AND stopped moving
+                x1Homed = x1Motor->isHomeSwitchTriggered() && !x1Motor->isMoving();
+                x2Homed = x2Motor->isHomeSwitchTriggered() && !x2Motor->isMoving();
+                
+                if (x1Homed && x2Homed) {
+                    // Both X motors have reached home switches and stopped
+                    x1Motor->forceStop();
+                    x2Motor->forceStop();
+                    x1Motor->setCurrentPositionAsZero();
+                    x2Motor->setCurrentPositionAsZero();
+                    
+                    Serial.println("X motors homing complete - Phase 2: Y motor");
+                    homingPhase = 1;
+                    yMotor->home();
+                } else {
+                    // Still homing X motors - provide status updates
+                    static unsigned long lastXStatusTime = 0;
+                    if (millis() - lastXStatusTime > 1000) {
+                        Serial.print("X motors homing - X1: ");
+                        if (x1Motor->isHomeSwitchTriggered()) {
+                            Serial.print(x1Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                        } else {
+                            Serial.print("MOVING");
+                        }
+                        Serial.print(", X2: ");
+                        if (x2Motor->isHomeSwitchTriggered()) {
+                            Serial.println(x2Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                        } else {
+                            Serial.println("MOVING");
+                        }
+                        lastXStatusTime = millis();
+                    }
+                }
+                break;
+                
+            case 1: // Y motor
+                yHomed = yMotor->isHomeSwitchTriggered() && !yMotor->isMoving();
+                
+                if (yHomed) {
+                    // Y motor has reached home switch and stopped
+                    yMotor->forceStop();
+                    yMotor->setCurrentPositionAsZero();
+                    
+                    Serial.println("Y motor homing complete - Phase 3: Fork motor");
+                    homingPhase = 2;
+                    forkMotor->home();
+                } else {
+                    // Still homing Y motor - provide status updates
+                    static unsigned long lastYStatusTime = 0;
+                    if (millis() - lastYStatusTime > 1000) {
+                        Serial.print("Y motor homing - Y: ");
+                        if (yMotor->isHomeSwitchTriggered()) {
+                            Serial.println(yMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                        } else {
+                            Serial.println("MOVING");
+                        }
+                        lastYStatusTime = millis();
+                    }
+                }
+                break;
+                
+            case 2: // Fork motor
+                forkHomed = forkMotor->isHomeSwitchTriggered() && !forkMotor->isMoving();
+                
+                if (forkHomed) {
+                    // Fork motor has reached home switch and stopped
+                    forkMotor->forceStop();
+                    forkMotor->setCurrentPositionAsZero();
+                    
+                    Serial.println("Fork motor homing complete");
+                    Serial.println("All motors homed successfully - returning to IDLE state");
+                    
+                    // Return to idle state
+                    currentState = 0;
+                    stateInitialized = false;
+                    homingPhase = 0;
+                } else {
+                    // Still homing Fork motor - provide status updates
+                    static unsigned long lastForkStatusTime = 0;
+                    if (millis() - lastForkStatusTime > 1000) {
+                        Serial.print("Fork motor homing - Fork: ");
+                        if (forkMotor->isHomeSwitchTriggered()) {
+                            Serial.println(forkMotor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
+                        } else {
+                            Serial.println("MOVING");
+                        }
+                        lastForkStatusTime = millis();
+                    }
+                }
+                break;
         }
     }
     

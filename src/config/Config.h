@@ -14,9 +14,9 @@
 #define WIFI_PASSWORD "Everwood-Staff"
 
 // Motor configuration
-#define STEPPER_STEPS_PER_REV 200  // Standard stepper motor steps per revolution
-#define MICROSTEPPING 16           // Microstepping setting
-#define STEPS_PER_MM 100          // Steps per mm (adjust based on your lead screw)
+#define STEPPER_STEPS_PER_REV 400  // 400 steps per revolution
+#define MICROSTEPPING 1            // No microstepping (full steps)
+#define STEPS_PER_MM 10           // Steps per mm (400 steps / 40mm per rev = 10 steps/mm)
 
 // Speed and acceleration settings
 #define MAX_SPEED_MM_PER_SEC 50    // Maximum speed in mm per second

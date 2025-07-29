@@ -1,105 +1,114 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "config/Homing_Config.h"
 
 //* ************************************************************************
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
 //* ************************************************************************
 
-StepperMotor::StepperMotor(int stepPin, int dirPin, int enablePin, int homePin, int limitPin, const char* axisName) {
+StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, const char* axisName) {
     _stepPin = stepPin;
     _dirPin = dirPin;
-    _enablePin = enablePin;
     _homePin = homePin;
     _limitPin = limitPin;
     _axisName = axisName;
     
     // Initialize motor properties
     _currentPosition = 0.0;
-    _targetPosition = 0.0;
     _isMoving = false;
-    _isEnabled = false;
-    _lastStepTime = 0;
-    _stepInterval = 1000; // Default 1ms interval
+    
+    // Initialize FastAccelStepper pointer
+    _stepper = nullptr;
 }
 
 void StepperMotor::initialize() {
-    // Set pin modes
-    pinMode(_stepPin, OUTPUT);
-    pinMode(_dirPin, OUTPUT);
-    pinMode(_enablePin, OUTPUT);
-    pinMode(_homePin, INPUT_PULLUP);
+    // Set pin modes for switches
+    pinMode(_homePin, INPUT_PULLDOWN);
     pinMode(_limitPin, INPUT_PULLUP);
     
-    // Initialize pin states
-    digitalWrite(_stepPin, LOW);
-    digitalWrite(_dirPin, LOW);
-    digitalWrite(_enablePin, HIGH); // Disable motor initially
+    // Initialize FastAccelStepper engine (only once)
+    static FastAccelStepperEngine* engine = nullptr;
+    if (!engine) {
+        engine = new FastAccelStepperEngine();
+        engine->init();
+    }
     
-    // Calculate steps per mm
-    float stepsPerRev = STEPPER_STEPS_PER_REV * MICROSTEPPING;
-    float stepsPerMm = stepsPerRev / STEPS_PER_MM;
-}
-
-void StepperMotor::enable() {
-    digitalWrite(_enablePin, LOW); // Enable motor (active low)
-    _isEnabled = true;
-}
-
-void StepperMotor::disable() {
-    digitalWrite(_enablePin, HIGH); // Disable motor (active low)
-    _isEnabled = false;
-    _isMoving = false;
-}
-
-void StepperMotor::moveTo(float position) {
-    // Constrain position to limits
-    position = constrain(position, MIN_TRAVEL_MM, MAX_TRAVEL_MM);
-    
-    _targetPosition = position;
-    _isMoving = true;
-    
-    // Set direction
-    setDirection(_targetPosition > _currentPosition);
-    
-    // Calculate step interval for movement
-    calculateStepInterval(MAX_SPEED_MM_PER_SEC);
-}
-
-void StepperMotor::moveRelative(float distance) {
-    moveTo(_currentPosition + distance);
+    // Create stepper instance using FastAccelStepper
+    _stepper = engine->stepperConnectToPin(_stepPin);
+    if (_stepper) {
+        _stepper->setDirectionPin(_dirPin);
+        
+        // Set default acceleration and speed (will be overridden during homing)
+        _stepper->setAcceleration(ACCELERATION_MM_PER_SEC2 * STEPS_PER_MM);
+        _stepper->setSpeedInHz(MAX_SPEED_MM_PER_SEC * STEPS_PER_MM);
+        
+        Serial.print(_axisName);
+        Serial.println(" motor initialized");
+    } else {
+        Serial.print("ERROR: Failed to initialize ");
+        Serial.println(_axisName);
+    }
 }
 
 void StepperMotor::home() {
-    // Move towards home switch at homing speed
-    _targetPosition = -1000; // Move towards home
+    if (!_stepper) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.println(" stepper not initialized");
+        return;
+    }
+    
+    // Set individual homing speed and acceleration based on motor type
+    float homeSpeed = getHomingSpeed();
+    float homeAccel = getHomingAcceleration();
+    long homeDistance = getHomingDistance();
+    
+    // Move towards home switch at individual homing speed
     _isMoving = true;
     
-    // Set direction towards home
-    setDirection(false); // Assuming home is at lower position
+    // Set individual homing speed and acceleration
+    _stepper->setAcceleration(homeAccel * STEPS_PER_MM);
+    _stepper->setSpeedInHz(homeSpeed * STEPS_PER_MM);
     
-    // Calculate step interval for homing speed
-    calculateStepInterval(HOME_SPEED_MM_PER_SEC);
+    // Move towards home using individual distance and direction
+    _stepper->moveTo(homeDistance);
+    
+    Serial.print(_axisName);
+    Serial.print(" starting homing sequence (Speed: ");
+    Serial.print(homeSpeed);
+    Serial.print(" mm/s, Accel: ");
+    Serial.print(homeAccel);
+    Serial.println(" mm/s²)");
 }
 
-void StepperMotor::stop() {
+void StepperMotor::forceStop() {
+    if (_stepper) {
+        _stepper->forceStop();
+    }
     _isMoving = false;
-    digitalWrite(_stepPin, LOW);
+    
+    Serial.print(_axisName);
+    Serial.println(" stopped");
 }
 
 bool StepperMotor::isMoving() {
+    if (_stepper) {
+        return _stepper->isRunning();
+    }
     return _isMoving;
 }
 
-float StepperMotor::getCurrentPosition() {
-    return _currentPosition;
-}
-
 void StepperMotor::setCurrentPositionAsZero() {
+    if (_stepper) {
+        _stepper->setCurrentPosition(0);
+    }
     _currentPosition = 0.0;
-    _targetPosition = 0.0;
+    
+    Serial.print(_axisName);
+    Serial.println(" position set to zero");
 }
 
 bool StepperMotor::isHomeSwitchTriggered() {
-    return digitalRead(_homePin) == LOW; // Active LOW
+    return digitalRead(_homePin) == HIGH; // Active HIGH
 }
 
 bool StepperMotor::isLimitSwitchTriggered() {
@@ -107,65 +116,77 @@ bool StepperMotor::isLimitSwitchTriggered() {
 }
 
 void StepperMotor::update() {
-    if (!_isEnabled || !_isMoving) {
-        return;
-    }
+    if (!_stepper) return;
     
-    // Check if we've reached the target
-    if (abs(_currentPosition - _targetPosition) < 0.01) {
-        _isMoving = false;
-        digitalWrite(_stepPin, LOW);
-        return;
-    }
+    // Update current position from stepper
+    _currentPosition = stepsToMm(_stepper->getCurrentPosition());
     
     // Check if home switch is triggered during homing
-    if (_targetPosition < _currentPosition && isHomeSwitchTriggered()) {
+    if (_isMoving && isHomeSwitchTriggered()) {
+        _stepper->stopMove();
         _isMoving = false;
         _currentPosition = 0.0; // Set home position
-        digitalWrite(_stepPin, LOW);
+        _stepper->setCurrentPosition(0);
+        
+        Serial.print(_axisName);
+        Serial.println(" reached home switch");
         return;
     }
     
     // Check if limit switch is triggered
     if (isLimitSwitchTriggered()) {
+        _stepper->stopMove();
         _isMoving = false;
-        digitalWrite(_stepPin, LOW);
+        
+        Serial.print(_axisName);
+        Serial.println(" limit switch triggered - stopping");
         return;
     }
     
-    // Execute step if timing is right
-    unsigned long currentTime = micros();
-    if (currentTime - _lastStepTime >= _stepInterval) {
-        step();
-        _lastStepTime = currentTime;
+    // Check if movement is complete
+    if (!_stepper->isRunning()) {
+        _isMoving = false;
     }
 }
 
-void StepperMotor::calculateStepInterval(float speed) {
-    // Convert speed from mm/sec to steps/sec
-    float stepsPerRev = STEPPER_STEPS_PER_REV * MICROSTEPPING;
-    float stepsPerMm = stepsPerRev / STEPS_PER_MM;
-    float stepsPerSec = speed * stepsPerMm;
-    
-    // Calculate interval in microseconds
-    _stepInterval = 1000000 / stepsPerSec;
+// Helper functions to get individual motor homing settings
+float StepperMotor::getHomingSpeed() {
+    if (strcmp(_axisName, "X1") == 0) return X1_HOME_SPEED_MM_PER_SEC;
+    if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED_MM_PER_SEC;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED_MM_PER_SEC;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED_MM_PER_SEC;
+    return HOME_SPEED_MM_PER_SEC; // Default fallback
 }
 
-void StepperMotor::step() {
-    // Toggle step pin
-    digitalWrite(_stepPin, HIGH);
-    delayMicroseconds(1); // Minimum pulse width
-    digitalWrite(_stepPin, LOW);
-    
-    // Update position
-    float stepDistance = 1.0 / (STEPPER_STEPS_PER_REV * MICROSTEPPING / STEPS_PER_MM);
-    if (digitalRead(_dirPin) == HIGH) {
-        _currentPosition += stepDistance;
-    } else {
-        _currentPosition -= stepDistance;
-    }
+float StepperMotor::getHomingAcceleration() {
+    if (strcmp(_axisName, "X1") == 0) return X1_HOME_ACCELERATION_MM_PER_SEC2;
+    if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCELERATION_MM_PER_SEC2;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCELERATION_MM_PER_SEC2;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCELERATION_MM_PER_SEC2;
+    return HOME_ACCELERATION_MM_PER_SEC2; // Default fallback
 }
 
-void StepperMotor::setDirection(bool forward) {
-    digitalWrite(_dirPin, forward ? HIGH : LOW);
+long StepperMotor::getHomingDistance() {
+    long distance;
+    if (strcmp(_axisName, "X1") == 0) distance = X1_HOME_DISTANCE_STEPS;
+    else if (strcmp(_axisName, "X2") == 0) distance = X2_HOME_DISTANCE_STEPS;
+    else if (strcmp(_axisName, "Y") == 0) distance = Y_HOME_DISTANCE_STEPS;
+    else if (strcmp(_axisName, "Fork") == 0) distance = FORK_HOME_DISTANCE_STEPS;
+    else distance = 10000; // Default fallback
+    
+    // Apply direction based on configuration
+    if (strcmp(_axisName, "X1") == 0 && !X1_HOME_DIRECTION_POSITIVE) distance = -distance;
+    else if (strcmp(_axisName, "X2") == 0 && !X2_HOME_DIRECTION_POSITIVE) distance = -distance;
+    else if (strcmp(_axisName, "Y") == 0 && !Y_HOME_DIRECTION_POSITIVE) distance = -distance;
+    else if (strcmp(_axisName, "Fork") == 0 && !FORK_HOME_DIRECTION_POSITIVE) distance = -distance;
+    
+    return distance;
+}
+
+long StepperMotor::mmToSteps(float mm) {
+    return (long)(mm * STEPS_PER_MM);
+}
+
+float StepperMotor::stepsToMm(long steps) {
+    return (float)steps / STEPS_PER_MM;
 } 

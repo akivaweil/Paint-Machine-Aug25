@@ -6,38 +6,26 @@
 //* ************************************************************************
 
 #include <Arduino.h>
+#include <FastAccelStepper.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 
 class StepperMotor {
 public:
     // Constructor
-    StepperMotor(int stepPin, int dirPin, int enablePin, int homePin, int limitPin, const char* axisName);
+    StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, const char* axisName);
     
     // Initialize the motor
     void initialize();
     
-    // Enable/disable the motor
-    void enable();
-    void disable();
-    
-    // Move to absolute position
-    void moveTo(float position);
-    
-    // Move relative distance
-    void moveRelative(float distance);
-    
     // Home the motor
     void home();
     
-    // Stop the motor
-    void stop();
+    // Force stop the motor (emergency stop)
+    void forceStop();
     
     // Check if motor is moving
     bool isMoving();
-    
-    // Get current position
-    float getCurrentPosition();
     
     // Set current position as zero
     void setCurrentPositionAsZero();
@@ -55,29 +43,27 @@ private:
     // Motor pins
     int _stepPin;
     int _dirPin;
-    int _enablePin;
     int _homePin;
     int _limitPin;
     
     // Motor properties
     const char* _axisName;
     float _currentPosition;
-    float _targetPosition;
     bool _isMoving;
-    bool _isEnabled;
     
-    // Movement timing
-    unsigned long _lastStepTime;
-    unsigned long _stepInterval;
+    // FastAccelStepper stepper
+    FastAccelStepper* _stepper;
     
-    // Calculate step interval based on speed
-    void calculateStepInterval(float speed);
+    // Helper functions for individual motor homing settings
+    float getHomingSpeed();
+    float getHomingAcceleration();
+    long getHomingDistance();
     
-    // Execute one step
-    void step();
+    // Convert mm to steps
+    long mmToSteps(float mm);
     
-    // Set direction
-    void setDirection(bool forward);
+    // Convert steps to mm
+    float stepsToMm(long steps);
 };
 
 #endif // STEPPER_MOTOR_H 
