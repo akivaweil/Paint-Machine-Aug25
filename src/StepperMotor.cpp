@@ -22,7 +22,7 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, c
 
 void StepperMotor::initialize() {
     // Set pin modes for switches
-    pinMode(_homePin, INPUT_PULLDOWN);
+    pinMode(_homePin, INPUT); // Using external resistors
     pinMode(_limitPin, INPUT_PULLUP);
     
     // Initialize FastAccelStepper engine (only once)
