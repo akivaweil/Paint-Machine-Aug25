@@ -25,7 +25,23 @@ void initializeIdleState() {
         Serial.println("Type 'home' or 'h' to start homing sequence");
         Serial.println("Type 'test' or 't' to enter test position state");
         Serial.println("Type 'm' for manual movement sequence (5,5->10,5->10,10->5,10)");
-        Serial.println("Type 'sequence' or 's' to start test sequence (5,5->fork->Y+0.5->fork->10,5->fork->Y-0.5->fork->1,1)");
+        Serial.print("Type 'sequence' or 's' to start test sequence (");
+        Serial.print(TEST_POSITION_1_X);
+        Serial.print(",");
+        Serial.print(TEST_POSITION_1_Y);
+        Serial.print("->fork->Y+");
+        Serial.print(TEST_Y_MOVE_UP_DISTANCE);
+        Serial.print("->fork->");
+        Serial.print(TEST_POSITION_2_X);
+        Serial.print(",");
+        Serial.print(TEST_POSITION_2_Y);
+        Serial.print("->fork->Y-");
+        Serial.print(TEST_Y_MOVE_DOWN_DISTANCE);
+        Serial.print("->fork->");
+        Serial.print(TEST_POSITION_FINAL_X);
+        Serial.print(",");
+        Serial.println(TEST_POSITION_FINAL_Y);
+        Serial.println(")");
         Serial.println("================================");
         idleStateInitialized = true;
     }

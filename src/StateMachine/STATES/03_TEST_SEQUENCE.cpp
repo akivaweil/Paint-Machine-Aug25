@@ -42,7 +42,26 @@ void initializeTestSequenceState() {
         
         Serial.println("=== TEST SEQUENCE STATE INITIALIZED ===");
         Serial.println("Starting test sequence automatically");
-        Serial.println("Sequence: 5,5 -> extend fork -> Y+0.5 -> retract fork -> 10,5 -> extend fork -> Y-0.5 -> retract fork -> 1,1");
+        Serial.print("Sequence: ");
+        Serial.print(TEST_POSITION_1_X);
+        Serial.print(",");
+        Serial.print(TEST_POSITION_1_Y);
+        Serial.print(" -> extend fork ");
+        Serial.print(TEST_FORK_EXTEND_DISTANCE);
+        Serial.print(" -> Y+");
+        Serial.print(TEST_Y_MOVE_UP_DISTANCE);
+        Serial.print(" -> retract fork -> ");
+        Serial.print(TEST_POSITION_2_X);
+        Serial.print(",");
+        Serial.print(TEST_POSITION_2_Y);
+        Serial.print(" -> extend fork ");
+        Serial.print(TEST_FORK_EXTEND_DISTANCE);
+        Serial.print(" -> Y-");
+        Serial.print(TEST_Y_MOVE_DOWN_DISTANCE);
+        Serial.print(" -> retract fork -> ");
+        Serial.print(TEST_POSITION_FINAL_X);
+        Serial.print(",");
+        Serial.println(TEST_POSITION_FINAL_Y);
         Serial.println("=========================================");
         
         // Automatically start the sequence when entering this state
@@ -99,90 +118,114 @@ int runTestSequenceState() {
         switch (testSequenceStep) {
             case 0:
                 //! ************************************************************************
-                //! STEP 5: MOVE TO POSITION 5,5
+                //! STEP 5: MOVE TO POSITION 1 (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 1: Moving to position 5,5 ===");
-                x1Motor->moveToPosition(5.0);
-                x2Motor->moveToPosition(5.0);
-                yMotor->moveToPosition(5.0);
+                Serial.print("=== STEP 1: Moving to position ");
+                Serial.print(TEST_POSITION_1_X);
+                Serial.print(",");
+                Serial.print(TEST_POSITION_1_Y);
+                Serial.println(" ===");
+                x1Motor->moveToPosition(TEST_POSITION_1_X);
+                x2Motor->moveToPosition(TEST_POSITION_1_X);
+                yMotor->moveToPosition(TEST_POSITION_1_Y);
                 testSequenceStep++;
                 break;
                 
             case 1:
                 //! ************************************************************************
-                //! STEP 6: EXTEND FORK 3.8 INCHES
+                //! STEP 6: EXTEND FORK (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 2: Extending fork 3.8 inches ===");
-                forkMotor->moveToPosition(3.8);
+                Serial.print("=== STEP 2: Extending fork ");
+                Serial.print(TEST_FORK_EXTEND_DISTANCE);
+                Serial.println(" inches ===");
+                forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
                 testSequenceStep++;
                 break;
                 
             case 2:
                 //! ************************************************************************
-                //! STEP 7: MOVE Y UP 0.5 INCHES
+                //! STEP 7: MOVE Y UP (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 3: Moving Y up 0.5 inches ===");
+                Serial.print("=== STEP 3: Moving Y up ");
+                Serial.print(TEST_Y_MOVE_UP_DISTANCE);
+                Serial.println(" inches ===");
                 currentY = yMotor->getCurrentPosition();
-                yMotor->moveToPosition(currentY + 0.5);
+                yMotor->moveToPosition(currentY + TEST_Y_MOVE_UP_DISTANCE);
                 testSequenceStep++;
                 break;
                 
             case 3:
                 //! ************************************************************************
-                //! STEP 8: RETRACT FORK TO 0
+                //! STEP 8: RETRACT FORK (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 4: Retracting fork to 0 ===");
-                forkMotor->moveToPosition(0.0);
+                Serial.print("=== STEP 4: Retracting fork to ");
+                Serial.print(TEST_FORK_RETRACT_POSITION);
+                Serial.println(" ===");
+                forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
                 testSequenceStep++;
                 break;
                 
             case 4:
                 //! ************************************************************************
-                //! STEP 9: MOVE TO POSITION 10,5
+                //! STEP 9: MOVE TO POSITION 2 (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 5: Moving to position 10,5 ===");
-                x1Motor->moveToPosition(10.0);
-                x2Motor->moveToPosition(10.0);
-                yMotor->moveToPosition(5.0);
+                Serial.print("=== STEP 5: Moving to position ");
+                Serial.print(TEST_POSITION_2_X);
+                Serial.print(",");
+                Serial.print(TEST_POSITION_2_Y);
+                Serial.println(" ===");
+                x1Motor->moveToPosition(TEST_POSITION_2_X);
+                x2Motor->moveToPosition(TEST_POSITION_2_X);
+                yMotor->moveToPosition(TEST_POSITION_2_Y);
                 testSequenceStep++;
                 break;
                 
             case 5:
                 //! ************************************************************************
-                //! STEP 10: EXTEND FORK 3.8 INCHES
+                //! STEP 10: EXTEND FORK (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 6: Extending fork 3.8 inches ===");
-                forkMotor->moveToPosition(3.8);
+                Serial.print("=== STEP 6: Extending fork ");
+                Serial.print(TEST_FORK_EXTEND_DISTANCE);
+                Serial.println(" inches ===");
+                forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
                 testSequenceStep++;
                 break;
                 
             case 6:
                 //! ************************************************************************
-                //! STEP 11: MOVE Y DOWN 0.5 INCHES
+                //! STEP 11: MOVE Y DOWN (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 7: Moving Y down 0.5 inches ===");
+                Serial.print("=== STEP 7: Moving Y down ");
+                Serial.print(TEST_Y_MOVE_DOWN_DISTANCE);
+                Serial.println(" inches ===");
                 currentY2 = yMotor->getCurrentPosition();
-                yMotor->moveToPosition(currentY2 - 0.5);
+                yMotor->moveToPosition(currentY2 - TEST_Y_MOVE_DOWN_DISTANCE);
                 testSequenceStep++;
                 break;
                 
             case 7:
                 //! ************************************************************************
-                //! STEP 12: RETRACT FORK TO 0
+                //! STEP 12: RETRACT FORK (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 8: Retracting fork to 0 ===");
-                forkMotor->moveToPosition(0.0);
+                Serial.print("=== STEP 8: Retracting fork to ");
+                Serial.print(TEST_FORK_RETRACT_POSITION);
+                Serial.println(" ===");
+                forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
                 testSequenceStep++;
                 break;
                 
             case 8:
                 //! ************************************************************************
-                //! STEP 13: RETURN TO POSITION 1,1
+                //! STEP 13: RETURN TO FINAL POSITION (FROM CONFIG)
                 //! ************************************************************************
-                Serial.println("=== STEP 9: Returning to position 1,1 ===");
-                x1Motor->moveToPosition(1.0);
-                x2Motor->moveToPosition(1.0);
-                yMotor->moveToPosition(1.0);
+                Serial.print("=== STEP 9: Returning to position ");
+                Serial.print(TEST_POSITION_FINAL_X);
+                Serial.print(",");
+                Serial.print(TEST_POSITION_FINAL_Y);
+                Serial.println(" ===");
+                x1Motor->moveToPosition(TEST_POSITION_FINAL_X);
+                x2Motor->moveToPosition(TEST_POSITION_FINAL_X);
+                yMotor->moveToPosition(TEST_POSITION_FINAL_Y);
                 testSequenceStep++;
                 break;
                 
