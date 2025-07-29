@@ -21,6 +21,9 @@ bool testStateInitialized = false;
 bool waitingForInput = true;
 String inputBuffer = "";
 
+// Forward declaration
+int processCommand(String command);
+
 // Function to initialize test state
 void initializeTestPositionState() {
     if (!testStateInitialized) {
