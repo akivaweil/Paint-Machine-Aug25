@@ -222,15 +222,23 @@ void StepperMotor::updateHoming() {
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
     // Check if home switch is triggered during homing
+    // Only stop if we're in the initial homing phase (not moving away)
     if (_isMoving && isHomeSwitchTriggered()) {
-        _stepper->stopMove();
-        _isMoving = false;
-        _currentPosition = 0.0; // Set home position
-        _stepper->setCurrentPosition(0);
-        
-        Serial.print(_axisName);
-        Serial.println(" reached home switch");
-        return;
+        // Check if we're trying to move away from home (current position > 0 means we've already homed)
+        if (_currentPosition <= 0.0) {
+            _stepper->stopMove();
+            _isMoving = false;
+            _currentPosition = 0.0; // Set home position
+            _stepper->setCurrentPosition(0);
+            
+            Serial.print(_axisName);
+            Serial.println(" reached home switch");
+            return;
+        } else {
+            // We're moving away from home, don't stop
+            Serial.print(_axisName);
+            Serial.println(" moving away from home - ignoring home switch");
+        }
     }
     
     // Debug: Show home switch state periodically
@@ -300,8 +308,9 @@ void StepperMotor::moveAwayFromHome() {
         Serial.println(" Home switch still triggered - moving away from switch");
     }
     
-    // Convert to steps
-    long targetSteps = inchesToSteps(moveDistance);
+    // Convert to steps - this should be a relative movement from current position
+    long currentSteps = _stepper->getCurrentPosition();
+    long targetSteps = currentSteps + inchesToSteps(moveDistance);
     
     // Set normal operation speed and acceleration
     _stepper->setAcceleration(MAX_ACCEL);
@@ -314,7 +323,11 @@ void StepperMotor::moveAwayFromHome() {
     Serial.print(_axisName);
     Serial.print(" moving away from home: ");
     Serial.print(moveDistance);
-    Serial.println(" inches");
+    Serial.print(" inches (current steps: ");
+    Serial.print(currentSteps);
+    Serial.print(", target steps: ");
+    Serial.print(targetSteps);
+    Serial.println(")");
 }
 
 void StepperMotor::testMoveAwayDirection() {
