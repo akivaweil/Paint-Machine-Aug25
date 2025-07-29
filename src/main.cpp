@@ -18,14 +18,16 @@ bool isWiFiConnected();
 //* ************************************************************************
 
 // Global motor objects
-StepperMotor* xMotor = nullptr;
+StepperMotor* x1Motor = nullptr;
+StepperMotor* x2Motor = nullptr;
 StepperMotor* yMotor = nullptr;
-StepperMotor* zMotor = nullptr;
+StepperMotor* forkMotor = nullptr;
 
 // Global home switch objects
-HomeSwitch* xHomeSwitch = nullptr;
+HomeSwitch* x1HomeSwitch = nullptr;
+HomeSwitch* x2HomeSwitch = nullptr;
 HomeSwitch* yHomeSwitch = nullptr;
-HomeSwitch* zHomeSwitch = nullptr;
+HomeSwitch* forkHomeSwitch = nullptr;
 
 // State machine variables
 int currentState = 0;
@@ -83,24 +85,28 @@ void setup() {
     digitalWrite(ERROR_LED_PIN, LOW);
     
     // Create motor objects
-    xMotor = new StepperMotor(X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_HOME_PIN, X_LIMIT_PIN, "X");
+    x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_ENABLE_PIN, X1_HOME_PIN, X1_LIMIT_PIN, "X1");
+    x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_ENABLE_PIN, X2_HOME_PIN, X2_LIMIT_PIN, "X2");
     yMotor = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_HOME_PIN, Y_LIMIT_PIN, "Y");
-    zMotor = new StepperMotor(Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_HOME_PIN, Z_LIMIT_PIN, "Z");
+    forkMotor = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, FORK_ENABLE_PIN, FORK_HOME_PIN, FORK_LIMIT_PIN, "Fork");
     
     // Initialize motors
-    xMotor->initialize();
+    x1Motor->initialize();
+    x2Motor->initialize();
     yMotor->initialize();
-    zMotor->initialize();
+    forkMotor->initialize();
     
     // Create home switch objects
-    xHomeSwitch = new HomeSwitch(X_HOME_PIN, "X Home");
+    x1HomeSwitch = new HomeSwitch(X1_HOME_PIN, "X1 Home");
+    x2HomeSwitch = new HomeSwitch(X2_HOME_PIN, "X2 Home");
     yHomeSwitch = new HomeSwitch(Y_HOME_PIN, "Y Home");
-    zHomeSwitch = new HomeSwitch(Z_HOME_PIN, "Z Home");
+    forkHomeSwitch = new HomeSwitch(FORK_HOME_PIN, "Fork Home");
     
     // Initialize home switches
-    xHomeSwitch->initialize();
+    x1HomeSwitch->initialize();
+    x2HomeSwitch->initialize();
     yHomeSwitch->initialize();
-    zHomeSwitch->initialize();
+    forkHomeSwitch->initialize();
     
     // Start in idle state
     currentState = 0;
@@ -121,9 +127,10 @@ void loop() {
     updateOTA();
     
     // Update home switches
-    if (xHomeSwitch) xHomeSwitch->update();
+    if (x1HomeSwitch) x1HomeSwitch->update();
+    if (x2HomeSwitch) x2HomeSwitch->update();
     if (yHomeSwitch) yHomeSwitch->update();
-    if (zHomeSwitch) zHomeSwitch->update();
+    if (forkHomeSwitch) forkHomeSwitch->update();
     
     // State machine logic
     if (!stateInitialized) {

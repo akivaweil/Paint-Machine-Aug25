@@ -26,14 +26,17 @@ public:
     static void cleanup();
 
 private:
-    // Home X axis
-    static void homeXAxis();
+    // Home X1 axis (Left)
+    static void homeX1Axis();
+    
+    // Home X2 axis (Right)
+    static void homeX2Axis();
     
     // Home Y axis
     static void homeYAxis();
     
-    // Home Z axis
-    static void homeZAxis();
+    // Home Fork axis (Z direction)
+    static void homeForkAxis();
     
     // Check if all axes are homed
     static bool allAxesHomed();

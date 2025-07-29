@@ -7,16 +7,18 @@
 
 // State variables
 static bool _initialized = false;
-static bool _xHomed = false;
+static bool _x1Homed = false;
+static bool _x2Homed = false;
 static bool _yHomed = false;
-static bool _zHomed = false;
+static bool _forkHomed = false;
 static unsigned long _homingStartTime = 0;
 static const unsigned long HOMING_TIMEOUT = 60000; // 60 seconds timeout
 
 // Motor objects (will be initialized in main.cpp)
-extern StepperMotor* xMotor;
+extern StepperMotor* x1Motor;
+extern StepperMotor* x2Motor;
 extern StepperMotor* yMotor;
-extern StepperMotor* zMotor;
+extern StepperMotor* forkMotor;
 
 void HomingState::initialize() {
     if (_initialized) {
@@ -24,19 +26,22 @@ void HomingState::initialize() {
     }
     
     // Reset homing flags
-    _xHomed = false;
+    _x1Homed = false;
+    _x2Homed = false;
     _yHomed = false;
-    _zHomed = false;
+    _forkHomed = false;
     
     // Enable all motors
-    if (xMotor) xMotor->enable();
+    if (x1Motor) x1Motor->enable();
+    if (x2Motor) x2Motor->enable();
     if (yMotor) yMotor->enable();
-    if (zMotor) zMotor->enable();
+    if (forkMotor) forkMotor->enable();
     
     // Start homing sequence
-    homeXAxis();
+    homeX1Axis();
+    homeX2Axis();
     homeYAxis();
-    homeZAxis();
+    homeForkAxis();
     
     // Record start time
     _homingStartTime = millis();
@@ -57,15 +62,22 @@ void HomingState::run() {
     }
     
     // Update motor states
-    if (xMotor) xMotor->update();
+    if (x1Motor) x1Motor->update();
+    if (x2Motor) x2Motor->update();
     if (yMotor) yMotor->update();
-    if (zMotor) zMotor->update();
+    if (forkMotor) forkMotor->update();
     
     // Check if motors have reached home switches
-    if (xMotor && !_xHomed && xMotor->isHomeSwitchTriggered()) {
-        xMotor->stop();
-        xMotor->setCurrentPositionAsZero();
-        _xHomed = true;
+    if (x1Motor && !_x1Homed && x1Motor->isHomeSwitchTriggered()) {
+        x1Motor->stop();
+        x1Motor->setCurrentPositionAsZero();
+        _x1Homed = true;
+    }
+    
+    if (x2Motor && !_x2Homed && x2Motor->isHomeSwitchTriggered()) {
+        x2Motor->stop();
+        x2Motor->setCurrentPositionAsZero();
+        _x2Homed = true;
     }
     
     if (yMotor && !_yHomed && yMotor->isHomeSwitchTriggered()) {
@@ -74,10 +86,10 @@ void HomingState::run() {
         _yHomed = true;
     }
     
-    if (zMotor && !_zHomed && zMotor->isHomeSwitchTriggered()) {
-        zMotor->stop();
-        zMotor->setCurrentPositionAsZero();
-        _zHomed = true;
+    if (forkMotor && !_forkHomed && forkMotor->isHomeSwitchTriggered()) {
+        forkMotor->stop();
+        forkMotor->setCurrentPositionAsZero();
+        _forkHomed = true;
     }
     
     // Update progress indicators
@@ -125,9 +137,10 @@ int HomingState::getNextState() {
 void HomingState::cleanup() {
     // Disable motors if not all homed
     if (!allAxesHomed()) {
-        if (xMotor) xMotor->disable();
+        if (x1Motor) x1Motor->disable();
+        if (x2Motor) x2Motor->disable();
         if (yMotor) yMotor->disable();
-        if (zMotor) zMotor->disable();
+        if (forkMotor) forkMotor->disable();
     }
     
     // Turn off error LED
@@ -136,9 +149,15 @@ void HomingState::cleanup() {
     _initialized = false;
 }
 
-void HomingState::homeXAxis() {
-    if (xMotor) {
-        xMotor->home();
+void HomingState::homeX1Axis() {
+    if (x1Motor) {
+        x1Motor->home();
+    }
+}
+
+void HomingState::homeX2Axis() {
+    if (x2Motor) {
+        x2Motor->home();
     }
 }
 
@@ -148,20 +167,20 @@ void HomingState::homeYAxis() {
     }
 }
 
-void HomingState::homeZAxis() {
-    if (zMotor) {
-        zMotor->home();
+void HomingState::homeForkAxis() {
+    if (forkMotor) {
+        forkMotor->home();
     }
 }
 
 bool HomingState::allAxesHomed() {
-    return _xHomed && _yHomed && _zHomed;
+    return _x1Homed && _x2Homed && _yHomed && _forkHomed;
 }
 
 void HomingState::updateProgress() {
     // Blink status LED faster as more axes are homed
     unsigned long currentTime = millis();
-    int homedCount = (_xHomed ? 1 : 0) + (_yHomed ? 1 : 0) + (_zHomed ? 1 : 0);
+    int homedCount = (_x1Homed ? 1 : 0) + (_x2Homed ? 1 : 0) + (_yHomed ? 1 : 0) + (_forkHomed ? 1 : 0);
     
     if (homedCount == 0) {
         // Slow blink - no axes homed
@@ -179,7 +198,14 @@ void HomingState::updateProgress() {
         }
     } else if (homedCount == 2) {
         // Fast blink - two axes homed
-        if (currentTime % 400 < 200) {
+        if (currentTime % 600 < 300) {
+            digitalWrite(STATUS_LED_PIN, HIGH);
+        } else {
+            digitalWrite(STATUS_LED_PIN, LOW);
+        }
+    } else if (homedCount == 3) {
+        // Very fast blink - three axes homed
+        if (currentTime % 300 < 150) {
             digitalWrite(STATUS_LED_PIN, HIGH);
         } else {
             digitalWrite(STATUS_LED_PIN, LOW);
