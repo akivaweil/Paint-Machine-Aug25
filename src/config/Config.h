@@ -16,19 +16,19 @@
 // Motor configuration
 #define STEPPER_STEPS_PER_REV 400  // 400 steps per revolution
 #define MICROSTEPPING 1            // No microstepping (full steps)
-#define STEPS_PER_MM 10           // Steps per mm (400 steps / 40mm per rev = 10 steps/mm)
+#define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch)
 
 // Speed and acceleration settings
-#define MAX_SPEED_MM_PER_SEC 50    // Maximum speed in mm per second
-#define ACCELERATION_MM_PER_SEC2 500 // Acceleration in mm per second squared
+#define MAX_SPEED_INCHES_PER_SEC 2.0    // Maximum speed in inches per second
+#define ACCELERATION_INCHES_PER_SEC2 20.0 // Acceleration in inches per second squared
 
 // Home switch configuration
-#define HOME_SPEED_MM_PER_SEC 10   // Speed for homing operation
-#define HOME_ACCELERATION_MM_PER_SEC2 200 // Acceleration for homing
+#define HOME_SPEED_INCHES_PER_SEC 0.4   // Speed for homing operation
+#define HOME_ACCELERATION_INCHES_PER_SEC2 8.0 // Acceleration for homing
 
 // Safety settings
-#define MAX_TRAVEL_MM 1000         // Maximum travel distance in mm
-#define MIN_TRAVEL_MM 0            // Minimum travel distance in mm
+#define MAX_TRAVEL_INCHES 40.0         // Maximum travel distance in inches
+#define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
 
 // Timing settings
 #define MOTOR_TIMEOUT_MS 30000     // Motor operation timeout in milliseconds

@@ -59,11 +59,11 @@ private:
     float getHomingAcceleration();
     long getHomingDistance();
     
-    // Convert mm to steps
-    long mmToSteps(float mm);
+    // Convert inches to steps
+    long inchesToSteps(float inches);
     
-    // Convert steps to mm
-    float stepsToMm(long steps);
+    // Convert steps to inches
+    float stepsToInches(long steps);
 };
 
 #endif // STEPPER_MOTOR_H 

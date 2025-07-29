@@ -38,8 +38,8 @@ void StepperMotor::initialize() {
         _stepper->setDirectionPin(_dirPin);
         
         // Set default acceleration and speed (will be overridden during homing)
-        _stepper->setAcceleration(ACCELERATION_MM_PER_SEC2 * STEPS_PER_MM);
-        _stepper->setSpeedInHz(MAX_SPEED_MM_PER_SEC * STEPS_PER_MM);
+        _stepper->setAcceleration(ACCELERATION_INCHES_PER_SEC2 * STEPS_PER_INCH);
+        _stepper->setSpeedInHz(MAX_SPEED_INCHES_PER_SEC * STEPS_PER_INCH);
         
         Serial.print(_axisName);
         Serial.println(" motor initialized");
@@ -66,8 +66,8 @@ void StepperMotor::home() {
     _isMoving = true;
     
     // Set individual homing speed and acceleration
-    _stepper->setAcceleration(homeAccel * STEPS_PER_MM);
-    _stepper->setSpeedInHz(homeSpeed * STEPS_PER_MM);
+    _stepper->setAcceleration(homeAccel * STEPS_PER_INCH);
+    _stepper->setSpeedInHz(homeSpeed * STEPS_PER_INCH);
     
     // Move towards home using individual distance and direction
     _stepper->moveTo(homeDistance);
@@ -75,9 +75,9 @@ void StepperMotor::home() {
     Serial.print(_axisName);
     Serial.print(" starting homing sequence (Speed: ");
     Serial.print(homeSpeed);
-    Serial.print(" mm/s, Accel: ");
+    Serial.print(" in/s, Accel: ");
     Serial.print(homeAccel);
-    Serial.println(" mm/s²)");
+    Serial.println(" in/s²)");
 }
 
 void StepperMotor::forceStop() {
@@ -119,7 +119,7 @@ void StepperMotor::update() {
     if (!_stepper) return;
     
     // Update current position from stepper
-    _currentPosition = stepsToMm(_stepper->getCurrentPosition());
+    _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
     // Check if home switch is triggered during homing
     if (_isMoving && isHomeSwitchTriggered()) {
@@ -151,19 +151,19 @@ void StepperMotor::update() {
 
 // Helper functions to get individual motor homing settings
 float StepperMotor::getHomingSpeed() {
-    if (strcmp(_axisName, "X1") == 0) return X1_HOME_SPEED_MM_PER_SEC;
-    if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED_MM_PER_SEC;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED_MM_PER_SEC;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED_MM_PER_SEC;
-    return HOME_SPEED_MM_PER_SEC; // Default fallback
+    if (strcmp(_axisName, "X1") == 0) return X1_HOME_SPEED_INCHES_PER_SEC;
+    if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED_INCHES_PER_SEC;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED_INCHES_PER_SEC;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED_INCHES_PER_SEC;
+    return HOME_SPEED_INCHES_PER_SEC; // Default fallback
 }
 
 float StepperMotor::getHomingAcceleration() {
-    if (strcmp(_axisName, "X1") == 0) return X1_HOME_ACCELERATION_MM_PER_SEC2;
-    if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCELERATION_MM_PER_SEC2;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCELERATION_MM_PER_SEC2;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCELERATION_MM_PER_SEC2;
-    return HOME_ACCELERATION_MM_PER_SEC2; // Default fallback
+    if (strcmp(_axisName, "X1") == 0) return X1_HOME_ACCELERATION_INCHES_PER_SEC2;
+    if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCELERATION_INCHES_PER_SEC2;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCELERATION_INCHES_PER_SEC2;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCELERATION_INCHES_PER_SEC2;
+    return HOME_ACCELERATION_INCHES_PER_SEC2; // Default fallback
 }
 
 long StepperMotor::getHomingDistance() {
@@ -183,10 +183,10 @@ long StepperMotor::getHomingDistance() {
     return distance;
 }
 
-long StepperMotor::mmToSteps(float mm) {
-    return (long)(mm * STEPS_PER_MM);
+long StepperMotor::inchesToSteps(float inches) {
+    return (long)(inches * STEPS_PER_INCH);
 }
 
-float StepperMotor::stepsToMm(long steps) {
-    return (float)steps / STEPS_PER_MM;
+float StepperMotor::stepsToInches(long steps) {
+    return (float)steps / STEPS_PER_INCH;
 } 

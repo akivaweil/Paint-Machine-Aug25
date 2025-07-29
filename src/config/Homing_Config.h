@@ -6,20 +6,20 @@
 //* ************************************************************************
 
 // X1 Motor Homing Settings
-#define X1_HOME_SPEED_MM_PER_SEC 50.0      // Speed for X1 homing operation
-#define X1_HOME_ACCELERATION_MM_PER_SEC2 300.0 // Acceleration for X1 homing
+#define X1_HOME_SPEED_INCHES_PER_SEC 2.0      // Speed for X1 homing operation
+#define X1_HOME_ACCELERATION_INCHES_PER_SEC2 12.0 // Acceleration for X1 homing
 
 // X2 Motor Homing Settings
-#define X2_HOME_SPEED_MM_PER_SEC 50.0      // Speed for X2 homing operation
-#define X2_HOME_ACCELERATION_MM_PER_SEC2 300.0 // Acceleration for X2 homing
+#define X2_HOME_SPEED_INCHES_PER_SEC 2.0      // Speed for X2 homing operation
+#define X2_HOME_ACCELERATION_INCHES_PER_SEC2 12.0 // Acceleration for X2 homing
 
 // Y Motor Homing Settings
-#define Y_HOME_SPEED_MM_PER_SEC 50.0       // Speed for Y homing operation
-#define Y_HOME_ACCELERATION_MM_PER_SEC2 400.0 // Acceleration for Y homing
+#define Y_HOME_SPEED_INCHES_PER_SEC 2.0       // Speed for Y homing operation
+#define Y_HOME_ACCELERATION_INCHES_PER_SEC2 16.0 // Acceleration for Y homing
 
 // Fork Motor Homing Settings
-#define FORK_HOME_SPEED_MM_PER_SEC 50.0    // Speed for Fork homing operation
-#define FORK_HOME_ACCELERATION_MM_PER_SEC2 200.0 // Acceleration for Fork homing
+#define FORK_HOME_SPEED_INCHES_PER_SEC 2.0    // Speed for Fork homing operation
+#define FORK_HOME_ACCELERATION_INCHES_PER_SEC2 8.0 // Acceleration for Fork homing
 
 // Homing timeout settings
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
