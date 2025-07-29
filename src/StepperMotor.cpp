@@ -38,8 +38,8 @@ void StepperMotor::initialize() {
         _stepper->setDirectionPin(_dirPin);
         
         // Set default acceleration and speed (will be overridden during homing)
-        _stepper->setAcceleration(ACCELERATION_STEPS_PER_SEC2);
-        _stepper->setSpeedInHz(MAX_SPEED_STEPS_PER_SEC);
+        _stepper->setAcceleration(MAX_ACCEL);
+        _stepper->setSpeedInHz(MAX_SPEED);
         
         Serial.print(_axisName);
         Serial.println(" motor initialized");
@@ -151,19 +151,19 @@ void StepperMotor::update() {
 
 // Helper functions to get individual motor homing settings
 float StepperMotor::getHomingSpeed() {
-    if (strcmp(_axisName, "X1") == 0) return X1_HOME_SPEED_STEPS_PER_SEC;
-    if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED_STEPS_PER_SEC;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED_STEPS_PER_SEC;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED_STEPS_PER_SEC;
-    return HOME_SPEED_STEPS_PER_SEC; // Default fallback
+    if (strcmp(_axisName, "X1") == 0) return X1_HOME_SPEED;
+    if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
+    return HOME_SPEED; // Default fallback
 }
 
 float StepperMotor::getHomingAcceleration() {
-    if (strcmp(_axisName, "X1") == 0) return X1_HOME_ACCELERATION_STEPS_PER_SEC2;
-    if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCELERATION_STEPS_PER_SEC2;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCELERATION_STEPS_PER_SEC2;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCELERATION_STEPS_PER_SEC2;
-    return HOME_ACCELERATION_STEPS_PER_SEC2; // Default fallback
+    if (strcmp(_axisName, "X1") == 0) return X1_HOME_ACCEL;
+    if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCEL;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
+    return HOME_ACCEL; // Default fallback
 }
 
 long StepperMotor::getHomingDistance() {

@@ -6,27 +6,27 @@
 //* ************************************************************************
 
 // X1 Motor Homing Settings (in steps per second)
-#define X1_HOME_SPEED_STEPS_PER_SEC 508      // Speed for X1 homing operation (2.0 in/s * 254 steps/in)
-#define X1_HOME_ACCELERATION_STEPS_PER_SEC2 3048 // Acceleration for X1 homing (12.0 in/s² * 254 steps/in)
+#define X1_HOME_SPEED 500          // Speed for X1 homing operation
+#define X1_HOME_ACCEL 3000         // Acceleration for X1 homing
 
 // X2 Motor Homing Settings (in steps per second)
-#define X2_HOME_SPEED_STEPS_PER_SEC 508      // Speed for X2 homing operation (2.0 in/s * 254 steps/in)
-#define X2_HOME_ACCELERATION_STEPS_PER_SEC2 3048 // Acceleration for X2 homing (12.0 in/s² * 254 steps/in)
+#define X2_HOME_SPEED 500          // Speed for X2 homing operation
+#define X2_HOME_ACCEL 3000         // Acceleration for X2 homing
 
 // Y Motor Homing Settings (in steps per second)
-#define Y_HOME_SPEED_STEPS_PER_SEC 508       // Speed for Y homing operation (2.0 in/s * 254 steps/in)
-#define Y_HOME_ACCELERATION_STEPS_PER_SEC2 4064 // Acceleration for Y homing (16.0 in/s² * 254 steps/in)
+#define Y_HOME_SPEED 500           // Speed for Y homing operation
+#define Y_HOME_ACCEL 4000          // Acceleration for Y homing
 
 // Fork Motor Homing Settings (in steps per second)
-#define FORK_HOME_SPEED_STEPS_PER_SEC 508    // Speed for Fork homing operation (2.0 in/s * 254 steps/in)
-#define FORK_HOME_ACCELERATION_STEPS_PER_SEC2 2032 // Acceleration for Fork homing (8.0 in/s² * 254 steps/in)
+#define FORK_HOME_SPEED 500        // Speed for Fork homing operation
+#define FORK_HOME_ACCEL 2000       // Acceleration for Fork homing
 
 // Homing timeout settings
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
 
 // Home switch debounce settings (in milliseconds)
-#define HOME_SWITCH_DEBOUNCE_MS 5         // Debounce time for home switches to prevent false triggers
+#define HOME_SWITCH_DEBOUNCE_MS 50         // Debounce time for home switches to prevent false triggers
 #define HOME_SWITCH_CONFIRMATION_MS 100    // Additional confirmation time after debounce to ensure stable trigger
 
 // Homing direction settings (true = positive direction, false = negative direction)
