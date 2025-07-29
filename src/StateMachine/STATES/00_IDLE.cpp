@@ -25,6 +25,7 @@ void initializeIdleState() {
         Serial.println("Type 'home' or 'h' to start homing sequence");
         Serial.println("Type 'test' or 't' to enter test position state");
         Serial.println("Type 'm' for manual movement sequence (5,5->10,5->10,10->5,10)");
+        Serial.println("Type 'sequence' or 's' to start test sequence (5,5->fork->Y+0.5->fork->10,5->fork->Y-0.5->fork->1,1)");
         Serial.println("================================");
         idleStateInitialized = true;
     }
@@ -50,8 +51,11 @@ int runIdleState() {
         } else if (command == "m") {
             Serial.println("Manual movement command received - transitioning to test state");
             return 2; // Transition to TEST_POSITION state for manual movement
+        } else if (command == "sequence" || command == "s") {
+            Serial.println("Test sequence command received - transitioning to test sequence state");
+            return 3; // Transition to TEST_SEQUENCE state
         } else {
-            Serial.println("Unknown command. Type 'home' to start homing, 'test' for test position, or 'm' for manual movement");
+            Serial.println("Unknown command. Type 'home' to start homing, 'test' for test position, 'm' for manual movement, or 'sequence' for test sequence");
         }
     }
     

@@ -5,6 +5,7 @@
 #include "StateMachine/STATES/00_IDLE.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_TEST_POSITION.h"
+#include "StateMachine/STATES/03_TEST_SEQUENCE.h"
 #include "CarouselStorage.h"
 
 //* ************************************************************************
@@ -22,8 +23,12 @@ StepperMotor* storageMotor = nullptr;
 CarouselStorage carouselStorage;
 
 // State machine variables
-int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = TEST_POSITION
+int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = TEST_POSITION, 3 = TEST_SEQUENCE
 bool stateInitialized = false;
+
+// Test button variables
+bool lastTestButtonState = false;
+bool testButtonPressed = false;
 
 
 
@@ -45,6 +50,9 @@ void setup() {
     yMotor->initialize();
     forkMotor->initialize();
     storageMotor->initialize();
+    
+    // Initialize test button pin
+    pinMode(TEST_BUTTON_PIN, INPUT_PULLDOWN);
     
     Serial.println("All motors initialized");
     
@@ -86,6 +94,29 @@ void setup() {
 }
 
 void loop() {
+    //! ************************************************************************
+    //! STEP 1: CHECK TEST BUTTON (ALLOWS TRANSITION TO TEST SEQUENCE FROM ANY STATE)
+    //! ************************************************************************
+    bool currentTestButtonState = digitalRead(TEST_BUTTON_PIN);
+    
+    // Detect button press (rising edge)
+    if (currentTestButtonState && !lastTestButtonState && !testButtonPressed) {
+        testButtonPressed = true;
+        Serial.println("=== TEST BUTTON PRESSED ===");
+        Serial.println("Transitioning to TEST_SEQUENCE state");
+        
+        // Force transition to test sequence state
+        currentState = 3;
+        stateInitialized = false;
+    }
+    
+    // Reset button state when released
+    if (!currentTestButtonState) {
+        testButtonPressed = false;
+    }
+    
+    lastTestButtonState = currentTestButtonState;
+    
     // State machine logic
     if (!stateInitialized) {
         // Initialize current state
@@ -101,6 +132,10 @@ void loop() {
             // TEST_POSITION state initialization
             resetTestPositionState();
             stateInitialized = true;
+        } else if (currentState == 3) {
+            // TEST_SEQUENCE state initialization
+            resetTestSequenceState();
+            stateInitialized = true;
         }
     }
     
@@ -115,6 +150,9 @@ void loop() {
     } else if (currentState == 2) {
         // TEST_POSITION state
         newState = runTestPositionState();
+    } else if (currentState == 3) {
+        // TEST_SEQUENCE state
+        newState = runTestSequenceState();
     }
     
     // Check if state wants to change
