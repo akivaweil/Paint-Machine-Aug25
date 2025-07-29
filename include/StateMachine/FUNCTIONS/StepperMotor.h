@@ -7,6 +7,7 @@
 
 #include <Arduino.h>
 #include <FastAccelStepper.h>
+#include <Bounce2.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 
@@ -42,6 +43,9 @@ public:
     // Update motor during homing (checks home switches)
     void updateHoming();
     
+    // Update switch debouncing
+    void updateSwitches();
+    
     // Move to specific position (in inches)
     void moveToPosition(float position);
     
@@ -71,6 +75,10 @@ private:
     
     // FastAccelStepper stepper
     FastAccelStepper* _stepper;
+    
+    // Bounce2 debouncing objects
+    Bounce _homeSwitchBounce;
+    Bounce _limitSwitchBounce;
     
     // Helper functions for individual motor homing settings
     float getHomingSpeed();

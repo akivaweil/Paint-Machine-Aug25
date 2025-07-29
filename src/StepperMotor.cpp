@@ -18,19 +18,24 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, c
     
     // Initialize FastAccelStepper pointer
     _stepper = nullptr;
+    
+    // Initialize Bounce2 objects
+    _homeSwitchBounce.attach(_homePin, INPUT_PULLDOWN);
+    _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
+    
+    _limitSwitchBounce.attach(_limitPin, INPUT_PULLUP);
+    _limitSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS); // Use same debounce time for limit switches
 }
 
 void StepperMotor::initialize() {
-    // Set pin modes for switches
-    pinMode(_homePin, INPUT_PULLDOWN); // Using internal pulldown resistors
-    pinMode(_limitPin, INPUT_PULLUP); // Using internal pullup resistors
+    // Bounce2 objects are already initialized in constructor with proper pin modes
     
     // Debug: Print initial switch states
     Serial.print(_axisName);
     Serial.print(" - Home pin state: ");
-    Serial.print(digitalRead(_homePin));
+    Serial.print(_homeSwitchBounce.read());
     Serial.print(", Limit pin state: ");
-    Serial.println(digitalRead(_limitPin));
+    Serial.println(_limitSwitchBounce.read());
     
     // Initialize FastAccelStepper engine (only once)
     static FastAccelStepperEngine* engine = nullptr;
@@ -115,15 +120,18 @@ void StepperMotor::setCurrentPositionAsZero() {
 }
 
 bool StepperMotor::isHomeSwitchTriggered() {
-    return digitalRead(_homePin) == HIGH; // Active HIGH
+    return _homeSwitchBounce.read() == HIGH; // Active HIGH
 }
 
 bool StepperMotor::isLimitSwitchTriggered() {
-    return digitalRead(_limitPin) == LOW; // Active LOW
+    return _limitSwitchBounce.read() == LOW; // Active LOW
 }
 
 void StepperMotor::update() {
     if (!_stepper) return;
+    
+    // Update switch debouncing
+    updateSwitches();
     
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
@@ -215,8 +223,17 @@ float StepperMotor::getCurrentPosition() {
     return _currentPosition;
 }
 
+void StepperMotor::updateSwitches() {
+    // Update Bounce2 objects to handle debouncing
+    _homeSwitchBounce.update();
+    _limitSwitchBounce.update();
+}
+
 void StepperMotor::updateHoming() {
     if (!_stepper) return;
+    
+    // Update switch debouncing
+    updateSwitches();
     
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
@@ -246,7 +263,7 @@ void StepperMotor::updateHoming() {
     if (millis() - lastHomeDebugTime > 2000) { // Every 2 seconds
         Serial.print(_axisName);
         Serial.print(" home switch state: ");
-        Serial.print(digitalRead(_homePin));
+        Serial.print(_homeSwitchBounce.read());
         Serial.print(", moving: ");
         Serial.println(_isMoving ? "YES" : "NO");
         lastHomeDebugTime = millis();

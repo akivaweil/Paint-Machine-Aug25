@@ -43,21 +43,21 @@ void setup() {
     delay(2000);
     Serial.println("=== SWITCH STATES AFTER INITIALIZATION ===");
     Serial.print("X1 - Home: ");
-    Serial.print(digitalRead(X1_HOME_PIN));
+    Serial.print(x1Motor->isHomeSwitchTriggered());
     Serial.print(", Limit: ");
-    Serial.println(digitalRead(X1_LIMIT_PIN));
+    Serial.println(x1Motor->isLimitSwitchTriggered());
     Serial.print("X2 - Home: ");
-    Serial.print(digitalRead(X2_HOME_PIN));
+    Serial.print(x2Motor->isHomeSwitchTriggered());
     Serial.print(", Limit: ");
-    Serial.println(digitalRead(X2_LIMIT_PIN));
+    Serial.println(x2Motor->isLimitSwitchTriggered());
     Serial.print("Y - Home: ");
-    Serial.print(digitalRead(Y_HOME_PIN));
+    Serial.print(yMotor->isHomeSwitchTriggered());
     Serial.print(", Limit: ");
-    Serial.println(digitalRead(Y_LIMIT_PIN));
+    Serial.println(yMotor->isLimitSwitchTriggered());
     Serial.print("Fork - Home: ");
-    Serial.print(digitalRead(FORK_HOME_PIN));
+    Serial.print(forkMotor->isHomeSwitchTriggered());
     Serial.print(", Limit: ");
-    Serial.println(digitalRead(FORK_LIMIT_PIN));
+    Serial.println(forkMotor->isLimitSwitchTriggered());
     Serial.println("==========================================");
     
     // Test move away directions for debugging
