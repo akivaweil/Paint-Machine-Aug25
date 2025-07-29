@@ -41,7 +41,7 @@
 #define FORK_HOME_DISTANCE_STEPS 6000      // Steps to move during Fork homing
 
 // Move away from home switch distance (in inches)
-#define MOVE_AWAY_FROM_HOME_DISTANCE 0.5   // Distance to move away from home switch after homing
+#define MOVE_AWAY_FROM_HOME_DISTANCE 2.0   // Distance to move away from home switch after homing
 
 // Move away direction settings (true = positive direction, false = negative direction)
 // These should be set based on the physical layout of your machine
