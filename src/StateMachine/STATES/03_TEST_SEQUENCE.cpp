@@ -29,6 +29,9 @@ bool testSequenceActive = false;
 int testSequenceStep = 0;
 float yStartPosition = 0.0; // Store Y position before moving up/down
 
+// Forward declaration
+void startTestSequence();
+
 // Function to initialize test sequence state
 void initializeTestSequenceState() {
     if (!testSequenceInitialized) {
@@ -90,6 +93,9 @@ int runTestSequenceState() {
     //! STEP 4: EXECUTE NEXT MOVEMENT ONLY IF MOTORS HAVE STOPPED
     //! ************************************************************************
     if (!motorsMoving) {
+        // Variables for Y position calculations
+        float currentY, currentY2;
+        
         switch (testSequenceStep) {
             case 0:
                 //! ************************************************************************
@@ -116,7 +122,7 @@ int runTestSequenceState() {
                 //! STEP 7: MOVE Y UP 0.5 INCHES
                 //! ************************************************************************
                 Serial.println("=== STEP 3: Moving Y up 0.5 inches ===");
-                float currentY = yMotor->getCurrentPosition();
+                currentY = yMotor->getCurrentPosition();
                 yMotor->moveToPosition(currentY + 0.5);
                 testSequenceStep++;
                 break;
@@ -155,7 +161,7 @@ int runTestSequenceState() {
                 //! STEP 11: MOVE Y DOWN 0.5 INCHES
                 //! ************************************************************************
                 Serial.println("=== STEP 7: Moving Y down 0.5 inches ===");
-                float currentY2 = yMotor->getCurrentPosition();
+                currentY2 = yMotor->getCurrentPosition();
                 yMotor->moveToPosition(currentY2 - 0.5);
                 testSequenceStep++;
                 break;
