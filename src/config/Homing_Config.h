@@ -26,7 +26,7 @@
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
 
 // Home switch debounce settings (in milliseconds)
-#define HOME_SWITCH_DEBOUNCE_MS 50         // Debounce time for home switches to prevent false triggers
+#define HOME_SWITCH_DEBOUNCE_MS 5         // Debounce time for home switches to prevent false triggers
 
 // Homing direction settings (true = positive direction, false = negative direction)
 #define X1_HOME_DIRECTION_POSITIVE false   // X1 homes in negative direction
@@ -39,5 +39,8 @@
 #define X2_HOME_DISTANCE_STEPS 10000       // Steps to move during X2 homing
 #define Y_HOME_DISTANCE_STEPS 8000         // Steps to move during Y homing
 #define FORK_HOME_DISTANCE_STEPS 6000      // Steps to move during Fork homing
+
+// Move away from home switch distance (in inches)
+#define MOVE_AWAY_FROM_HOME_DISTANCE 0.5   // Distance to move away from home switch after homing
 
 #endif // HOMING_CONFIG_H 

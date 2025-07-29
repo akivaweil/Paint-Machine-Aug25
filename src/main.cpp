@@ -39,6 +39,27 @@ void setup() {
     
     Serial.println("All motors initialized");
     
+    // Wait a moment to see switch states
+    delay(2000);
+    Serial.println("=== SWITCH STATES AFTER INITIALIZATION ===");
+    Serial.print("X1 - Home: ");
+    Serial.print(digitalRead(X1_HOME_PIN));
+    Serial.print(", Limit: ");
+    Serial.println(digitalRead(X1_LIMIT_PIN));
+    Serial.print("X2 - Home: ");
+    Serial.print(digitalRead(X2_HOME_PIN));
+    Serial.print(", Limit: ");
+    Serial.println(digitalRead(X2_LIMIT_PIN));
+    Serial.print("Y - Home: ");
+    Serial.print(digitalRead(Y_HOME_PIN));
+    Serial.print(", Limit: ");
+    Serial.println(digitalRead(Y_LIMIT_PIN));
+    Serial.print("Fork - Home: ");
+    Serial.print(digitalRead(FORK_HOME_PIN));
+    Serial.print(", Limit: ");
+    Serial.println(digitalRead(FORK_LIMIT_PIN));
+    Serial.println("==========================================");
+    
     // Start in homing state for automatic homing on startup
     currentState = 1;
     stateInitialized = false;

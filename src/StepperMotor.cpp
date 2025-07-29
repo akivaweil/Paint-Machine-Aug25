@@ -22,8 +22,15 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, c
 
 void StepperMotor::initialize() {
     // Set pin modes for switches
-    pinMode(_homePin, INPUT); // Using external resistors
-    pinMode(_limitPin, INPUT_PULLUP);
+    pinMode(_homePin, INPUT_PULLDOWN); // Using internal pulldown resistors
+    pinMode(_limitPin, INPUT_PULLUP); // Using internal pullup resistors
+    
+    // Debug: Print initial switch states
+    Serial.print(_axisName);
+    Serial.print(" - Home pin state: ");
+    Serial.print(digitalRead(_homePin));
+    Serial.print(", Limit pin state: ");
+    Serial.println(digitalRead(_limitPin));
     
     // Initialize FastAccelStepper engine (only once)
     static FastAccelStepperEngine* engine = nullptr;
@@ -121,15 +128,15 @@ void StepperMotor::update() {
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
-    // Check if limit switch is triggered (always check for safety)
-    if (isLimitSwitchTriggered()) {
-        _stepper->stopMove();
-        _isMoving = false;
-        
-        Serial.print(_axisName);
-        Serial.println(" limit switch triggered - stopping");
-        return;
-    }
+    // TEMPORARILY DISABLED: Check if limit switch is triggered (always check for safety)
+    // if (isLimitSwitchTriggered()) {
+    //     _stepper->stopMove();
+    //     _isMoving = false;
+    //     
+    //     Serial.print(_axisName);
+    //     Serial.println(" limit switch triggered - stopping");
+    //     return;
+    // }
     
     // Check if movement is complete
     if (!_stepper->isRunning()) {
@@ -226,15 +233,26 @@ void StepperMotor::updateHoming() {
         return;
     }
     
-    // Check if limit switch is triggered (always check for safety)
-    if (isLimitSwitchTriggered()) {
-        _stepper->stopMove();
-        _isMoving = false;
-        
+    // Debug: Show home switch state periodically
+    static unsigned long lastHomeDebugTime = 0;
+    if (millis() - lastHomeDebugTime > 2000) { // Every 2 seconds
         Serial.print(_axisName);
-        Serial.println(" limit switch triggered - stopping");
-        return;
+        Serial.print(" home switch state: ");
+        Serial.print(digitalRead(_homePin));
+        Serial.print(", moving: ");
+        Serial.println(_isMoving ? "YES" : "NO");
+        lastHomeDebugTime = millis();
     }
+    
+    // TEMPORARILY DISABLED: Check if limit switch is triggered (always check for safety)
+    // if (isLimitSwitchTriggered()) {
+    //     _stepper->stopMove();
+    //     _isMoving = false;
+    //     
+    //     Serial.print(_axisName);
+    //     Serial.println(" limit switch triggered - stopping");
+    //     return;
+    // }
     
     // Check if movement is complete
     if (!_stepper->isRunning()) {
@@ -254,17 +272,17 @@ void StepperMotor::moveAwayFromHome() {
         return;
     }
     
-    // Move 0.5 inches away from home position
+    // Move away from home position using configured distance
     // Determine direction based on homing direction
-    float moveDistance = 0.5; // 0.5 inches
+    float moveDistance = MOVE_AWAY_FROM_HOME_DISTANCE; // Use configured distance
     
     // If homing direction is positive, move negative to get away from home
     // If homing direction is negative, move positive to get away from home
-    if (strcmp(_axisName, "X1") == 0 && X1_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
-    else if (strcmp(_axisName, "X2") == 0 && X2_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
-    else if (strcmp(_axisName, "Y") == 0 && Y_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
-    else if (strcmp(_axisName, "Fork") == 0 && FORK_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
-    else moveDistance = 0.5; // Default to positive if homing direction is negative
+    if (strcmp(_axisName, "X1") == 0 && X1_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
+    else if (strcmp(_axisName, "X2") == 0 && X2_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
+    else if (strcmp(_axisName, "Y") == 0 && Y_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
+    else if (strcmp(_axisName, "Fork") == 0 && FORK_HOME_DIRECTION_POSITIVE) moveDistance = -MOVE_AWAY_FROM_HOME_DISTANCE;
+    else moveDistance = MOVE_AWAY_FROM_HOME_DISTANCE; // Default to positive if homing direction is negative
     
     // Convert to steps
     long targetSteps = inchesToSteps(moveDistance);

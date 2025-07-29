@@ -68,9 +68,6 @@ int runHomingState() {
     yMotor->updateHoming();
     forkMotor->updateHoming();
     
-    // Declare variables for homing status
-    bool x1Homed, x2Homed, yHomed, forkHomed;
-    
     // Handle independent motor homing and moving away
     switch (homingPhase) {
         case 0: // All motors homing simultaneously
@@ -91,9 +88,9 @@ int runHomingState() {
             
             // Move X motors away together when both are homed
             if (x1Homed && x2Homed && !x1MovedAway && !x2MovedAway) {
-                Serial.println("Both X motors homed - moving away 0.5 inches positive together");
-                x1Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
-                x2Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
+                Serial.println("Both X motors homed - moving away 0.5 inches from home switch");
+                x1Motor->moveAwayFromHome(); // Move 0.5 inches away from home switch
+                x2Motor->moveAwayFromHome(); // Move 0.5 inches away from home switch
                 x1MovedAway = true;
                 x2MovedAway = true;
             }
@@ -121,6 +118,12 @@ int runHomingState() {
                     Serial.println("All motors homed and moved away successfully - returning to IDLE state");
                     return 0; // Transition to IDLE state
                 }
+            } else {
+                // Debug: Show which motors are not yet homed
+                if (!x1Homed) Serial.println("DEBUG: X1 not yet homed");
+                if (!x2Homed) Serial.println("DEBUG: X2 not yet homed");
+                if (!yHomed) Serial.println("DEBUG: Y not yet homed");
+                if (!forkHomed) Serial.println("DEBUG: Fork not yet homed");
             }
             
             // Provide status updates
