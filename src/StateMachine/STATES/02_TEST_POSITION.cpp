@@ -30,6 +30,7 @@ void initializeTestPositionState() {
         Serial.println("=== TEST POSITION STATE ===");
         Serial.println("Enter coordinates in format: x,y");
         Serial.println("Example: 5.5,7.2");
+        Serial.println("Safe range: (0,0) to (15,15)");
         Serial.println("Type 'home' to re-home all motors");
         Serial.println("Type 'status' to see current positions");
         Serial.println("Type 'exit' to return to IDLE");
@@ -162,28 +163,14 @@ int processCommand(String command) {
             return 2; // Stay in test state
         }
         
-        // Safety checks - ensure we're not moving toward home switches
-        float x1Current = x1Motor ? x1Motor->getCurrentPosition() : 0;
-        float x2Current = x2Motor ? x2Motor->getCurrentPosition() : 0;
-        float yCurrent = yMotor ? yMotor->getCurrentPosition() : 0;
-        
-        // Check if movement would go toward home switches
-        bool x1TowardHome = (x1Current > 0 && xPos < x1Current); // Moving negative from positive position
-        bool x2TowardHome = (x2Current > 0 && xPos < x2Current); // Moving negative from positive position
-        bool yTowardHome = (yCurrent < 0 && yPos > yCurrent);    // Moving positive from negative position (Y homes negative)
-        
-        if (x1TowardHome || x2TowardHome || yTowardHome) {
-            Serial.println("WARNING: Movement would go toward home switches!");
-            Serial.print("Current positions - X1: ");
-            Serial.print(x1Current);
-            Serial.print(", X2: ");
-            Serial.print(x2Current);
-            Serial.print(", Y: ");
-            Serial.println(yCurrent);
-            Serial.print("Target positions - X: ");
+        // Safety checks - ensure we stay within bounds (0,0) to (15,15)
+        if (xPos < 0.0 || xPos > 15.0 || yPos < 0.0 || yPos > 15.0) {
+            Serial.println("WARNING: Target position is outside safe bounds!");
+            Serial.print("Target position - X: ");
             Serial.print(xPos);
             Serial.print(", Y: ");
             Serial.println(yPos);
+            Serial.println("Safe range is (0,0) to (15,15)");
             Serial.println("Movement blocked for safety");
             return 2; // Stay in test state
         }
@@ -207,6 +194,7 @@ int processCommand(String command) {
     // Invalid command
     Serial.println("ERROR: Invalid command");
     Serial.println("Use format: x,y (e.g., 5.5,7.2)");
+    Serial.println("Safe range: (0,0) to (15,15)");
     Serial.println("Or type 'home' to re-home all motors");
     Serial.println("Or type 'status' to see current positions");
     Serial.println("Or type 'exit' to return to IDLE");
