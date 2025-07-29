@@ -20,7 +20,7 @@
 
 // Speed and acceleration settings (in steps per second)
 #define MAX_SPEED 20000              // Maximum speed in steps per second
-#define MAX_ACCEL 5000             // Maximum acceleration in steps per second squared
+#define MAX_ACCEL 3000             // Maximum acceleration in steps per second squared
 // Safety settings
 #define MAX_TRAVEL_INCHES 40.0         // Maximum travel distance in inches
 #define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
@@ -34,9 +34,9 @@
 
 // Test sequence positions (in inches) - Adjusted for negative homing direction
 #define TEST_POSITION_1_X 1.0      // First position X coordinate (moved away from home)
-#define TEST_POSITION_1_Y 15.0      // First position Y coordinate (moved away from home)
+#define TEST_POSITION_1_Y 7.8      // First position Y coordinate (moved away from home)
 #define TEST_POSITION_2_X 10.0      // Second position X coordinate (reduced from 13.0)
-#define TEST_POSITION_2_Y 15.0      // Second position Y coordinate (moved away from home)
+#define TEST_POSITION_2_Y 5.2      // Second position Y coordinate (moved away from home)
 #define TEST_POSITION_FINAL_X 1.0  // Final position X coordinate (moved away from home)
 #define TEST_POSITION_FINAL_Y 2.0  // Final position Y coordinate (moved away from home)
 

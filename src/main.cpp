@@ -30,6 +30,9 @@ bool stateInitialized = false;
 bool lastTestButtonState = false;
 bool testButtonPressed = false;
 
+// Forward declaration for test sequence
+void startTestSequence();
+
 
 
 void setup() {
@@ -108,6 +111,9 @@ void loop() {
         // Force transition to test sequence state
         currentState = 3;
         stateInitialized = false;
+        
+        // Start the test sequence immediately
+        startTestSequence();
     }
     
     // Reset button state when released

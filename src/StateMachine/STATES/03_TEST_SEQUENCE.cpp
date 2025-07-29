@@ -2,15 +2,15 @@
 //* ************************ TEST SEQUENCE STATE ***************************
 //* ************************************************************************
 // This state handles the test button sequence:
-// 1. Move to 5,5
-// 2. Extend fork 3.8 inches
-// 3. Move Y up 0.5 inches
-// 4. Retract fork to 0
-// 5. Move to 10,5
-// 6. Extend fork 3.8 inches
-// 7. Move Y down 0.5 inches
-// 8. Retract fork to 0
-// 9. Return to 1,1
+// 1. Move to TEST_POSITION_1_X, TEST_POSITION_1_Y
+// 2. Extend fork TEST_FORK_EXTEND_DISTANCE inches
+// 3. Move Y up TEST_Y_MOVE_UP_DISTANCE inches from current position
+// 4. Retract fork to TEST_FORK_RETRACT_POSITION
+// 5. Move to TEST_POSITION_2_X, TEST_POSITION_2_Y
+// 6. Extend fork TEST_FORK_EXTEND_DISTANCE inches
+// 7. Move Y down TEST_Y_MOVE_DOWN_DISTANCE inches from current position
+// 8. Retract fork to TEST_FORK_RETRACT_POSITION
+// 9. Return to TEST_POSITION_FINAL_X, TEST_POSITION_FINAL_Y
 
 #include <Arduino.h>
 #include "config/Config.h"
@@ -27,7 +27,8 @@ extern StepperMotor* forkMotor;
 bool testSequenceInitialized = false;
 bool testSequenceActive = false;
 int testSequenceStep = 0;
-float yStartPosition = 0.0; // Store Y position before moving up/down
+float yPositionBeforeUp = 0.0;    // Store Y position before moving up
+float yPositionBeforeDown = 0.0;  // Store Y position before moving down
 
 // Forward declaration
 void startTestSequence();
@@ -38,34 +39,25 @@ void initializeTestSequenceState() {
         // Reset sequence variables
         testSequenceActive = false;
         testSequenceStep = 0;
-        yStartPosition = 0.0;
+        yPositionBeforeUp = 0.0;
+        yPositionBeforeDown = 0.0;
         
         Serial.println("=== TEST SEQUENCE STATE INITIALIZED ===");
-        Serial.println("Starting test sequence automatically");
-        Serial.print("Sequence: ");
+        Serial.println("Test sequence ready - press test button to start");
+        Serial.println("Sequence will move to configured positions:");
+        Serial.print("Position 1: X=");
         Serial.print(TEST_POSITION_1_X);
-        Serial.print(",");
-        Serial.print(TEST_POSITION_1_Y);
-        Serial.print(" -> extend fork ");
-        Serial.print(TEST_FORK_EXTEND_DISTANCE);
-        Serial.print(" -> Y+");
-        Serial.print(TEST_Y_MOVE_UP_DISTANCE);
-        Serial.print(" -> retract fork -> ");
+        Serial.print(", Y=");
+        Serial.println(TEST_POSITION_1_Y);
+        Serial.print("Position 2: X=");
         Serial.print(TEST_POSITION_2_X);
-        Serial.print(",");
-        Serial.print(TEST_POSITION_2_Y);
-        Serial.print(" -> extend fork ");
-        Serial.print(TEST_FORK_EXTEND_DISTANCE);
-        Serial.print(" -> Y-");
-        Serial.print(TEST_Y_MOVE_DOWN_DISTANCE);
-        Serial.print(" -> retract fork -> ");
+        Serial.print(", Y=");
+        Serial.println(TEST_POSITION_2_Y);
+        Serial.print("Final Position: X=");
         Serial.print(TEST_POSITION_FINAL_X);
-        Serial.print(",");
+        Serial.print(", Y=");
         Serial.println(TEST_POSITION_FINAL_Y);
         Serial.println("=========================================");
-        
-        // Automatically start the sequence when entering this state
-        startTestSequence();
         
         testSequenceInitialized = true;
     }
@@ -76,10 +68,9 @@ void startTestSequence() {
     if (!testSequenceActive) {
         testSequenceActive = true;
         testSequenceStep = 0;
-        yStartPosition = yMotor->getCurrentPosition();
         
         Serial.println("=== TEST SEQUENCE STARTED ===");
-        Serial.println("Step 1: Moving to position 5,5");
+        Serial.println("Step 1: Moving to first position");
     }
 }
 
@@ -113,7 +104,7 @@ int runTestSequenceState() {
     //! ************************************************************************
     if (!motorsMoving) {
         // Variables for Y position calculations
-        float currentY, currentY2;
+        float newYPosition, newYPositionDown;
         
         switch (testSequenceStep) {
             case 0:
@@ -125,12 +116,7 @@ int runTestSequenceState() {
                 Serial.print(",");
                 Serial.print(TEST_POSITION_1_Y);
                 Serial.println(" ===");
-                Serial.print("Current positions - X1: ");
-                Serial.print(x1Motor->getCurrentPosition());
-                Serial.print(", X2: ");
-                Serial.print(x2Motor->getCurrentPosition());
-                Serial.print(", Y: ");
-                Serial.println(yMotor->getCurrentPosition());
+                
                 x1Motor->moveToPosition(TEST_POSITION_1_X);
                 x2Motor->moveToPosition(TEST_POSITION_1_X);
                 yMotor->moveToPosition(TEST_POSITION_1_Y);
@@ -144,19 +130,22 @@ int runTestSequenceState() {
                 Serial.print("=== STEP 2: Extending fork ");
                 Serial.print(TEST_FORK_EXTEND_DISTANCE);
                 Serial.println(" inches ===");
+                
                 forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
                 testSequenceStep++;
                 break;
                 
             case 2:
                 //! ************************************************************************
-                //! STEP 7: MOVE Y UP (FROM CONFIG)
+                //! STEP 7: MOVE Y UP (FROM CONFIG) - RELATIVE MOVEMENT
                 //! ************************************************************************
                 Serial.print("=== STEP 3: Moving Y up ");
                 Serial.print(TEST_Y_MOVE_UP_DISTANCE);
                 Serial.println(" inches ===");
-                currentY = yMotor->getCurrentPosition();
-                yMotor->moveToPosition(currentY + TEST_Y_MOVE_UP_DISTANCE);
+                
+                yPositionBeforeUp = yMotor->getCurrentPosition();
+                newYPosition = yPositionBeforeUp + TEST_Y_MOVE_UP_DISTANCE;
+                yMotor->moveToPosition(newYPosition);
                 testSequenceStep++;
                 break;
                 
@@ -167,6 +156,7 @@ int runTestSequenceState() {
                 Serial.print("=== STEP 4: Retracting fork to ");
                 Serial.print(TEST_FORK_RETRACT_POSITION);
                 Serial.println(" ===");
+                
                 forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
                 testSequenceStep++;
                 break;
@@ -180,12 +170,7 @@ int runTestSequenceState() {
                 Serial.print(",");
                 Serial.print(TEST_POSITION_2_Y);
                 Serial.println(" ===");
-                Serial.print("Current positions - X1: ");
-                Serial.print(x1Motor->getCurrentPosition());
-                Serial.print(", X2: ");
-                Serial.print(x2Motor->getCurrentPosition());
-                Serial.print(", Y: ");
-                Serial.println(yMotor->getCurrentPosition());
+                
                 x1Motor->moveToPosition(TEST_POSITION_2_X);
                 x2Motor->moveToPosition(TEST_POSITION_2_X);
                 yMotor->moveToPosition(TEST_POSITION_2_Y);
@@ -199,19 +184,22 @@ int runTestSequenceState() {
                 Serial.print("=== STEP 6: Extending fork ");
                 Serial.print(TEST_FORK_EXTEND_DISTANCE);
                 Serial.println(" inches ===");
+                
                 forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
                 testSequenceStep++;
                 break;
                 
             case 6:
                 //! ************************************************************************
-                //! STEP 11: MOVE Y DOWN (FROM CONFIG)
+                //! STEP 11: MOVE Y DOWN (FROM CONFIG) - RELATIVE MOVEMENT
                 //! ************************************************************************
                 Serial.print("=== STEP 7: Moving Y down ");
                 Serial.print(TEST_Y_MOVE_DOWN_DISTANCE);
                 Serial.println(" inches ===");
-                currentY2 = yMotor->getCurrentPosition();
-                yMotor->moveToPosition(currentY2 - TEST_Y_MOVE_DOWN_DISTANCE);
+                
+                yPositionBeforeDown = yMotor->getCurrentPosition();
+                newYPositionDown = yPositionBeforeDown - TEST_Y_MOVE_DOWN_DISTANCE;
+                yMotor->moveToPosition(newYPositionDown);
                 testSequenceStep++;
                 break;
                 
@@ -222,6 +210,7 @@ int runTestSequenceState() {
                 Serial.print("=== STEP 8: Retracting fork to ");
                 Serial.print(TEST_FORK_RETRACT_POSITION);
                 Serial.println(" ===");
+                
                 forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
                 testSequenceStep++;
                 break;
@@ -235,12 +224,7 @@ int runTestSequenceState() {
                 Serial.print(",");
                 Serial.print(TEST_POSITION_FINAL_Y);
                 Serial.println(" ===");
-                Serial.print("Current positions - X1: ");
-                Serial.print(x1Motor->getCurrentPosition());
-                Serial.print(", X2: ");
-                Serial.print(x2Motor->getCurrentPosition());
-                Serial.print(", Y: ");
-                Serial.println(yMotor->getCurrentPosition());
+                
                 x1Motor->moveToPosition(TEST_POSITION_FINAL_X);
                 x2Motor->moveToPosition(TEST_POSITION_FINAL_X);
                 yMotor->moveToPosition(TEST_POSITION_FINAL_Y);
@@ -254,6 +238,7 @@ int runTestSequenceState() {
                 Serial.println("=== TEST SEQUENCE COMPLETE ===");
                 Serial.println("All movements finished successfully");
                 Serial.println("Returning to IDLE state");
+                
                 testSequenceActive = false;
                 testSequenceStep = 0;
                 return 0; // Return to IDLE state
@@ -270,5 +255,6 @@ void resetTestSequenceState() {
     testSequenceInitialized = false;
     testSequenceActive = false;
     testSequenceStep = 0;
-    yStartPosition = 0.0;
+    yPositionBeforeUp = 0.0;
+    yPositionBeforeDown = 0.0;
 } 

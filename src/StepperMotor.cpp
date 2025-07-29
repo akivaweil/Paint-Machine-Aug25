@@ -154,20 +154,15 @@ void StepperMotor::update() {
     // Check if home switch is triggered during normal movement (not homing)
     // This prevents motors from moving past the home switch
     if (_isMoving && isHomeSwitchTriggered()) {
-        // Check if we're trying to move towards home (negative direction from current position)
-        long currentSteps = _stepper->getCurrentPosition();
-        long targetSteps = _stepper->getTargetPosition();
+        // If home switch is triggered, stop movement immediately
+        // This prevents the motor from moving past the home position
+        _stepper->forceStop();
+        _isMoving = false;
+        _currentPosition = 0.0; // Set to home position
+        _stepper->setCurrentPosition(0);
         
-        // If target is closer to home than current position, stop movement
-        if (abs(targetSteps) < abs(currentSteps)) {
-            _stepper->forceStop();
-            _isMoving = false;
-            _currentPosition = 0.0; // Set to home position
-            _stepper->setCurrentPosition(0);
-            
-            Serial.print(_axisName);
-            Serial.println(" stopped at home switch during normal operation");
-        }
+        Serial.print(_axisName);
+        Serial.println(" stopped at home switch during normal operation");
     }
     
     // Check if movement is complete
