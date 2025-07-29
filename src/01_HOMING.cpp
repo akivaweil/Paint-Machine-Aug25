@@ -1,5 +1,5 @@
-#include "01_HOMING.h"
-#include "../FUNCTIONS/StepperMotor.h"
+#include "StateMachine/STATES/01_HOMING.h"
+#include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 //* ************************************************************************
 //* ************************ HOMING STATE IMPLEMENTATION *******************

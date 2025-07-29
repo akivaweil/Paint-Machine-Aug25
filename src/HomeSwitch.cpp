@@ -1,4 +1,4 @@
-#include "HomeSwitch.h"
+#include "StateMachine/FUNCTIONS/HomeSwitch.h"
 
 //* ************************************************************************
 //* ************************ HOME SWITCH IMPLEMENTATION ********************

@@ -7,8 +7,8 @@
 
 #include <Arduino.h>
 #include <Bounce2.h>
-#include "../../config/Config.h"
-#include "../../config/Pin_Definitions.h"
+#include "config/Config.h"
+#include "config/Pin_Definitions.h"
 
 class HomeSwitch {
 public:

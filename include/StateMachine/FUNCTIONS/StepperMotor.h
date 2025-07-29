@@ -6,8 +6,8 @@
 //* ************************************************************************
 
 #include <Arduino.h>
-#include "../../config/Config.h"
-#include "../../config/Pin_Definitions.h"
+#include "config/Config.h"
+#include "config/Pin_Definitions.h"
 
 class StepperMotor {
 public:

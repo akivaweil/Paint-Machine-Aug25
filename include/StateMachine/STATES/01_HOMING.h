@@ -6,7 +6,7 @@
 //* ************************************************************************
 
 #include <Arduino.h>
-#include "../../config/Pin_Definitions.h"
+#include "config/Pin_Definitions.h"
 
 class HomingState {
 public:

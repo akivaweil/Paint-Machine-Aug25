@@ -1,4 +1,4 @@
-#include "StepperMotor.h"
+#include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 //* ************************************************************************
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
