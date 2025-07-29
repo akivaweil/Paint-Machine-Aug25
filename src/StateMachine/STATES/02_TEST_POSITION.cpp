@@ -174,26 +174,7 @@ int runTestPositionState() {
     if (yMotor) yMotor->update();
     if (forkMotor) forkMotor->update();
     
-    // Check if any motors are still moving
-    bool anyMoving = false;
-    if (x1Motor && x1Motor->isMoving()) anyMoving = true;
-    if (x2Motor && x2Motor->isMoving()) anyMoving = true;
-    if (yMotor && yMotor->isMoving()) anyMoving = true;
-    if (forkMotor && forkMotor->isMoving()) anyMoving = true;
-    
-    // If motors are moving, show status
-    static unsigned long lastStatusTime = 0;
-    if (anyMoving && millis() - lastStatusTime > 500) {
-        Serial.print("Moving - X1: ");
-        Serial.print(x1Motor ? x1Motor->getCurrentPosition() : 0);
-        Serial.print(", X2: ");
-        Serial.print(x2Motor ? x2Motor->getCurrentPosition() : 0);
-        Serial.print(", Y: ");
-        Serial.print(yMotor ? yMotor->getCurrentPosition() : 0);
-        Serial.print(", Fork: ");
-        Serial.println(forkMotor ? forkMotor->getCurrentPosition() : 0);
-        lastStatusTime = millis();
-    }
+
     
     // Return current state (2 = TEST_POSITION)
     return 2;

@@ -218,11 +218,6 @@ void StepperMotor::moveToPosition(float position) {
     // Move to target position
     _stepper->moveTo(targetSteps);
     _isMoving = true;
-    
-    Serial.print(_axisName);
-    Serial.print(" moving to position: ");
-    Serial.print(position);
-    Serial.println(" inches");
 }
 
 float StepperMotor::getCurrentPosition() {
