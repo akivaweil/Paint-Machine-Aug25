@@ -189,4 +189,33 @@ long StepperMotor::inchesToSteps(float inches) {
 
 float StepperMotor::stepsToInches(long steps) {
     return (float)steps / STEPS_PER_INCH;
+}
+
+void StepperMotor::moveToPosition(float position) {
+    if (!_stepper) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.println(" stepper not initialized");
+        return;
+    }
+    
+    // Convert position to steps
+    long targetSteps = inchesToSteps(position);
+    
+    // Set normal operation speed and acceleration
+    _stepper->setAcceleration(MAX_ACCEL);
+    _stepper->setSpeedInHz(MAX_SPEED);
+    
+    // Move to target position
+    _stepper->moveTo(targetSteps);
+    _isMoving = true;
+    
+    Serial.print(_axisName);
+    Serial.print(" moving to position: ");
+    Serial.print(position);
+    Serial.println(" inches");
+}
+
+float StepperMotor::getCurrentPosition() {
+    return _currentPosition;
 } 

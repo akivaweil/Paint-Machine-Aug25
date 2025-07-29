@@ -2,6 +2,7 @@
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/STATES/02_TEST_POSITION.h"
 
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
@@ -14,7 +15,7 @@ StepperMotor* yMotor = nullptr;
 StepperMotor* forkMotor = nullptr;
 
 // State machine variables
-int currentState = 0; // 0 = IDLE, 1 = HOMING
+int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = TEST_POSITION
 bool stateInitialized = false;
 
 // Homing sequence tracking
@@ -60,6 +61,10 @@ void loop() {
             x2Motor->home();
             homingPhase = 0;
             stateInitialized = true;
+        } else if (currentState == 2) {
+            // TEST_POSITION state initialization
+            resetTestPositionState();
+            stateInitialized = true;
         }
     }
     
@@ -72,6 +77,10 @@ void loop() {
             if (command == "home" || command == "h") {
                 Serial.println("Homing command received - transitioning to homing state");
                 currentState = 1;
+                stateInitialized = false;
+            } else if (command == "test" || command == "t") {
+                Serial.println("Test position command received - transitioning to test state");
+                currentState = 2;
                 stateInitialized = false;
             }
         }
@@ -179,6 +188,14 @@ void loop() {
                     }
                 }
                 break;
+        }
+    } else if (currentState == 2) {
+        // TEST_POSITION state
+        int newState = runTestPositionState();
+        if (newState != 2) {
+            // State wants to change
+            currentState = newState;
+            stateInitialized = false;
         }
     }
     
