@@ -35,6 +35,7 @@ void initializeHomingState() {
     if (!homingStateInitialized) {
         Serial.println("=== HOMING STATE ===");
         Serial.println("Starting homing sequence - All motors simultaneously");
+        Serial.println("Type 'm' to skip homing and go to manual movement");
         
         // Reset tracking variables
         x1Homed = false;
@@ -63,7 +64,21 @@ int runHomingState() {
     initializeHomingState();
     
     //! ************************************************************************
-    //! STEP 1: FREQUENT SWITCH UPDATES FOR MAXIMUM RESPONSIVENESS
+    //! STEP 1: CHECK FOR SERIAL COMMANDS (ALLOW SKIP TO TEST)
+    //! ************************************************************************
+    if (Serial.available()) {
+        String command = Serial.readString();
+        command.trim();
+        command.toLowerCase();
+        
+        if (command == "m") {
+            Serial.println("Manual movement command received - skipping homing and going to test state");
+            return 2; // Transition to TEST_POSITION state
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 2: FREQUENT SWITCH UPDATES FOR MAXIMUM RESPONSIVENESS
     //! ************************************************************************
     // Update all motor states during homing (includes switch debouncing)
     x1Motor->updateHoming();
