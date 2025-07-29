@@ -159,7 +159,7 @@ float StepperMotor::getHomingSpeed() {
     if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
     if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_SPEED;
-    return HOME_SPEED; // Default fallback
+    return X1_HOME_SPEED; // Default fallback using X1 settings
 }
 
 float StepperMotor::getHomingAcceleration() {
@@ -168,7 +168,7 @@ float StepperMotor::getHomingAcceleration() {
     if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
     if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_ACCEL;
-    return HOME_ACCEL; // Default fallback
+    return X1_HOME_ACCEL; // Default fallback using X1 settings
 }
 
 long StepperMotor::getHomingDistance() {
