@@ -72,14 +72,15 @@ int runHomingState() {
     switch (homingPhase) {
         case 0: // All motors homing simultaneously
             // Check each motor individually for homing completion
-            if (!x1Homed && x1Motor->isHomingComplete()) {
+            // Use direct home switch check instead of isHomingComplete()
+            if (!x1Homed && x1Motor->isHomeSwitchTriggered() && !x1Motor->isMoving()) {
                 x1Homed = true;
                 x1Motor->forceStop();
                 x1Motor->setCurrentPositionAsZero();
                 Serial.println("X1 motor homed");
             }
             
-            if (!x2Homed && x2Motor->isHomingComplete()) {
+            if (!x2Homed && x2Motor->isHomeSwitchTriggered() && !x2Motor->isMoving()) {
                 x2Homed = true;
                 x2Motor->forceStop();
                 x2Motor->setCurrentPositionAsZero();
@@ -95,7 +96,7 @@ int runHomingState() {
                 x2MovedAway = true;
             }
             
-            if (!yHomed && yMotor->isHomingComplete()) {
+            if (!yHomed && yMotor->isHomeSwitchTriggered() && !yMotor->isMoving()) {
                 yHomed = true;
                 yMotor->forceStop();
                 yMotor->setCurrentPositionAsZero();
@@ -103,7 +104,7 @@ int runHomingState() {
                 yMotor->moveAwayFromHome();
             }
             
-            if (!forkHomed && forkMotor->isHomingComplete()) {
+            if (!forkHomed && forkMotor->isHomeSwitchTriggered() && !forkMotor->isMoving()) {
                 forkHomed = true;
                 forkMotor->forceStop();
                 forkMotor->setCurrentPositionAsZero();

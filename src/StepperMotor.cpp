@@ -294,11 +294,10 @@ void StepperMotor::moveAwayFromHome() {
     Serial.print(moveDistance);
     Serial.println(" inches");
     
-    // Safety check: Don't move if home switch is still triggered
+    // Check if home switch is still triggered - if so, we need to move away from it
     if (isHomeSwitchTriggered()) {
         Serial.print(_axisName);
-        Serial.println(" WARNING: Home switch still triggered - not moving away");
-        return;
+        Serial.println(" Home switch still triggered - moving away from switch");
     }
     
     // Convert to steps
