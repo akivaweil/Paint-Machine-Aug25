@@ -21,6 +21,10 @@
 #define FORK_HOME_SPEED 400        // Speed for Fork homing operation (reduced for better switch response)
 #define FORK_HOME_ACCEL 1500       // Acceleration for Fork homing (reduced for smoother approach)
 
+// Storage Motor Settings (in steps per second) - No homing switches
+#define STORAGE_HOME_SPEED 400     // Speed for Storage motor operation
+#define STORAGE_HOME_ACCEL 2000    // Acceleration for Storage motor operation
+
 // Homing timeout settings
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
@@ -33,12 +37,14 @@
 #define X2_HOME_DIRECTION_POSITIVE false   // X2 homes in negative direction
 #define Y_HOME_DIRECTION_POSITIVE false    // Y homes in negative direction
 #define FORK_HOME_DIRECTION_POSITIVE false  // Fork homes in negative direction
+#define STORAGE_HOME_DIRECTION_POSITIVE true   // Storage motor direction (not used for homing)
 
 // Homing distance settings (how far to move during homing)
 #define X1_HOME_DISTANCE_STEPS 10000       // Steps to move during X1 homing
 #define X2_HOME_DISTANCE_STEPS 10000       // Steps to move during X2 homing
 #define Y_HOME_DISTANCE_STEPS 8000         // Steps to move during Y homing
 #define FORK_HOME_DISTANCE_STEPS 6000      // Steps to move during Fork homing
+#define STORAGE_HOME_DISTANCE_STEPS 10000  // Steps to move for Storage motor (not used for homing)
 
 // Move away from home switch distance (in inches)
 #define MOVE_AWAY_FROM_HOME_DISTANCE 2.0   // Distance to move away from home switch after homing
@@ -49,5 +55,6 @@
 #define X2_MOVE_AWAY_DIRECTION_POSITIVE true    // X2 moves positive to get away from home switch
 #define Y_MOVE_AWAY_DIRECTION_POSITIVE true     // Y moves positive to get away from home switch
 #define FORK_MOVE_AWAY_DIRECTION_POSITIVE true  // Fork moves positive to get away from home switch
+#define STORAGE_MOVE_AWAY_DIRECTION_POSITIVE true  // Storage motor direction (not used for homing)
 
 #endif // HOMING_CONFIG_H 

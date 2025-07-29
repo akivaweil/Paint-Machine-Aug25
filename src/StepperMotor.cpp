@@ -19,23 +19,36 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, int limitPin, c
     // Initialize FastAccelStepper pointer
     _stepper = nullptr;
     
-    // Initialize Bounce2 objects
-    _homeSwitchBounce.attach(_homePin, INPUT);
-    _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
+    // Initialize Bounce2 objects (only if pins are valid)
+    if (_homePin >= 0) {
+        _homeSwitchBounce.attach(_homePin, INPUT);
+        _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
+    }
     
-    _limitSwitchBounce.attach(_limitPin, INPUT_PULLDOWN);
-    _limitSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS); // Use same debounce time for limit switches
+    if (_limitPin >= 0) {
+        _limitSwitchBounce.attach(_limitPin, INPUT_PULLDOWN);
+        _limitSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS); // Use same debounce time for limit switches
+    }
 }
 
 void StepperMotor::initialize() {
     // Bounce2 objects are already initialized in constructor with proper pin modes
     
-    // Debug: Print initial switch states
+    // Debug: Print initial switch states (only if switches exist)
     Serial.print(_axisName);
-    Serial.print(" - Home pin state: ");
-    Serial.print(_homeSwitchBounce.read());
-    Serial.print(", Limit pin state: ");
-    Serial.println(_limitSwitchBounce.read());
+    if (_homePin >= 0) {
+        Serial.print(" - Home pin state: ");
+        Serial.print(_homeSwitchBounce.read());
+    } else {
+        Serial.print(" - No home switch");
+    }
+    if (_limitPin >= 0) {
+        Serial.print(", Limit pin state: ");
+        Serial.print(_limitSwitchBounce.read());
+    } else {
+        Serial.print(", No limit switch");
+    }
+    Serial.println();
     
     // Initialize FastAccelStepper engine (only once)
     static FastAccelStepperEngine* engine = nullptr;
@@ -123,6 +136,11 @@ bool StepperMotor::isHomeSwitchTriggered() {
     //! ************************************************************************
     //! STEP 1: FAST HOME SWITCH DETECTION WITH DEBOUNCING
     //! ************************************************************************
+    // Check if home switch exists
+    if (_homePin < 0) {
+        return false; // No home switch
+    }
+    
     // Use debounced read for reliable detection while maintaining responsiveness
     return _homeSwitchBounce.read() == HIGH; // Active HIGH
     
@@ -130,6 +148,11 @@ bool StepperMotor::isHomeSwitchTriggered() {
 }
 
 bool StepperMotor::isLimitSwitchTriggered() {
+    // Check if limit switch exists
+    if (_limitPin < 0) {
+        return false; // No limit switch
+    }
+    
     return _limitSwitchBounce.read() == HIGH; // Active HIGH
 }
 
@@ -164,6 +187,7 @@ float StepperMotor::getHomingSpeed() {
     if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED;
     if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
     if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
+    if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_SPEED;
     return HOME_SPEED; // Default fallback
 }
 
@@ -172,6 +196,7 @@ float StepperMotor::getHomingAcceleration() {
     if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCEL;
     if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
     if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
+    if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_ACCEL;
     return HOME_ACCEL; // Default fallback
 }
 
@@ -181,6 +206,7 @@ long StepperMotor::getHomingDistance() {
     else if (strcmp(_axisName, "X2") == 0) distance = X2_HOME_DISTANCE_STEPS;
     else if (strcmp(_axisName, "Y") == 0) distance = Y_HOME_DISTANCE_STEPS;
     else if (strcmp(_axisName, "Fork") == 0) distance = FORK_HOME_DISTANCE_STEPS;
+    else if (strcmp(_axisName, "Storage") == 0) distance = STORAGE_HOME_DISTANCE_STEPS;
     else distance = 10000; // Default fallback
     
     // Apply direction based on configuration
@@ -188,6 +214,7 @@ long StepperMotor::getHomingDistance() {
     else if (strcmp(_axisName, "X2") == 0 && !X2_HOME_DIRECTION_POSITIVE) distance = -distance;
     else if (strcmp(_axisName, "Y") == 0 && !Y_HOME_DIRECTION_POSITIVE) distance = -distance;
     else if (strcmp(_axisName, "Fork") == 0 && !FORK_HOME_DIRECTION_POSITIVE) distance = -distance;
+    else if (strcmp(_axisName, "Storage") == 0 && !STORAGE_HOME_DIRECTION_POSITIVE) distance = -distance;
     
     return distance;
 }
@@ -229,8 +256,13 @@ void StepperMotor::updateSwitches() {
     //! STEP 1: FREQUENT SWITCH DEBOUNCING UPDATE FOR MAXIMUM RESPONSIVENESS
     //! ************************************************************************
     // Update Bounce2 objects to handle debouncing - called frequently for fast response
-    _homeSwitchBounce.update();
-    _limitSwitchBounce.update();
+    // Only update if switches exist
+    if (_homePin >= 0) {
+        _homeSwitchBounce.update();
+    }
+    if (_limitPin >= 0) {
+        _limitSwitchBounce.update();
+    }
     
     // Note: This method should be called as frequently as possible during homing operations
 }
@@ -327,6 +359,8 @@ void StepperMotor::moveAwayFromHome() {
         moveDistance = Y_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
     } else if (strcmp(_axisName, "Fork") == 0) {
         moveDistance = FORK_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+    } else if (strcmp(_axisName, "Storage") == 0) {
+        moveDistance = STORAGE_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
     }
     
     // Debug: Show current position and move direction
@@ -378,6 +412,8 @@ void StepperMotor::testMoveAwayDirection() {
         Serial.print(Y_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     } else if (strcmp(_axisName, "Fork") == 0) {
         Serial.print(FORK_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "Storage") == 0) {
+        Serial.print("NO HOMING (Storage motor)");
     }
     
     Serial.print(", Move away direction: ");
@@ -391,6 +427,8 @@ void StepperMotor::testMoveAwayDirection() {
         Serial.print(Y_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     } else if (strcmp(_axisName, "Fork") == 0) {
         Serial.print(FORK_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    } else if (strcmp(_axisName, "Storage") == 0) {
+        Serial.print(STORAGE_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     }
     
     Serial.print(", Distance: ");

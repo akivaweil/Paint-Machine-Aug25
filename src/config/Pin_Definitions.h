@@ -33,6 +33,10 @@
 #define Y_LIMIT_PIN 16
 #define FORK_LIMIT_PIN 17
 
+// Storage Stepper Motor
+#define STORAGE_STEP_PIN 21
+#define STORAGE_DIR_PIN 47
+
 // Status LEDs
 #define STATUS_LED_PIN 2  // Built-in LED on most ESP32 boards
 #define ERROR_LED_PIN 2   // Using same pin for now

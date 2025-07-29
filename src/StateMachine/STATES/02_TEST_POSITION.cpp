@@ -15,6 +15,7 @@ extern StepperMotor* x1Motor;
 extern StepperMotor* x2Motor;
 extern StepperMotor* yMotor;
 extern StepperMotor* forkMotor;
+extern StepperMotor* storageMotor;
 
 // State variables
 bool testStateInitialized = false;
@@ -24,6 +25,9 @@ String inputBuffer = "";
 // Manual movement variables
 bool manualMovementActive = false;
 int manualMovementStep = 0;
+
+// Storage motor continuous spinning variables
+bool storageMotorSpinning = false;
 
 // Forward declaration
 int processCommand(String command);
@@ -53,6 +57,7 @@ void executeManualMovement() {
     x2Motor->update();
     yMotor->update();
     forkMotor->update();
+    if (storageMotor) storageMotor->update();
     
     //! ************************************************************************
     //! STEP 2: CHECK IF MOTORS ARE STILL MOVING
@@ -120,6 +125,7 @@ void initializeTestPositionState() {
         Serial.println("Type 'home' to re-home all motors");
         Serial.println("Type 'status' to see current positions");
         Serial.println("Type 'm' for manual movement sequence (5,5->10,5->10,10->5,10)");
+        Serial.println("Type 'test' to start/stop storage motor continuous spinning");
         Serial.println("Type 'exit' to return to IDLE");
         Serial.println("================================");
         testStateInitialized = true;
@@ -173,6 +179,7 @@ int runTestPositionState() {
     if (x2Motor) x2Motor->update();
     if (yMotor) yMotor->update();
     if (forkMotor) forkMotor->update();
+    if (storageMotor) storageMotor->update();
     
 
     
@@ -212,6 +219,11 @@ int processCommand(String command) {
         Serial.print("Fork: ");
         Serial.print(forkMotor ? forkMotor->getCurrentPosition() : 0);
         Serial.println(" inches");
+        Serial.print("Storage: ");
+        Serial.print(storageMotor ? storageMotor->getCurrentPosition() : 0);
+        Serial.println(" inches");
+        Serial.print("Storage motor spinning: ");
+        Serial.println(storageMotorSpinning ? "YES" : "NO");
         Serial.println("========================");
         return 2; // Stay in test state
     }
@@ -220,6 +232,28 @@ int processCommand(String command) {
     if (command == "m") {
         Serial.println("Manual movement command received!");
         startManualMovement();
+        return 2; // Stay in test state
+    }
+    
+    // Storage motor test command
+    if (command == "test") {
+        if (!storageMotorSpinning) {
+            // Start continuous spinning
+            Serial.println("Starting storage motor continuous spinning...");
+            storageMotorSpinning = true;
+            // Start continuous movement by moving to a very large distance
+            if (storageMotor) {
+                // Set high speed for continuous spinning
+                storageMotor->moveToPosition(10000.0); // Very large distance for continuous movement
+            }
+        } else {
+            // Stop spinning
+            Serial.println("Stopping storage motor...");
+            storageMotorSpinning = false;
+            if (storageMotor) {
+                storageMotor->forceStop();
+            }
+        }
         return 2; // Stay in test state
     }
     
@@ -278,6 +312,7 @@ int processCommand(String command) {
     Serial.println("Or type 'home' to re-home all motors");
     Serial.println("Or type 'status' to see current positions");
     Serial.println("Or type 'm' for manual movement sequence");
+    Serial.println("Or type 'test' to start/stop storage motor continuous spinning");
     Serial.println("Or type 'exit' to return to IDLE");
     return 2; // Stay in test state
 }
