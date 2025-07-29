@@ -79,16 +79,23 @@ int runHomingState() {
                 x1Homed = true;
                 x1Motor->forceStop();
                 x1Motor->setCurrentPositionAsZero();
-                Serial.println("X1 motor homed - moving away 0.5 inches positive");
-                x1Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
+                Serial.println("X1 motor homed");
             }
             
             if (!x2Homed && x2Motor->isHomingComplete()) {
                 x2Homed = true;
                 x2Motor->forceStop();
                 x2Motor->setCurrentPositionAsZero();
-                Serial.println("X2 motor homed - moving away 0.5 inches positive");
+                Serial.println("X2 motor homed");
+            }
+            
+            // Move X motors away together when both are homed
+            if (x1Homed && x2Homed && !x1MovedAway && !x2MovedAway) {
+                Serial.println("Both X motors homed - moving away 0.5 inches positive together");
+                x1Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
                 x2Motor->moveToPosition(0.5); // Move 0.5 inches in positive direction
+                x1MovedAway = true;
+                x2MovedAway = true;
             }
             
             if (!yHomed && yMotor->isHomingComplete()) {
@@ -120,16 +127,20 @@ int runHomingState() {
             static unsigned long lastStatusTime = 0;
             if (millis() - lastStatusTime > 1000) {
                 Serial.print("Homing - X1: ");
-                if (x1Homed) {
+                if (x1Homed && x1MovedAway) {
                     Serial.print(x1Motor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (x1Homed) {
+                    Serial.print("HOMED_WAITING");
                 } else if (x1Motor->isHomeSwitchTriggered()) {
                     Serial.print(x1Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
                 } else {
                     Serial.print("MOVING");
                 }
                 Serial.print(", X2: ");
-                if (x2Homed) {
+                if (x2Homed && x2MovedAway) {
                     Serial.print(x2Motor->isMoving() ? "MOVING_AWAY" : "COMPLETE");
+                } else if (x2Homed) {
+                    Serial.print("HOMED_WAITING");
                 } else if (x2Motor->isHomeSwitchTriggered()) {
                     Serial.print(x2Motor->isMoving() ? "AT_HOME_MOVING" : "HOMED");
                 } else {
