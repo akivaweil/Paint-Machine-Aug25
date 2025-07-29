@@ -19,8 +19,8 @@
 #define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch)
 
 // Speed and acceleration settings (in steps per second)
-#define MAX_SPEED 5000              // Maximum speed in steps per second
-#define MAX_ACCEL 5000             // Maximum acceleration in steps per second squared
+#define MAX_SPEED 10000              // Maximum speed in steps per second
+#define MAX_ACCEL 10000             // Maximum acceleration in steps per second squared
 
 // Home switch configuration (in steps per second)
 #define HOME_SPEED 200             // Speed for homing operation
