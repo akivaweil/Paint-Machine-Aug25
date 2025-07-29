@@ -125,23 +125,23 @@ int runHomingState() {
             //! ************************************************************************
             //! STEP 5: MOVE ALL MOTORS AWAY TOGETHER WHEN ALL ARE HOMED
             //! ************************************************************************
-            // Move all motors away together when all are homed
+            // Move all motors away together when all are homed (except fork - it stays at home)
             if (x1Homed && x2Homed && yHomed && forkHomed && 
                 !x1MovedAway && !x2MovedAway && !yMovedAway && !forkMovedAway) {
                 x1Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
                 x2Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
                 yMotor->moveAwayFromHome(); // Move 2.0 inches away from home switch
-                forkMotor->moveAwayFromHome(); // Move 2.0 inches away from home switch
+                // Fork motor stays at home position - no move away
                 x1MovedAway = true;
                 x2MovedAway = true;
                 yMovedAway = true;
-                forkMovedAway = true;
+                forkMovedAway = true; // Mark as moved away even though it didn't move
             }
             
             // Check if all motors have finished homing and moving away
             if (x1Homed && x2Homed && yHomed && forkHomed) {
-                // Check if all motors have finished moving away
-                if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving() && !forkMotor->isMoving()) {
+                // Check if all motors have finished moving away (fork stays at home)
+                if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
                     return 0; // Transition to IDLE state
                 }
             }
