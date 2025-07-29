@@ -13,9 +13,9 @@ HomeSwitch::HomeSwitch(int pin, const char* switchName) {
 }
 
 void HomeSwitch::initialize() {
-    // Configure bounce object
+    // Configure bounce object with 5ms debounce
     _bounce.attach(_pin, INPUT_PULLUP);
-    _bounce.interval(DEBOUNCE_DELAY_MS);
+    _bounce.interval(5); // 5ms debounce time
     
     // Initialize state
     _isTriggered = false;

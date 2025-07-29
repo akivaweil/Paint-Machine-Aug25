@@ -31,7 +31,6 @@
 #define MIN_TRAVEL_MM 0            // Minimum travel distance in mm
 
 // Timing settings
-#define DEBOUNCE_DELAY_MS 50       // Debounce delay for switches
 #define MOTOR_TIMEOUT_MS 30000     // Motor operation timeout in milliseconds
 
 #endif // CONFIG_H 
