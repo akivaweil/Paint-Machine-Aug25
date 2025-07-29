@@ -21,7 +21,6 @@
 // Speed and acceleration settings (in steps per second)
 #define MAX_SPEED 20000              // Maximum speed in steps per second
 #define MAX_ACCEL 7000             // Maximum acceleration in steps per second squared
-3333333
 // Safety settings
 #define MAX_TRAVEL_INCHES 40.0         // Maximum travel distance in inches
 #define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
