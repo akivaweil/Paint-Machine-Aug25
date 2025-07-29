@@ -32,13 +32,13 @@
 //* ************************ TEST SEQUENCE CONFIG ***************************
 //* ************************************************************************
 
-// Test sequence positions (in inches)
-#define TEST_POSITION_1_X 1.0      // First position X coordinate
-#define TEST_POSITION_1_Y 5.0      // First position Y coordinate
-#define TEST_POSITION_2_X 13.0     // Second position X coordinate
-#define TEST_POSITION_2_Y 5.0      // Second position Y coordinate
-#define TEST_POSITION_FINAL_X 1.0  // Final position X coordinate
-#define TEST_POSITION_FINAL_Y 1.0  // Final position Y coordinate
+// Test sequence positions (in inches) - Adjusted for negative homing direction
+#define TEST_POSITION_1_X 2.0      // First position X coordinate (moved away from home)
+#define TEST_POSITION_1_Y 2.0      // First position Y coordinate (moved away from home)
+#define TEST_POSITION_2_X 8.0      // Second position X coordinate (reduced from 13.0)
+#define TEST_POSITION_2_Y 2.0      // Second position Y coordinate (moved away from home)
+#define TEST_POSITION_FINAL_X 2.0  // Final position X coordinate (moved away from home)
+#define TEST_POSITION_FINAL_Y 2.0  // Final position Y coordinate (moved away from home)
 
 // Test sequence fork movements (in inches)
 #define TEST_FORK_EXTEND_DISTANCE 3.8  // Distance to extend fork

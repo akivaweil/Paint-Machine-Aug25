@@ -207,6 +207,32 @@ void StepperMotor::moveToPosition(float position) {
         return;
     }
     
+    //! ************************************************************************
+    //! STEP 1: VALIDATE POSITION BOUNDS
+    //! ************************************************************************
+    // Check if position is within safe limits
+    if (position < MIN_TRAVEL_INCHES) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.print(" position ");
+        Serial.print(position);
+        Serial.print(" inches is below minimum ");
+        Serial.print(MIN_TRAVEL_INCHES);
+        Serial.println(" inches");
+        return;
+    }
+    
+    if (position > MAX_TRAVEL_INCHES) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.print(" position ");
+        Serial.print(position);
+        Serial.print(" inches is above maximum ");
+        Serial.print(MAX_TRAVEL_INCHES);
+        Serial.println(" inches");
+        return;
+    }
+    
     // Convert position to steps
     long targetSteps = inchesToSteps(position);
     
@@ -217,6 +243,14 @@ void StepperMotor::moveToPosition(float position) {
     // Move to target position
     _stepper->moveTo(targetSteps);
     _isMoving = true;
+    
+    // Debug output
+    Serial.print(_axisName);
+    Serial.print(" moving to position: ");
+    Serial.print(position);
+    Serial.print(" inches (");
+    Serial.print(targetSteps);
+    Serial.println(" steps)");
 }
 
 float StepperMotor::getCurrentPosition() {
