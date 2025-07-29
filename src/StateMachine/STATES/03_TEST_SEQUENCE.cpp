@@ -36,28 +36,31 @@ void startTestSequence();
 // Function to initialize test sequence state
 void initializeTestSequenceState() {
     if (!testSequenceInitialized) {
-        // Reset sequence variables
-        testSequenceActive = false;
-        testSequenceStep = 0;
-        yPositionBeforeUp = 0.0;
-        yPositionBeforeDown = 0.0;
-        
-        Serial.println("=== TEST SEQUENCE STATE INITIALIZED ===");
-        Serial.println("Test sequence ready - press test button to start");
-        Serial.println("Sequence will move to configured positions:");
-        Serial.print("Position 1: X=");
-        Serial.print(TEST_POSITION_1_X);
-        Serial.print(", Y=");
-        Serial.println(TEST_POSITION_1_Y);
-        Serial.print("Position 2: X=");
-        Serial.print(TEST_POSITION_2_X);
-        Serial.print(", Y=");
-        Serial.println(TEST_POSITION_2_Y);
-        Serial.print("Final Position: X=");
-        Serial.print(TEST_POSITION_FINAL_X);
-        Serial.print(", Y=");
-        Serial.println(TEST_POSITION_FINAL_Y);
-        Serial.println("=========================================");
+        // Only reset if not already active
+        if (!testSequenceActive) {
+            // Reset sequence variables
+            testSequenceActive = false;
+            testSequenceStep = 0;
+            yPositionBeforeUp = 0.0;
+            yPositionBeforeDown = 0.0;
+            
+            Serial.println("=== TEST SEQUENCE STATE INITIALIZED ===");
+            Serial.println("Test sequence ready - press test button to start");
+            Serial.println("Sequence will move to configured positions:");
+            Serial.print("Position 1: X=");
+            Serial.print(TEST_POSITION_1_X);
+            Serial.print(", Y=");
+            Serial.println(TEST_POSITION_1_Y);
+            Serial.print("Position 2: X=");
+            Serial.print(TEST_POSITION_2_X);
+            Serial.print(", Y=");
+            Serial.println(TEST_POSITION_2_Y);
+            Serial.print("Final Position: X=");
+            Serial.print(TEST_POSITION_FINAL_X);
+            Serial.print(", Y=");
+            Serial.println(TEST_POSITION_FINAL_Y);
+            Serial.println("=========================================");
+        }
         
         testSequenceInitialized = true;
     }
@@ -252,9 +255,12 @@ int runTestSequenceState() {
 
 // Function to reset test sequence state
 void resetTestSequenceState() {
-    testSequenceInitialized = false;
-    testSequenceActive = false;
-    testSequenceStep = 0;
-    yPositionBeforeUp = 0.0;
-    yPositionBeforeDown = 0.0;
+    // Only reset if sequence is not currently active
+    if (!testSequenceActive) {
+        testSequenceInitialized = false;
+        testSequenceActive = false;
+        testSequenceStep = 0;
+        yPositionBeforeUp = 0.0;
+        yPositionBeforeDown = 0.0;
+    }
 } 
