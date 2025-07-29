@@ -40,8 +40,8 @@ void setup() {
     
     Serial.println("All motors initialized");
     
-    // Start in idle state
-    currentState = 0;
+    // Start in homing state for automatic homing on startup
+    currentState = 1;
     stateInitialized = false;
     homingPhase = 0;
 }
