@@ -244,4 +244,41 @@ void StepperMotor::updateHoming() {
 
 bool StepperMotor::isHomingComplete() {
     return isHomeSwitchTriggered() && !isMoving();
+}
+
+void StepperMotor::moveAwayFromHome() {
+    if (!_stepper) {
+        Serial.print("ERROR: ");
+        Serial.print(_axisName);
+        Serial.println(" stepper not initialized");
+        return;
+    }
+    
+    // Move 0.5 inches away from home position
+    // Determine direction based on homing direction
+    float moveDistance = 0.5; // 0.5 inches
+    
+    // If homing direction is positive, move negative to get away from home
+    // If homing direction is negative, move positive to get away from home
+    if (strcmp(_axisName, "X1") == 0 && X1_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
+    else if (strcmp(_axisName, "X2") == 0 && X2_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
+    else if (strcmp(_axisName, "Y") == 0 && Y_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
+    else if (strcmp(_axisName, "Fork") == 0 && FORK_HOME_DIRECTION_POSITIVE) moveDistance = -0.5;
+    else moveDistance = 0.5; // Default to positive if homing direction is negative
+    
+    // Convert to steps
+    long targetSteps = inchesToSteps(moveDistance);
+    
+    // Set normal operation speed and acceleration
+    _stepper->setAcceleration(MAX_ACCEL);
+    _stepper->setSpeedInHz(MAX_SPEED);
+    
+    // Move to target position
+    _stepper->moveTo(targetSteps);
+    _isMoving = true;
+    
+    Serial.print(_axisName);
+    Serial.print(" moving away from home: ");
+    Serial.print(moveDistance);
+    Serial.println(" inches");
 } 

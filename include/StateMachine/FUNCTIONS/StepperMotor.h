@@ -50,6 +50,9 @@ public:
     
     // Check if homing is complete
     bool isHomingComplete();
+    
+    // Move away from home position (0.5 inches)
+    void moveAwayFromHome();
 
 private:
     // Motor pins
