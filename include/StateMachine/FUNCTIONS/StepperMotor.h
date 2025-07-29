@@ -39,11 +39,17 @@ public:
     // Update motor (call in main loop)
     void update();
     
+    // Update motor during homing (checks home switches)
+    void updateHoming();
+    
     // Move to specific position (in inches)
     void moveToPosition(float position);
     
     // Get current position
     float getCurrentPosition();
+    
+    // Check if homing is complete
+    bool isHomingComplete();
 
 private:
     // Motor pins

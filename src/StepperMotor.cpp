@@ -121,19 +121,7 @@ void StepperMotor::update() {
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
-    // Check if home switch is triggered during homing
-    if (_isMoving && isHomeSwitchTriggered()) {
-        _stepper->stopMove();
-        _isMoving = false;
-        _currentPosition = 0.0; // Set home position
-        _stepper->setCurrentPosition(0);
-        
-        Serial.print(_axisName);
-        Serial.println(" reached home switch");
-        return;
-    }
-    
-    // Check if limit switch is triggered
+    // Check if limit switch is triggered (always check for safety)
     if (isLimitSwitchTriggered()) {
         _stepper->stopMove();
         _isMoving = false;
@@ -218,4 +206,42 @@ void StepperMotor::moveToPosition(float position) {
 
 float StepperMotor::getCurrentPosition() {
     return _currentPosition;
+}
+
+void StepperMotor::updateHoming() {
+    if (!_stepper) return;
+    
+    // Update current position from stepper
+    _currentPosition = stepsToInches(_stepper->getCurrentPosition());
+    
+    // Check if home switch is triggered during homing
+    if (_isMoving && isHomeSwitchTriggered()) {
+        _stepper->stopMove();
+        _isMoving = false;
+        _currentPosition = 0.0; // Set home position
+        _stepper->setCurrentPosition(0);
+        
+        Serial.print(_axisName);
+        Serial.println(" reached home switch");
+        return;
+    }
+    
+    // Check if limit switch is triggered (always check for safety)
+    if (isLimitSwitchTriggered()) {
+        _stepper->stopMove();
+        _isMoving = false;
+        
+        Serial.print(_axisName);
+        Serial.println(" limit switch triggered - stopping");
+        return;
+    }
+    
+    // Check if movement is complete
+    if (!_stepper->isRunning()) {
+        _isMoving = false;
+    }
+}
+
+bool StepperMotor::isHomingComplete() {
+    return isHomeSwitchTriggered() && !isMoving();
 } 

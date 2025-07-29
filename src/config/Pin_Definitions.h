@@ -33,4 +33,8 @@
 #define Y_LIMIT_PIN 16
 #define FORK_LIMIT_PIN 17
 
+// Status LEDs
+#define STATUS_LED_PIN 2  // Built-in LED on most ESP32 boards
+#define ERROR_LED_PIN 2   // Using same pin for now
+
 #endif // PIN_DEFINITIONS_H 

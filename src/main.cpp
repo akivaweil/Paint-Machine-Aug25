@@ -86,11 +86,11 @@ void loop() {
         }
     } else if (currentState == 1) {
         // HOMING state
-        // Update all motor states
-        x1Motor->update();
-        x2Motor->update();
-        yMotor->update();
-        forkMotor->update();
+        // Update all motor states during homing
+        x1Motor->updateHoming();
+        x2Motor->updateHoming();
+        yMotor->updateHoming();
+        forkMotor->updateHoming();
         
         // Declare variables outside switch to avoid compilation errors
         bool x1Homed, x2Homed, yHomed, forkHomed;
@@ -99,8 +99,8 @@ void loop() {
         switch (homingPhase) {
             case 0: // X motors (both simultaneously)
                 // Check if both X motors have reached home switches AND stopped moving
-                x1Homed = x1Motor->isHomeSwitchTriggered() && !x1Motor->isMoving();
-                x2Homed = x2Motor->isHomeSwitchTriggered() && !x2Motor->isMoving();
+                x1Homed = x1Motor->isHomingComplete();
+                x2Homed = x2Motor->isHomingComplete();
                 
                 if (x1Homed && x2Homed) {
                     // Both X motors have reached home switches and stopped
@@ -134,7 +134,7 @@ void loop() {
                 break;
                 
             case 1: // Y motor
-                yHomed = yMotor->isHomeSwitchTriggered() && !yMotor->isMoving();
+                yHomed = yMotor->isHomingComplete();
                 
                 if (yHomed) {
                     // Y motor has reached home switch and stopped
@@ -160,7 +160,7 @@ void loop() {
                 break;
                 
             case 2: // Fork motor
-                forkHomed = forkMotor->isHomeSwitchTriggered() && !forkMotor->isMoving();
+                forkHomed = forkMotor->isHomingComplete();
                 
                 if (forkHomed) {
                     // Fork motor has reached home switch and stopped
