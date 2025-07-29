@@ -6,13 +6,6 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 
-// OTA Manager functions
-void initializeOTA();
-void updateOTA();
-bool isOTAReady();
-String getOTAIpAddress();
-bool isWiFiConnected();
-
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
 //* ************************************************************************
@@ -113,9 +106,6 @@ void setup() {
     nextState = 0;
     stateInitialized = false;
     
-    // Initialize OTA
-    initializeOTA();
-    
     // Initial status indication
     digitalWrite(STATUS_LED_PIN, HIGH);
     delay(1000);
@@ -123,9 +113,6 @@ void setup() {
 }
 
 void loop() {
-    // Update OTA
-    updateOTA();
-    
     // Update home switches
     if (x1HomeSwitch) x1HomeSwitch->update();
     if (x2HomeSwitch) x2HomeSwitch->update();
