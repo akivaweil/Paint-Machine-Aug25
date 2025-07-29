@@ -27,7 +27,6 @@
 
 // Home switch debounce settings (in milliseconds)
 #define HOME_SWITCH_DEBOUNCE_MS 50         // Debounce time for home switches to prevent false triggers
-#define HOME_SWITCH_CONFIRMATION_MS 100    // Additional confirmation time after debounce to ensure stable trigger
 
 // Homing direction settings (true = positive direction, false = negative direction)
 #define X1_HOME_DIRECTION_POSITIVE true    // X1 homes in positive direction
