@@ -6,27 +6,27 @@
 //* ************************************************************************
 
 // X1 Motor Homing Settings (in steps per second)
-#define X1_HOME_SPEED 500          // Speed for X1 homing operation
-#define X1_HOME_ACCEL 3000         // Acceleration for X1 homing
+#define X1_HOME_SPEED 400          // Speed for X1 homing operation (reduced for better switch response)
+#define X1_HOME_ACCEL 2500         // Acceleration for X1 homing (reduced for smoother approach)
 
 // X2 Motor Homing Settings (in steps per second)
-#define X2_HOME_SPEED 500          // Speed for X2 homing operation
-#define X2_HOME_ACCEL 3000         // Acceleration for X2 homing
+#define X2_HOME_SPEED 400          // Speed for X2 homing operation (reduced for better switch response)
+#define X2_HOME_ACCEL 2500         // Acceleration for X2 homing (reduced for smoother approach)
 
 // Y Motor Homing Settings (in steps per second)
-#define Y_HOME_SPEED 500           // Speed for Y homing operation
-#define Y_HOME_ACCEL 4000          // Acceleration for Y homing
+#define Y_HOME_SPEED 400           // Speed for Y homing operation (reduced for better switch response)
+#define Y_HOME_ACCEL 3000          // Acceleration for Y homing (reduced for smoother approach)
 
 // Fork Motor Homing Settings (in steps per second)
-#define FORK_HOME_SPEED 500        // Speed for Fork homing operation
-#define FORK_HOME_ACCEL 2000       // Acceleration for Fork homing
+#define FORK_HOME_SPEED 400        // Speed for Fork homing operation (reduced for better switch response)
+#define FORK_HOME_ACCEL 1500       // Acceleration for Fork homing (reduced for smoother approach)
 
 // Homing timeout settings
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
 
 // Home switch debounce settings (in milliseconds)
-#define HOME_SWITCH_DEBOUNCE_MS 2         // Debounce time for home switches to prevent false triggers
+#define HOME_SWITCH_DEBOUNCE_MS 1         // Debounce time for home switches to prevent false triggers (reduced for faster response)
 
 // Homing direction settings (true = positive direction, false = negative direction)
 #define X1_HOME_DIRECTION_POSITIVE false   // X1 homes in negative direction

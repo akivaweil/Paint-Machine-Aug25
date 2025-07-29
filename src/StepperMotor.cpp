@@ -120,7 +120,13 @@ void StepperMotor::setCurrentPositionAsZero() {
 }
 
 bool StepperMotor::isHomeSwitchTriggered() {
+    //! ************************************************************************
+    //! STEP 1: FAST HOME SWITCH DETECTION WITH DEBOUNCING
+    //! ************************************************************************
+    // Use debounced read for reliable detection while maintaining responsiveness
     return _homeSwitchBounce.read() == HIGH; // Active HIGH
+    
+    // Note: Bounce2 library with 1ms debounce provides fast response while preventing false triggers
 }
 
 bool StepperMotor::isLimitSwitchTriggered() {
@@ -224,32 +230,46 @@ float StepperMotor::getCurrentPosition() {
 }
 
 void StepperMotor::updateSwitches() {
-    // Update Bounce2 objects to handle debouncing
+    //! ************************************************************************
+    //! STEP 1: FREQUENT SWITCH DEBOUNCING UPDATE FOR MAXIMUM RESPONSIVENESS
+    //! ************************************************************************
+    // Update Bounce2 objects to handle debouncing - called frequently for fast response
     _homeSwitchBounce.update();
     _limitSwitchBounce.update();
+    
+    // Note: This method should be called as frequently as possible during homing operations
 }
 
 void StepperMotor::updateHoming() {
     if (!_stepper) return;
     
-    // Update switch debouncing
+    //! ************************************************************************
+    //! STEP 1: IMMEDIATE SWITCH DEBOUNCING UPDATE FOR FASTER RESPONSE
+    //! ************************************************************************
+    // Update switch debouncing immediately for faster response
     updateSwitches();
     
     // Update current position from stepper
     _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
-    // Check if home switch is triggered during homing
+    //! ************************************************************************
+    //! STEP 2: AGGRESSIVE HOME SWITCH DETECTION DURING HOMING
+    //! ************************************************************************
+    // Check if home switch is triggered during homing with immediate response
     // Only stop if we're in the initial homing phase (not moving away)
     if (_isMoving && isHomeSwitchTriggered()) {
         // Check if we're trying to move away from home (current position > 0 means we've already homed)
         if (_currentPosition <= 0.0) {
-            _stepper->stopMove();
+            //! ************************************************************************
+            //! STEP 3: IMMEDIATE FORCE STOP WHEN HOME SWITCH IS TRIGGERED
+            //! ************************************************************************
+            _stepper->forceStop(); // Use forceStop for immediate response
             _isMoving = false;
             _currentPosition = 0.0; // Set home position
             _stepper->setCurrentPosition(0);
             
             Serial.print(_axisName);
-            Serial.println(" reached home switch");
+            Serial.println(" reached home switch - FORCE STOPPED");
             return;
         } else {
             // We're moving away from home, don't stop
@@ -258,9 +278,12 @@ void StepperMotor::updateHoming() {
         }
     }
     
-    // Debug: Show home switch state periodically
+    //! ************************************************************************
+    //! STEP 4: REDUCED DEBUG OUTPUT FOR LESS INTERFERENCE
+    //! ************************************************************************
+    // Debug: Show home switch state periodically (reduced frequency for less interference)
     static unsigned long lastHomeDebugTime = 0;
-    if (millis() - lastHomeDebugTime > 2000) { // Every 2 seconds
+    if (millis() - lastHomeDebugTime > 5000) { // Every 5 seconds instead of 2
         Serial.print(_axisName);
         Serial.print(" home switch state: ");
         Serial.print(_homeSwitchBounce.read());

@@ -62,54 +62,72 @@ int runHomingState() {
     // Initialize state if needed
     initializeHomingState();
     
-    // Update all motor states during homing
+    //! ************************************************************************
+    //! STEP 1: FREQUENT SWITCH UPDATES FOR MAXIMUM RESPONSIVENESS
+    //! ************************************************************************
+    // Update all motor states during homing (includes switch debouncing)
     x1Motor->updateHoming();
     x2Motor->updateHoming();
     yMotor->updateHoming();
     forkMotor->updateHoming();
     
+    //! ************************************************************************
+    //! STEP 2: ADDITIONAL SWITCH UPDATES FOR EXTRA RESPONSIVENESS
+    //! ************************************************************************
+    // Force additional switch updates for maximum responsiveness
+    x1Motor->updateSwitches();
+    x2Motor->updateSwitches();
+    yMotor->updateSwitches();
+    forkMotor->updateSwitches();
+    
     // Handle independent motor homing and moving away
     switch (homingPhase) {
         case 0: // All motors homing simultaneously
-            // Check each motor individually for homing completion
-            // Use direct home switch check instead of isHomingComplete()
-            if (!x1Homed && x1Motor->isHomeSwitchTriggered() && !x1Motor->isMoving()) {
+            //! ************************************************************************
+            //! STEP 1: IMMEDIATE HOME SWITCH CHECKING FOR FASTER RESPONSE
+            //! ************************************************************************
+            // Check each motor individually for homing completion with immediate response
+            // Use direct home switch check and force stop immediately when triggered
+            if (!x1Homed && x1Motor->isHomeSwitchTriggered()) {
                 x1Homed = true;
-                x1Motor->forceStop();
+                x1Motor->forceStop(); // Immediate stop when switch is triggered
                 x1Motor->setCurrentPositionAsZero();
-                Serial.println("X1 motor homed");
+                Serial.println("X1 motor homed - IMMEDIATE STOP");
             }
             
-            if (!x2Homed && x2Motor->isHomeSwitchTriggered() && !x2Motor->isMoving()) {
+            if (!x2Homed && x2Motor->isHomeSwitchTriggered()) {
                 x2Homed = true;
-                x2Motor->forceStop();
+                x2Motor->forceStop(); // Immediate stop when switch is triggered
                 x2Motor->setCurrentPositionAsZero();
-                Serial.println("X2 motor homed");
+                Serial.println("X2 motor homed - IMMEDIATE STOP");
             }
             
-            // Move X motors away together when both are homed
-            if (x1Homed && x2Homed && !x1MovedAway && !x2MovedAway) {
-                Serial.println("Both X motors homed - moving away 0.5 inches from home switch");
-                x1Motor->moveAwayFromHome(); // Move 0.5 inches away from home switch
-                x2Motor->moveAwayFromHome(); // Move 0.5 inches away from home switch
-                x1MovedAway = true;
-                x2MovedAway = true;
-            }
-            
-            if (!yHomed && yMotor->isHomeSwitchTriggered() && !yMotor->isMoving()) {
+            if (!yHomed && yMotor->isHomeSwitchTriggered()) {
                 yHomed = true;
-                yMotor->forceStop();
+                yMotor->forceStop(); // Immediate stop when switch is triggered
                 yMotor->setCurrentPositionAsZero();
-                Serial.println("Y motor homed - moving away from home");
+                Serial.println("Y motor homed - IMMEDIATE STOP");
                 yMotor->moveAwayFromHome();
             }
             
-            if (!forkHomed && forkMotor->isHomeSwitchTriggered() && !forkMotor->isMoving()) {
+            if (!forkHomed && forkMotor->isHomeSwitchTriggered()) {
                 forkHomed = true;
-                forkMotor->forceStop();
+                forkMotor->forceStop(); // Immediate stop when switch is triggered
                 forkMotor->setCurrentPositionAsZero();
-                Serial.println("Fork motor homed - moving away from home");
+                Serial.println("Fork motor homed - IMMEDIATE STOP");
                 forkMotor->moveAwayFromHome();
+            }
+            
+            //! ************************************************************************
+            //! STEP 2: MOVE X MOTORS AWAY TOGETHER WHEN BOTH ARE HOMED
+            //! ************************************************************************
+            // Move X motors away together when both are homed
+            if (x1Homed && x2Homed && !x1MovedAway && !x2MovedAway) {
+                Serial.println("Both X motors homed - moving away 2.0 inches from home switch");
+                x1Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
+                x2Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
+                x1MovedAway = true;
+                x2MovedAway = true;
             }
             
             // Check if all motors have finished homing and moving away
