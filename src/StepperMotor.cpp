@@ -1,5 +1,6 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "config/Homing_Config.h"
+#include "config/Config.h"
 
 //* ************************************************************************
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
