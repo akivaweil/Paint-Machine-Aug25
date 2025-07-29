@@ -21,8 +21,94 @@ bool testStateInitialized = false;
 bool waitingForInput = true;
 String inputBuffer = "";
 
+// Manual movement variables
+bool manualMovementActive = false;
+int manualMovementStep = 0;
+
 // Forward declaration
 int processCommand(String command);
+
+//* ************************************************************************
+//* ************************ MANUAL MOVEMENT FUNCTIONS *********************
+//* ************************************************************************
+
+void startManualMovement() {
+    //! ************************************************************************
+    //! STEP 1: INITIALIZE MANUAL MOVEMENT SEQUENCE
+    //! ************************************************************************
+    manualMovementActive = true;
+    manualMovementStep = 0;
+    
+    Serial.println("=== MANUAL MOVEMENT SEQUENCE STARTED ===");
+    Serial.println("Moving to: 5,5 -> 10,5 -> 10,10 -> 5,10");
+}
+
+void executeManualMovement() {
+    if (!manualMovementActive) return;
+    
+    //! ************************************************************************
+    //! STEP 1: UPDATE ALL MOTORS FOR MOVEMENT
+    //! ************************************************************************
+    x1Motor->update();
+    x2Motor->update();
+    yMotor->update();
+    forkMotor->update();
+    
+    //! ************************************************************************
+    //! STEP 2: CHECK IF MOTORS ARE STILL MOVING
+    //! ************************************************************************
+    bool motorsMoving = x1Motor->isMoving() || x2Motor->isMoving() || yMotor->isMoving() || forkMotor->isMoving();
+    
+    //! ************************************************************************
+    //! STEP 3: EXECUTE NEXT MOVEMENT ONLY IF MOTORS HAVE STOPPED
+    //! ************************************************************************
+    if (!motorsMoving) {
+        switch (manualMovementStep) {
+            case 0:
+                // Move to 5,5
+                Serial.println("=== MOVING TO POSITION 1: 5,5 ===");
+                x1Motor->moveToPosition(5.0);
+                x2Motor->moveToPosition(5.0);
+                yMotor->moveToPosition(5.0);
+                manualMovementStep++;
+                break;
+                
+            case 1:
+                // Move to 10,5
+                Serial.println("=== MOVING TO POSITION 2: 10,5 ===");
+                x1Motor->moveToPosition(10.0);
+                x2Motor->moveToPosition(10.0);
+                yMotor->moveToPosition(5.0);
+                manualMovementStep++;
+                break;
+                
+            case 2:
+                // Move to 10,10
+                Serial.println("=== MOVING TO POSITION 3: 10,10 ===");
+                x1Motor->moveToPosition(10.0);
+                x2Motor->moveToPosition(10.0);
+                yMotor->moveToPosition(10.0);
+                manualMovementStep++;
+                break;
+                
+            case 3:
+                // Move to 5,10
+                Serial.println("=== MOVING TO POSITION 4: 5,10 ===");
+                x1Motor->moveToPosition(5.0);
+                x2Motor->moveToPosition(5.0);
+                yMotor->moveToPosition(10.0);
+                manualMovementStep++;
+                break;
+                
+            case 4:
+                // Sequence complete
+                Serial.println("=== MANUAL MOVEMENT SEQUENCE COMPLETE ===");
+                manualMovementActive = false;
+                manualMovementStep = 0;
+                break;
+        }
+    }
+}
 
 // Function to initialize test state
 void initializeTestPositionState() {
@@ -33,6 +119,7 @@ void initializeTestPositionState() {
         Serial.println("Safe range: (0,0) to (15,15)");
         Serial.println("Type 'home' to re-home all motors");
         Serial.println("Type 'status' to see current positions");
+        Serial.println("Type 'm' for manual movement sequence (5,5->10,5->10,10->5,10)");
         Serial.println("Type 'exit' to return to IDLE");
         Serial.println("================================");
         testStateInitialized = true;
@@ -75,6 +162,11 @@ int runTestPositionState() {
             Serial.print(c); // Echo character
         }
     }
+    
+    //! ************************************************************************
+    //! STEP 1: EXECUTE MANUAL MOVEMENT IF ACTIVE
+    //! ************************************************************************
+    executeManualMovement();
     
     // Update all motors
     if (x1Motor) x1Motor->update();
@@ -143,6 +235,13 @@ int processCommand(String command) {
         return 2; // Stay in test state
     }
     
+    // Manual movement command
+    if (command == "m") {
+        Serial.println("Manual movement command received!");
+        startManualMovement();
+        return 2; // Stay in test state
+    }
+    
     // Coordinate command (x,y format)
     int commaIndex = command.indexOf(',');
     if (commaIndex > 0) {
@@ -197,6 +296,7 @@ int processCommand(String command) {
     Serial.println("Safe range: (0,0) to (15,15)");
     Serial.println("Or type 'home' to re-home all motors");
     Serial.println("Or type 'status' to see current positions");
+    Serial.println("Or type 'm' for manual movement sequence");
     Serial.println("Or type 'exit' to return to IDLE");
     return 2; // Stay in test state
 }

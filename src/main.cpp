@@ -20,117 +20,7 @@ StepperMotor* forkMotor = nullptr;
 int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = TEST_POSITION
 bool stateInitialized = false;
 
-// Manual movement variables
-bool manualMovementActive = false;
-int manualMovementStep = 0;
-unsigned long manualMovementStartTime = 0;
-const unsigned long MANUAL_MOVEMENT_DELAY = 2000; // 2 seconds between movements
 
-//* ************************************************************************
-//* ************************ MANUAL MOVEMENT FUNCTIONS *********************
-//* ************************************************************************
-
-void startManualMovement() {
-    //! ************************************************************************
-    //! STEP 1: INITIALIZE MANUAL MOVEMENT SEQUENCE
-    //! ************************************************************************
-    manualMovementActive = true;
-    manualMovementStep = 0;
-    manualMovementStartTime = millis();
-    
-    Serial.println("=== MANUAL MOVEMENT SEQUENCE STARTED ===");
-    Serial.println("Moving to: 5,5 -> 10,5 -> 10,10 -> 5,10");
-}
-
-void executeManualMovement() {
-    if (!manualMovementActive) return;
-    
-    //! ************************************************************************
-    //! STEP 1: UPDATE ALL MOTORS FOR MOVEMENT
-    //! ************************************************************************
-    x1Motor->update();
-    x2Motor->update();
-    yMotor->update();
-    forkMotor->update();
-    
-    //! ************************************************************************
-    //! STEP 2: CHECK IF MOTORS ARE STILL MOVING
-    //! ************************************************************************
-    bool motorsMoving = x1Motor->isMoving() || x2Motor->isMoving() || yMotor->isMoving() || forkMotor->isMoving();
-    
-    //! ************************************************************************
-    //! STEP 3: EXECUTE NEXT MOVEMENT ONLY IF MOTORS HAVE STOPPED AND TIME HAS PASSED
-    //! ************************************************************************
-    if (!motorsMoving && (millis() - manualMovementStartTime >= MANUAL_MOVEMENT_DELAY)) {
-        switch (manualMovementStep) {
-            case 0:
-                // Move to 5,5
-                Serial.println("=== MOVING TO POSITION 1: 5,5 ===");
-                x1Motor->moveToPosition(5.0);
-                x2Motor->moveToPosition(5.0);
-                yMotor->moveToPosition(5.0);
-                manualMovementStep++;
-                break;
-                
-            case 1:
-                // Move to 10,5
-                Serial.println("=== MOVING TO POSITION 2: 10,5 ===");
-                x1Motor->moveToPosition(10.0);
-                x2Motor->moveToPosition(10.0);
-                yMotor->moveToPosition(5.0);
-                manualMovementStep++;
-                break;
-                
-            case 2:
-                // Move to 10,10
-                Serial.println("=== MOVING TO POSITION 3: 10,10 ===");
-                x1Motor->moveToPosition(10.0);
-                x2Motor->moveToPosition(10.0);
-                yMotor->moveToPosition(10.0);
-                manualMovementStep++;
-                break;
-                
-            case 3:
-                // Move to 5,10
-                Serial.println("=== MOVING TO POSITION 4: 5,10 ===");
-                x1Motor->moveToPosition(5.0);
-                x2Motor->moveToPosition(5.0);
-                yMotor->moveToPosition(10.0);
-                manualMovementStep++;
-                break;
-                
-            case 4:
-                // Sequence complete
-                Serial.println("=== MANUAL MOVEMENT SEQUENCE COMPLETE ===");
-                manualMovementActive = false;
-                manualMovementStep = 0;
-                break;
-        }
-        
-        // Reset timer for next movement
-        manualMovementStartTime = millis();
-    }
-}
-
-void checkSerialCommands() {
-    //! ************************************************************************
-    //! STEP 1: CHECK FOR SERIAL COMMANDS
-    //! ************************************************************************
-    if (Serial.available()) {
-        char command = Serial.read();
-        
-        // Convert to lowercase for case-insensitive comparison
-        command = tolower(command);
-        
-        //! ************************************************************************
-        //! STEP 2: PROCESS MANUAL MOVEMENT COMMAND
-        //! ************************************************************************
-        if (command == 'm') {
-            Serial.println("Manual movement command received!");
-            startManualMovement();
-        }
-    }
-}
 
 void setup() {
     // Initialize serial communication
@@ -183,25 +73,9 @@ void setup() {
     // Start in homing state for automatic homing on startup
     currentState = 1;
     stateInitialized = false;
-    
-    // Print manual movement instructions
-    Serial.println("=== MANUAL MOVEMENT COMMANDS ===");
-    Serial.println("Type 'm' in serial monitor to start movement sequence:");
-    Serial.println("5,5 -> 10,5 -> 10,10 -> 5,10");
-    Serial.println("=================================");
 }
 
 void loop() {
-    //! ************************************************************************
-    //! STEP 1: CHECK FOR SERIAL COMMANDS (HIGHEST PRIORITY)
-    //! ************************************************************************
-    checkSerialCommands();
-    
-    //! ************************************************************************
-    //! STEP 2: EXECUTE MANUAL MOVEMENT IF ACTIVE
-    //! ************************************************************************
-    executeManualMovement();
-    
     // State machine logic
     if (!stateInitialized) {
         // Initialize current state
