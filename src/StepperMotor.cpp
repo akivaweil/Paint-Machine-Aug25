@@ -295,6 +295,18 @@ void StepperMotor::moveToPosition(float position) {
         _stepper->setSpeedInHz(MAX_SPEED);
     }
     
+    // Debug: Print speed/accel settings for X motors
+    if (strcmp(_axisName, "X1") == 0 || strcmp(_axisName, "X2") == 0) {
+        Serial.print(_axisName);
+        Serial.print(" move settings - Speed: ");
+        Serial.print(MAX_SPEED);
+        Serial.print(", Accel: ");
+        Serial.print(MAX_ACCEL);
+        Serial.print(", Dist: ");
+        Serial.print(targetSteps - _stepper->getCurrentPosition());
+        Serial.println(" steps");
+    }
+    
     // Move to target position
     _stepper->moveTo(targetSteps);
     _isMoving = true;

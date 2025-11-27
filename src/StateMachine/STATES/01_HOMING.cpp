@@ -163,9 +163,11 @@ int runHomingState() {
                     //! ************************************************************************
                     // Reset all motor positions to 0.0 after moving to the offset.
                     // This establishes the new 0,0,0 origin at the offset position.
+                    Serial.println("Homing Phase 1 Complete - Resetting all coordinates to zero");
                     x1Motor->setCurrentPositionAsZero();
                     x2Motor->setCurrentPositionAsZero();
-                    // yMotor->setCurrentPositionAsZero();
+                    yMotor->setCurrentPositionAsZero();
+                    forkMotor->setCurrentPositionAsZero();
                     
                     return 0; // Transition to IDLE state
                 }
