@@ -2,20 +2,21 @@
 //* ************************ TEST SEQUENCE STATE ***************************
 //* ************************************************************************
 // This state handles the test button sequence:
-// 1. Move to TEST_POSITION_1_X, TEST_POSITION_1_Y
-// 2. Extend fork TEST_FORK_EXTEND_DISTANCE inches
-// 3. Move Y up TEST_Y_MOVE_UP_DISTANCE inches from current position
-// 4. Retract fork to TEST_FORK_RETRACT_POSITION
-// 5. Move to TEST_POSITION_2_X, TEST_POSITION_2_Y
-// 6. Extend fork TEST_FORK_EXTEND_DISTANCE inches
-// 7. Move Y down TEST_Y_MOVE_DOWN_DISTANCE inches from current position
-// 8. Retract fork to TEST_FORK_RETRACT_POSITION
-// 9. Return to TEST_POSITION_FINAL_X, TEST_POSITION_FINAL_Y
+// 1. Move to Pick X, Pick Y (from Web Config)
+// 2. Extend fork Fork Distance (from Web Config)
+// 3. Move Y up (Hardcoded lift distance for now)
+// 4. Retract fork
+// 5. Move to Place X, Place Y (from Web Config)
+// 6. Extend fork Fork Distance
+// 7. Move Y down
+// 8. Retract fork
+// 9. Return to IDLE
 
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "Web_Manager.h" // Include Web Manager to get config
 
 // External motor objects (declared in main.cpp)
 extern StepperMotor* x1Motor;
@@ -29,6 +30,13 @@ bool testSequenceActive = false;
 int testSequenceStep = 0;
 float yPositionBeforeUp = 0.0;    // Store Y position before moving up
 float yPositionBeforeDown = 0.0;  // Store Y position before moving down
+
+// Configuration variables (loaded from Web Manager on start)
+float cfgPickX = 0.0;
+float cfgPickY = 0.0;
+float cfgPlaceX = 0.0;
+float cfgPlaceY = 0.0;
+float cfgForkDist = 0.0;
 
 // Forward declaration
 void startTestSequence();
@@ -44,21 +52,24 @@ void initializeTestSequenceState() {
             yPositionBeforeUp = 0.0;
             yPositionBeforeDown = 0.0;
             
+            // Load configuration from Web Manager
+            cfgPickX = getWebPickX();
+            cfgPickY = getWebPickY();
+            cfgPlaceX = getWebPlaceX();
+            cfgPlaceY = getWebPlaceY();
+            cfgForkDist = getWebForkDistance();
+            
+            // Fallback to defaults if 0 (optional, but safer to just use what's there or print warning)
+            if (cfgPickX == 0 && cfgPickY == 0 && cfgPlaceX == 0 && cfgPlaceY == 0) {
+                Serial.println("WARNING: No web configuration loaded. Using 0,0.");
+            }
+            
             Serial.println("=== TEST SEQUENCE STATE INITIALIZED ===");
             Serial.println("Test sequence ready - press test button to start");
-            Serial.println("Sequence will move to configured positions:");
-            Serial.print("Position 1: X=");
-            Serial.print(TEST_POSITION_1_X);
-            Serial.print(", Y=");
-            Serial.println(TEST_POSITION_1_Y);
-            Serial.print("Position 2: X=");
-            Serial.print(TEST_POSITION_2_X);
-            Serial.print(", Y=");
-            Serial.println(TEST_POSITION_2_Y);
-            Serial.print("Final Position: X=");
-            Serial.print(TEST_POSITION_FINAL_X);
-            Serial.print(", Y=");
-            Serial.println(TEST_POSITION_FINAL_Y);
+            Serial.println("Sequence Configuration:");
+            Serial.print("Pick: "); Serial.print(cfgPickX); Serial.print(", "); Serial.println(cfgPickY);
+            Serial.print("Place: "); Serial.print(cfgPlaceX); Serial.print(", "); Serial.println(cfgPlaceY);
+            Serial.print("Fork Dist: "); Serial.println(cfgForkDist);
             Serial.println("=========================================");
         }
         
@@ -69,11 +80,18 @@ void initializeTestSequenceState() {
 // Function to start the test sequence
 void startTestSequence() {
     if (!testSequenceActive) {
+        // Refresh config just in case
+        cfgPickX = getWebPickX();
+        cfgPickY = getWebPickY();
+        cfgPlaceX = getWebPlaceX();
+        cfgPlaceY = getWebPlaceY();
+        cfgForkDist = getWebForkDistance();
+        
         testSequenceActive = true;
         testSequenceStep = 0;
         
         Serial.println("=== TEST SEQUENCE STARTED ===");
-        Serial.println("Step 1: Moving to first position");
+        Serial.println("Step 1: Moving to Pick position");
     }
 }
 
@@ -112,45 +130,37 @@ int runTestSequenceState() {
         switch (testSequenceStep) {
             case 0:
                 //! ************************************************************************
-                //! STEP 5: MOVE TO POSITION 1 (FROM CONFIG)
+                //! STEP 5: MOVE TO PICK POSITION
                 //! ************************************************************************
-                Serial.print("=== STEP 1: Moving to position ");
-                Serial.print(TEST_POSITION_1_X);
+                Serial.print("=== STEP 1: Moving to Pick ");
+                Serial.print(cfgPickX);
                 Serial.print(",");
-                Serial.print(TEST_POSITION_1_Y);
+                Serial.print(cfgPickY);
                 Serial.println(" ===");
                 
-                // Debug: Show current positions before movement
-                Serial.print("Current positions - X1: ");
-                Serial.print(x1Motor->getCurrentPosition());
-                Serial.print(", X2: ");
-                Serial.print(x2Motor->getCurrentPosition());
-                Serial.print(", Y: ");
-                Serial.println(yMotor->getCurrentPosition());
-                
-                x1Motor->moveToPosition(TEST_POSITION_1_X);
-                x2Motor->moveToPosition(TEST_POSITION_1_X);
-                yMotor->moveToPosition(TEST_POSITION_1_Y);
+                x1Motor->moveToPosition(cfgPickX);
+                x2Motor->moveToPosition(cfgPickX);
+                yMotor->moveToPosition(cfgPickY);
                 testSequenceStep++;
                 break;
                 
             case 1:
                 //! ************************************************************************
-                //! STEP 6: EXTEND FORK (FROM CONFIG)
+                //! STEP 6: EXTEND FORK
                 //! ************************************************************************
                 Serial.print("=== STEP 2: Extending fork ");
-                Serial.print(TEST_FORK_EXTEND_DISTANCE);
+                Serial.print(cfgForkDist);
                 Serial.println(" inches ===");
                 
-                forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
+                forkMotor->moveToPosition(cfgForkDist);
                 testSequenceStep++;
                 break;
                 
             case 2:
                 //! ************************************************************************
-                //! STEP 7: MOVE Y UP (FROM CONFIG) - RELATIVE MOVEMENT
+                //! STEP 7: MOVE Y UP (LIFT)
                 //! ************************************************************************
-                Serial.print("=== STEP 3: Moving Y up ");
+                Serial.print("=== STEP 3: Moving Y up (Lift) ");
                 Serial.print(TEST_Y_MOVE_UP_DISTANCE);
                 Serial.println(" inches ===");
                 
@@ -162,57 +172,47 @@ int runTestSequenceState() {
                 
             case 3:
                 //! ************************************************************************
-                //! STEP 8: RETRACT FORK (FROM CONFIG)
+                //! STEP 8: RETRACT FORK
                 //! ************************************************************************
-                Serial.print("=== STEP 4: Retracting fork to ");
-                Serial.print(TEST_FORK_RETRACT_POSITION);
-                Serial.println(" ===");
+                Serial.print("=== STEP 4: Retracting fork to 0 ===");
                 
-                forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
+                forkMotor->moveToPosition(0); // Retract to 0 (Home)
                 testSequenceStep++;
                 break;
                 
             case 4:
                 //! ************************************************************************
-                //! STEP 9: MOVE TO POSITION 2 (FROM CONFIG)
+                //! STEP 9: MOVE TO PLACE POSITION
                 //! ************************************************************************
-                Serial.print("=== STEP 5: Moving to position ");
-                Serial.print(TEST_POSITION_2_X);
+                Serial.print("=== STEP 5: Moving to Place ");
+                Serial.print(cfgPlaceX);
                 Serial.print(",");
-                Serial.print(TEST_POSITION_2_Y);
+                Serial.print(cfgPlaceY);
                 Serial.println(" ===");
                 
-                // Debug: Show current positions before movement
-                Serial.print("Current positions - X1: ");
-                Serial.print(x1Motor->getCurrentPosition());
-                Serial.print(", X2: ");
-                Serial.print(x2Motor->getCurrentPosition());
-                Serial.print(", Y: ");
-                Serial.println(yMotor->getCurrentPosition());
-                
-                x1Motor->moveToPosition(TEST_POSITION_2_X);
-                x2Motor->moveToPosition(TEST_POSITION_2_X);
-                yMotor->moveToPosition(TEST_POSITION_2_Y);
+                x1Motor->moveToPosition(cfgPlaceX);
+                x2Motor->moveToPosition(cfgPlaceX);
+                yMotor->moveToPosition(cfgPlaceY);
                 testSequenceStep++;
                 break;
                 
             case 5:
                 //! ************************************************************************
-                //! STEP 10: EXTEND FORK (FROM CONFIG)
+                //! STEP 10: EXTEND FORK
                 //! ************************************************************************
                 Serial.print("=== STEP 6: Extending fork ");
-                Serial.print(TEST_FORK_EXTEND_DISTANCE);
+                Serial.print(cfgForkDist);
                 Serial.println(" inches ===");
                 
-                forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
+                forkMotor->moveToPosition(cfgForkDist);
                 testSequenceStep++;
                 break;
                 
             case 6:
                 //! ************************************************************************
-                //! STEP 11: MOVE Y DOWN (FROM CONFIG) - RELATIVE MOVEMENT
+                //! STEP 11: MOVE Y DOWN (DROP)
                 //! ************************************************************************
-                Serial.print("=== STEP 7: Moving Y down ");
+                Serial.print("=== STEP 7: Moving Y down (Drop) ");
                 Serial.print(TEST_Y_MOVE_DOWN_DISTANCE);
                 Serial.println(" inches ===");
                 
@@ -224,38 +224,19 @@ int runTestSequenceState() {
                 
             case 7:
                 //! ************************************************************************
-                //! STEP 12: RETRACT FORK (FROM CONFIG)
+                //! STEP 12: RETRACT FORK
                 //! ************************************************************************
-                Serial.print("=== STEP 8: Retracting fork to ");
-                Serial.print(TEST_FORK_RETRACT_POSITION);
-                Serial.println(" ===");
+                Serial.print("=== STEP 8: Retracting fork to 0 ===");
                 
-                forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
+                forkMotor->moveToPosition(0); // Retract to 0
                 testSequenceStep++;
                 break;
                 
             case 8:
                 //! ************************************************************************
-                //! STEP 13: RETURN TO FINAL POSITION (FROM CONFIG)
-                //! ************************************************************************
-                Serial.print("=== STEP 9: Returning to position ");
-                Serial.print(TEST_POSITION_FINAL_X);
-                Serial.print(",");
-                Serial.print(TEST_POSITION_FINAL_Y);
-                Serial.println(" ===");
-                
-                x1Motor->moveToPosition(TEST_POSITION_FINAL_X);
-                x2Motor->moveToPosition(TEST_POSITION_FINAL_X);
-                yMotor->moveToPosition(TEST_POSITION_FINAL_Y);
-                testSequenceStep++;
-                break;
-                
-            case 9:
-                //! ************************************************************************
-                //! STEP 14: SEQUENCE COMPLETE
+                //! STEP 13: SEQUENCE COMPLETE
                 //! ************************************************************************
                 Serial.println("=== TEST SEQUENCE COMPLETE ===");
-                Serial.println("All movements finished successfully");
                 Serial.println("Returning to IDLE state");
                 
                 testSequenceActive = false;
@@ -279,4 +260,4 @@ void resetTestSequenceState() {
         yPositionBeforeUp = 0.0;
         yPositionBeforeDown = 0.0;
     }
-} 
+}

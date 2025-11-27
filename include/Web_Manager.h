@@ -18,5 +18,11 @@ float getWebTargetX();
 // Get the target Y coordinate
 float getWebTargetY();
 
-#endif
+// Getters for Pick and Place Sequence
+float getWebPickX();
+float getWebPickY();
+float getWebPlaceX();
+float getWebPlaceY();
+float getWebForkDistance();
 
+#endif
