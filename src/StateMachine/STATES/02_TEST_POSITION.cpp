@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
+#include "config/Homing_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "Web_Manager.h"
 
@@ -62,20 +63,27 @@ int runTestPositionState() {
     yMotor->update();
     
     //! ************************************************************************
-    //! STEP 2: START MOVEMENT TO TEST POSITION
+    //! STEP 2: START MOVEMENT TO TEST POSITION (ABSOLUTE POSITIONING)
     //! ************************************************************************
     if (currentStep == 0) {
         if (!movementStarted) {
-            // Move to test position (absolute positioning)
-            x1Motor->moveToPosition(TEST_POSITION_1_X);
+            // Calculate X1 target position with offset compensation
+            // X1_HOME_OFFSET accounts for physical switch misalignment during homing
+            // After homing: X1 moves less during move-away (2.0 + (-1.7) = 0.3" vs X2's 2.0")
+            // Both are set to position 0, but X1 is physically 1.7" closer to home than X2
+            // To align them at the same physical position, X1 needs to move 1.7" more
+            float x1TargetPosition = TEST_POSITION_1_X + (X2_HOME_OFFSET - X1_HOME_OFFSET);
+            
+            // Move to test position (absolute positioning - always moves to these exact positions)
+            x1Motor->moveToPosition(x1TargetPosition);
             x2Motor->moveToPosition(TEST_POSITION_1_X);
             yMotor->moveToPosition(TEST_POSITION_1_Y);
             
             movementStarted = true;
         }
         
-        // Check if all motors have reached their target
-        if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
+         // Check if all motors have reached their target (only after movement has been started)
+        if (movementStarted && !x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
             currentStep++;
         }
     }
