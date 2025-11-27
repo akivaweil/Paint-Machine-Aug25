@@ -39,7 +39,7 @@ void initializeManualControl() {
 int executeManualControl() {
     
     //! ************************************************************************
-    //! STEP 1: VALIDATE COORDINATES (SKIPPED FOR RELATIVE MOVEMENT)
+    //! STEP 1: VALIDATE COORDINATES (HANDLED BY STEPPER MOTOR CLASS)
     //! ************************************************************************
     if (manualStep == 0) {
         // Bounds checking is handled by StepperMotor class
@@ -47,20 +47,20 @@ int executeManualControl() {
     }
     
     //! ************************************************************************
-    //! STEP 2: START MOVEMENT (RELATIVE)
+    //! STEP 2: START MOVEMENT (ABSOLUTE)
     //! ************************************************************************
     if (manualStep == 1) {
         if (!manualMovementStarted) {
-            Serial.println("Starting movement (Relative)...");
+            Serial.println("Starting movement (Absolute)...");
             
-            Serial.print("Moving X relative by: ");
+            Serial.print("Moving X to: ");
             Serial.println(manualTargetX);
-            Serial.print("Moving Y relative by: ");
+            Serial.print("Moving Y to: ");
             Serial.println(manualTargetY);
             
-            x1Motor->moveRelative(manualTargetX);
-            x2Motor->moveRelative(manualTargetX);
-            yMotor->moveRelative(manualTargetY);
+            x1Motor->moveToPosition(manualTargetX);
+            x2Motor->moveToPosition(manualTargetX);
+            yMotor->moveToPosition(manualTargetY);
             
             manualMovementStarted = true;
         }
