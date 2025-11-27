@@ -9,6 +9,7 @@
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "Web_Manager.h"
 
 // External motor objects (declared in main.cpp)
 extern StepperMotor* xMotor;
@@ -62,6 +63,13 @@ int runIdleState() {
     
     // Update button debouncing
     startButtonBounce.update();
+
+    //! ************************************************************************
+    //! CHECK FOR WEB REQUESTS
+    //! ************************************************************************
+    if (isWebMoveRequested() || isWebStartRequested() || isWebTestPositionRequested()) {
+        return 4; // Transition to WEB_CONTROL state
+    }
     
     // Check for start button press (rising edge detection)
     bool currentButtonState = (startButtonBounce.read() == HIGH);

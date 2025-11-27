@@ -16,8 +16,8 @@ extern StepperMotor* yMotor;
 bool moveToPositionStateInitialized = false;
 
 // Target position
-#define TARGET_X 3.0
-#define TARGET_Y 3.0
+#define TARGET_X 5.0
+#define TARGET_Y 5.0
 
 // Function to initialize move to position state
 void initializeMoveToPositionState() {

@@ -5,6 +5,8 @@
 #include "StateMachine/STATES/00_IDLE.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_MOVE_TO_POSITION.h"
+#include "StateMachine/WEB_CONTROL/WebControl_Logic.h"
+#include "Web_Manager.h"
 
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
@@ -17,7 +19,7 @@ StepperMotor* forkMotor = nullptr;
 StepperMotor* storageMotor = nullptr;
 
 // State machine variables
-int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = MOVE_TO_POSITION
+int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = MOVE_TO_POSITION, 4 = WEB_CONTROL
 bool stateInitialized = false;
 
 // Forward declaration for OTA manager
@@ -34,6 +36,9 @@ void setup() {
     // Initialize OTA
     initializeOTA();
     Serial.println("OTA IP Address: Waiting for connection...");
+
+    // Initialize Web Server
+    initWebServer();
 
     // Create motor objects
     xMotor = new StepperMotor(X_STEP_PIN, X_DIR_PIN, X_HOME_PIN, "X");
@@ -97,6 +102,11 @@ void loop() {
             StepperMotor::setHomingState(false);
             resetMoveToPositionState();
             stateInitialized = true;
+        } else if (currentState == 4) {
+            // WEB_CONTROL state initialization
+            StepperMotor::setHomingState(false);
+            initializeWebControlLogic();
+            stateInitialized = true;
         }
     }
     
@@ -111,6 +121,9 @@ void loop() {
     } else if (currentState == 2) {
         // MOVE_TO_POSITION state
         newState = runMoveToPositionState();
+    } else if (currentState == 4) {
+        // WEB_CONTROL state
+        newState = executeWebControlLogic();
     }
     
     // Check if state wants to change
