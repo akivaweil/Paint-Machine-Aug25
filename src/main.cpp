@@ -50,6 +50,9 @@ void setup() {
     forkMotor->initialize();
     storageMotor->initialize();
     
+    // Link X2 to X1 for synchronization (X2 will mirror X1's pulses when not homing)
+    StepperMotor::setX1StepperReference(x1Motor->getStepper());
+    
     Serial.println("All motors initialized");
     
     // Wait a moment to see switch states - Delay removed for faster startup
@@ -90,14 +93,17 @@ void loop() {
         // Initialize current state
         if (currentState == 0) {
             // IDLE state initialization
+            StepperMotor::setHomingState(false);
             resetIdleState();
             stateInitialized = true;
         } else if (currentState == 1) {
             // HOMING state initialization
+            StepperMotor::setHomingState(true);
             resetHomingState();
             stateInitialized = true;
         } else if (currentState == 2) {
             // MOVE_TO_POSITION state initialization
+            StepperMotor::setHomingState(false);
             resetMoveToPositionState();
             stateInitialized = true;
         }

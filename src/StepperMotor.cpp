@@ -6,6 +6,10 @@
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
 //* ************************************************************************
 
+// Static member definitions for X2 synchronization
+FastAccelStepper* StepperMotor::_x1StepperRef = nullptr;
+bool StepperMotor::_isHomingState = false;
+
 StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axisName) {
     _stepPin = stepPin;
     _dirPin = dirPin;
@@ -157,11 +161,22 @@ void StepperMotor::update() {
     // Update switch debouncing
     updateSwitches();
     
-    // Update current position from stepper
-    _currentPosition = stepsToInches(_stepper->getCurrentPosition());
+    //! ************************************************************************
+    //! STEP 1: X2 SYNCHRONIZATION - UPDATE POSITION TRACKING
+    //! ************************************************************************
+    // If this is X2 and we're not in homing state, update position based on X1
+    if (strcmp(_axisName, "X2") == 0 && !_isHomingState && _x1StepperRef != nullptr) {
+        // Update current position based on X1's position (convert X1 steps to X2 inches)
+        long x1CurrentSteps = _x1StepperRef->getCurrentPosition();
+        float x1CurrentInches = (float)x1CurrentSteps / X1_STEPS_PER_INCH;
+        _currentPosition = x1CurrentInches;
+    } else {
+        // Update current position from stepper (normal operation)
+        _currentPosition = stepsToInches(_stepper->getCurrentPosition());
+    }
     
     //! ************************************************************************
-    //! STEP 1: HOME SWITCH PROTECTION DURING NORMAL OPERATION
+    //! STEP 2: HOME SWITCH PROTECTION DURING NORMAL OPERATION
     //! ************************************************************************
     // Check if home switch is triggered during normal movement (not homing)
     // This prevents motors from moving past the home switch
@@ -252,7 +267,29 @@ void StepperMotor::moveToPosition(float position) {
     }
     
     //! ************************************************************************
-    //! STEP 1: VALIDATE POSITION BOUNDS (SKIP FOR STORAGE MOTOR)
+    //! STEP 1: X2 SYNCHRONIZATION - MIRROR X1'S STEPS WHEN NOT HOMING
+    //! ************************************************************************
+    // If this is X2 and we're not in homing state, use X1's steps calculation
+    if (strcmp(_axisName, "X2") == 0 && !_isHomingState && _x1StepperRef != nullptr) {
+        // Calculate X1's target steps using X1's steps per inch
+        long x1TargetSteps = (long)(position * X1_STEPS_PER_INCH);
+        
+        // Set same speed and acceleration as X1
+        _stepper->setAcceleration(MAX_ACCEL);
+        _stepper->setSpeedInHz(MAX_SPEED);
+        
+        // Move to same target steps as X1 (exact same pulses and direction)
+        _stepper->moveTo(x1TargetSteps);
+        _isMoving = true;
+        
+        // Update current position based on X1's calculation
+        _currentPosition = position;
+        
+        return;
+    }
+    
+    //! ************************************************************************
+    //! STEP 2: VALIDATE POSITION BOUNDS (SKIP FOR STORAGE MOTOR)
     //! ************************************************************************
     // Check if position is within safe limits (skip for storage motor - no limits)
     if (strcmp(_axisName, "Storage") != 0) {
@@ -280,7 +317,7 @@ void StepperMotor::moveToPosition(float position) {
     }
     
     //! ************************************************************************
-    //! STEP 2: HOME SWITCH PROTECTION - PREVENT MOVING PAST HOME
+    //! STEP 3: HOME SWITCH PROTECTION - PREVENT MOVING PAST HOME
     //! ************************************************************************
     // Check if home switch is currently triggered and we're trying to move past it
     if (isHomeSwitchTriggered() && position < _currentPosition) {
@@ -556,4 +593,14 @@ void StepperMotor::stopContinuousMovement() {
     
     Serial.print(_axisName);
     Serial.println(" continuous movement stopped");
+}
+
+// Static method to set X1 stepper reference for X2 synchronization
+void StepperMotor::setX1StepperReference(FastAccelStepper* x1Stepper) {
+    _x1StepperRef = x1Stepper;
+}
+
+// Static method to set homing state flag
+void StepperMotor::setHomingState(bool isHoming) {
+    _isHomingState = isHoming;
 }
