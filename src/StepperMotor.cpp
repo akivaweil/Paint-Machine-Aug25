@@ -6,8 +6,6 @@
 //* ************************ STEPPER MOTOR IMPLEMENTATION ******************
 //* ************************************************************************
 
-// Static member definitions for X2 synchronization
-FastAccelStepper* StepperMotor::_x1StepperRef = nullptr;
 bool StepperMotor::_isHomingState = false;
 
 StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axisName) {
@@ -161,19 +159,8 @@ void StepperMotor::update() {
     // Update switch debouncing
     updateSwitches();
     
-    //! ************************************************************************
-    //! STEP 1: X2 SYNCHRONIZATION - UPDATE POSITION TRACKING
-    //! ************************************************************************
-    // If this is X2 and we're not in homing state, update position based on X1
-    if (strcmp(_axisName, "X2") == 0 && !_isHomingState && _x1StepperRef != nullptr) {
-        // Update current position based on X1's position (convert X1 steps to X2 inches)
-        long x1CurrentSteps = _x1StepperRef->getCurrentPosition();
-        float x1CurrentInches = (float)x1CurrentSteps / X1_STEPS_PER_INCH;
-        _currentPosition = x1CurrentInches;
-    } else {
-        // Update current position from stepper (normal operation)
-        _currentPosition = stepsToInches(_stepper->getCurrentPosition());
-    }
+    // Update current position from stepper (normal operation)
+    _currentPosition = stepsToInches(_stepper->getCurrentPosition());
     
     //! ************************************************************************
     //! STEP 2: HOME SWITCH PROTECTION DURING NORMAL OPERATION
@@ -200,35 +187,31 @@ void StepperMotor::update() {
 
 // Helper functions to get individual motor homing settings
 float StepperMotor::getHomingSpeed() {
-    if (strcmp(_axisName, "X1") == 0) return X1_HOME_SPEED;
-    if (strcmp(_axisName, "X2") == 0) return X2_HOME_SPEED;
+    if (strcmp(_axisName, "X") == 0) return X_HOME_SPEED;
     if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
     if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_SPEED;
-    return X1_HOME_SPEED; // Default fallback using X1 settings
+    return X_HOME_SPEED; // Default fallback using X settings
 }
 
 float StepperMotor::getHomingAcceleration() {
-    if (strcmp(_axisName, "X1") == 0) return X1_HOME_ACCEL;
-    if (strcmp(_axisName, "X2") == 0) return X2_HOME_ACCEL;
+    if (strcmp(_axisName, "X") == 0) return X_HOME_ACCEL;
     if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
     if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_ACCEL;
-    return X1_HOME_ACCEL; // Default fallback using X1 settings
+    return X_HOME_ACCEL; // Default fallback using X settings
 }
 
 long StepperMotor::getHomingDistance() {
     long distance;
-    if (strcmp(_axisName, "X1") == 0) distance = X1_HOME_DISTANCE_STEPS;
-    else if (strcmp(_axisName, "X2") == 0) distance = X2_HOME_DISTANCE_STEPS;
+    if (strcmp(_axisName, "X") == 0) distance = X_HOME_DISTANCE_STEPS;
     else if (strcmp(_axisName, "Y") == 0) distance = Y_HOME_DISTANCE_STEPS;
     else if (strcmp(_axisName, "Fork") == 0) distance = FORK_HOME_DISTANCE_STEPS;
     else if (strcmp(_axisName, "Storage") == 0) distance = STORAGE_HOME_DISTANCE_STEPS;
     else distance = 10000; // Default fallback
     
     // Apply direction based on configuration
-    if (strcmp(_axisName, "X1") == 0 && !X1_HOME_DIRECTION_POSITIVE) distance = -distance;
-    else if (strcmp(_axisName, "X2") == 0 && !X2_HOME_DIRECTION_POSITIVE) distance = -distance;
+    if (strcmp(_axisName, "X") == 0 && !X_HOME_DIRECTION_POSITIVE) distance = -distance;
     else if (strcmp(_axisName, "Y") == 0 && !Y_HOME_DIRECTION_POSITIVE) distance = -distance;
     else if (strcmp(_axisName, "Fork") == 0 && !FORK_HOME_DIRECTION_POSITIVE) distance = -distance;
     else if (strcmp(_axisName, "Storage") == 0 && !STORAGE_HOME_DIRECTION_POSITIVE) distance = -distance;
@@ -237,23 +220,19 @@ long StepperMotor::getHomingDistance() {
 }
 
 long StepperMotor::inchesToSteps(float inches) {
-    // Use motor-specific steps per inch for X1 and X2
+    // Use motor-specific steps per inch for X
     float stepsPerInch = STEPS_PER_INCH;
-    if (strcmp(_axisName, "X1") == 0) {
-        stepsPerInch = X1_STEPS_PER_INCH;
-    } else if (strcmp(_axisName, "X2") == 0) {
-        stepsPerInch = X2_STEPS_PER_INCH;
+    if (strcmp(_axisName, "X") == 0) {
+        stepsPerInch = X_STEPS_PER_INCH;
     }
     return (long)(inches * stepsPerInch);
 }
 
 float StepperMotor::stepsToInches(long steps) {
-    // Use motor-specific steps per inch for X1 and X2
+    // Use motor-specific steps per inch for X
     float stepsPerInch = STEPS_PER_INCH;
-    if (strcmp(_axisName, "X1") == 0) {
-        stepsPerInch = X1_STEPS_PER_INCH;
-    } else if (strcmp(_axisName, "X2") == 0) {
-        stepsPerInch = X2_STEPS_PER_INCH;
+    if (strcmp(_axisName, "X") == 0) {
+        stepsPerInch = X_STEPS_PER_INCH;
     }
     return (float)steps / stepsPerInch;
 }
@@ -263,28 +242,6 @@ void StepperMotor::moveToPosition(float position) {
         Serial.print("ERROR: ");
         Serial.print(_axisName);
         Serial.println(" stepper not initialized");
-        return;
-    }
-    
-    //! ************************************************************************
-    //! STEP 1: X2 SYNCHRONIZATION - MIRROR X1'S STEPS WHEN NOT HOMING
-    //! ************************************************************************
-    // If this is X2 and we're not in homing state, use X1's steps calculation
-    if (strcmp(_axisName, "X2") == 0 && !_isHomingState && _x1StepperRef != nullptr) {
-        // Calculate X1's target steps using X1's steps per inch
-        long x1TargetSteps = (long)(position * X1_STEPS_PER_INCH);
-        
-        // Set same speed and acceleration as X1
-        _stepper->setAcceleration(MAX_ACCEL);
-        _stepper->setSpeedInHz(MAX_SPEED);
-        
-        // Move to same target steps as X1 (exact same pulses and direction)
-        _stepper->moveTo(x1TargetSteps);
-        _isMoving = true;
-        
-        // Update current position based on X1's calculation
-        _currentPosition = position;
-        
         return;
     }
     
@@ -346,7 +303,7 @@ void StepperMotor::moveToPosition(float position) {
     }
     
     // Debug: Print speed/accel settings for X motors
-    if (strcmp(_axisName, "X1") == 0 || strcmp(_axisName, "X2") == 0) {
+    if (strcmp(_axisName, "X") == 0) {
         Serial.print(_axisName);
         Serial.print(" move settings - Speed: ");
         Serial.print(MAX_SPEED);
@@ -448,20 +405,11 @@ void StepperMotor::moveAwayFromHome(float distance) {
     }
     
     // Use provided distance (if > 0) or configured default distance
-    // If distance is explicitly passed as 0.0 or negative, we treat it as default request
-    // But since we want to support 0.0 offset, we should check if it's exactly 0.0 AND not the overloaded call
-    // The header default is 0.0. Let's change logic:
-    // If distance is roughly 0.0 (default param), use config.
-    // This logic is a bit flawed if we pass 0.0 intentionally.
-    // Better approach: The caller passes the FULL distance including offset.
-    
     float moveDistance = (distance > 0.001) ? distance : MOVE_AWAY_FROM_HOME_DISTANCE;
     
     // Use explicit move away direction configuration (not based on homing direction)
-    if (strcmp(_axisName, "X1") == 0) {
-        moveDistance = X1_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
-    } else if (strcmp(_axisName, "X2") == 0) {
-        moveDistance = X2_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
+    if (strcmp(_axisName, "X") == 0) {
+        moveDistance = X_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     } else if (strcmp(_axisName, "Y") == 0) {
         moveDistance = Y_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     } else if (strcmp(_axisName, "Fork") == 0) {
@@ -519,10 +467,8 @@ void StepperMotor::testMoveAwayDirection() {
     Serial.print(" - Homing direction: ");
     
     // Show homing direction
-    if (strcmp(_axisName, "X1") == 0) {
-        Serial.print(X1_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "X2") == 0) {
-        Serial.print(X2_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    if (strcmp(_axisName, "X") == 0) {
+        Serial.print(X_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     } else if (strcmp(_axisName, "Y") == 0) {
         Serial.print(Y_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     } else if (strcmp(_axisName, "Fork") == 0) {
@@ -534,10 +480,8 @@ void StepperMotor::testMoveAwayDirection() {
     Serial.print(", Move away direction: ");
     
     // Show move away direction
-    if (strcmp(_axisName, "X1") == 0) {
-        Serial.print(X1_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "X2") == 0) {
-        Serial.print(X2_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
+    if (strcmp(_axisName, "X") == 0) {
+        Serial.print(X_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     } else if (strcmp(_axisName, "Y") == 0) {
         Serial.print(Y_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
     } else if (strcmp(_axisName, "Fork") == 0) {
@@ -593,11 +537,6 @@ void StepperMotor::stopContinuousMovement() {
     
     Serial.print(_axisName);
     Serial.println(" continuous movement stopped");
-}
-
-// Static method to set X1 stepper reference for X2 synchronization
-void StepperMotor::setX1StepperReference(FastAccelStepper* x1Stepper) {
-    _x1StepperRef = x1Stepper;
 }
 
 // Static method to set homing state flag

@@ -9,8 +9,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 // External motor objects (declared in main.cpp)
-extern StepperMotor* x1Motor;
-extern StepperMotor* x2Motor;
+extern StepperMotor* xMotor;
 extern StepperMotor* yMotor;
 
 // State variables
@@ -23,9 +22,8 @@ bool moveToPositionStateInitialized = false;
 // Function to initialize move to position state
 void initializeMoveToPositionState() {
     if (!moveToPositionStateInitialized) {
-        // Move X1 and X2 to position 3.0
-        x1Motor->moveToPosition(TARGET_X);
-        x2Motor->moveToPosition(TARGET_X);
+        // Move X to position 3.0
+        xMotor->moveToPosition(TARGET_X);
         
         // Move Y to position 3.0
         yMotor->moveToPosition(TARGET_Y);
@@ -40,12 +38,11 @@ int runMoveToPositionState() {
     initializeMoveToPositionState();
     
     // Update all motors
-    if (x1Motor) x1Motor->update();
-    if (x2Motor) x2Motor->update();
+    if (xMotor) xMotor->update();
     if (yMotor) yMotor->update();
     
     // Check if all motors have finished moving
-    if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
+    if (!xMotor->isMoving() && !yMotor->isMoving()) {
         return 0; // Transition to IDLE state
     }
     
@@ -57,4 +54,3 @@ int runMoveToPositionState() {
 void resetMoveToPositionState() {
     moveToPositionStateInitialized = false;
 }
-

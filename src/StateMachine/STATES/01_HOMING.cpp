@@ -12,8 +12,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 // External motor objects (declared in main.cpp)
-extern StepperMotor* x1Motor;
-extern StepperMotor* x2Motor;
+extern StepperMotor* xMotor;
 extern StepperMotor* yMotor;
 extern StepperMotor* forkMotor;
 
@@ -25,12 +24,10 @@ bool homingStateInitialized = false;
 int homingPhase = 0; // 0 = homing, 1 = moving away from home
 
 // Individual motor tracking
-bool x1Homed = false;
-bool x2Homed = false;
+bool xHomed = false;
 bool yHomed = false;
 bool forkHomed = false;
-bool x1MovedAway = false;
-bool x2MovedAway = false;
+bool xMovedAway = false;
 bool yMovedAway = false;
 bool forkMovedAway = false;
 
@@ -38,18 +35,15 @@ bool forkMovedAway = false;
 void initializeHomingState() {
     if (!homingStateInitialized) {
         // Reset tracking variables for all motors
-        x1Homed = false;
-        x2Homed = false;
+        xHomed = false;
         yHomed = false;
         forkHomed = false;
-        x1MovedAway = false;
-        x2MovedAway = false;
+        xMovedAway = false;
         yMovedAway = false;
         forkMovedAway = false;
         
         // Start all motors homing simultaneously
-        x1Motor->home();
-        x2Motor->home();
+        xMotor->home();
         yMotor->home();
         forkMotor->home();
         
@@ -83,8 +77,7 @@ int runHomingState() {
     //! STEP 2: FREQUENT SWITCH UPDATES FOR MAXIMUM RESPONSIVENESS
     //! ************************************************************************
     // Update all motor states during homing (includes switch debouncing)
-    x1Motor->updateHoming();
-    x2Motor->updateHoming();
+    xMotor->updateHoming();
     yMotor->updateHoming();
     forkMotor->updateHoming();
     
@@ -92,8 +85,7 @@ int runHomingState() {
     //! STEP 3: ADDITIONAL SWITCH UPDATES FOR EXTRA RESPONSIVENESS
     //! ************************************************************************
     // Force additional switch updates for maximum responsiveness
-    x1Motor->updateSwitches();
-    x2Motor->updateSwitches();
+    xMotor->updateSwitches();
     yMotor->updateSwitches();
     forkMotor->updateSwitches();
     
@@ -105,16 +97,10 @@ int runHomingState() {
             //! ************************************************************************
             // Check each motor individually for homing completion with immediate response
             // Use direct home switch check and force stop immediately when triggered
-            if (!x1Homed && x1Motor->isHomeSwitchTriggered()) {
-                x1Homed = true;
-                x1Motor->forceStop(); // Immediate stop when switch is triggered
-                x1Motor->setCurrentPositionAsZero();
-            }
-            
-            if (!x2Homed && x2Motor->isHomeSwitchTriggered()) {
-                x2Homed = true;
-                x2Motor->forceStop(); // Immediate stop when switch is triggered
-                x2Motor->setCurrentPositionAsZero();
+            if (!xHomed && xMotor->isHomeSwitchTriggered()) {
+                xHomed = true;
+                xMotor->forceStop(); // Immediate stop when switch is triggered
+                xMotor->setCurrentPositionAsZero();
             }
             
             if (!yHomed && yMotor->isHomeSwitchTriggered()) {
@@ -133,39 +119,31 @@ int runHomingState() {
             //! STEP 5: MOVE ALL MOTORS AWAY TOGETHER WHEN ALL ARE HOMED
             //! ************************************************************************
             // Move all motors away together when all are homed (except fork - it stays at home)
-            if (x1Homed && x2Homed && yHomed && forkHomed && 
-                !x1MovedAway && !x2MovedAway && !yMovedAway && !forkMovedAway) {
+            if (xHomed && yHomed && forkHomed && 
+                !xMovedAway && !yMovedAway && !forkMovedAway) {
                 
-                // Apply X1 offset: Base move away distance + individual offset
-                float x1Distance = MOVE_AWAY_FROM_HOME_DISTANCE + X1_HOME_OFFSET;
-                x1Motor->moveAwayFromHome(x1Distance); 
-                
-                // Apply X2 offset: Base move away distance + individual offset
-                float x2Distance = MOVE_AWAY_FROM_HOME_DISTANCE + X2_HOME_OFFSET;
-                x2Motor->moveAwayFromHome(x2Distance); 
-                
+                // Move away from home without offsets
+                xMotor->moveAwayFromHome(); // Move standard distance away from home switch
                 yMotor->moveAwayFromHome(); // Move standard distance away from home switch
                 
                 // Fork motor stays at home position - no move away
-                x1MovedAway = true;
-                x2MovedAway = true;
+                xMovedAway = true;
                 yMovedAway = true;
                 forkMovedAway = true; // Mark as moved away even though it didn't move
             }
             
             // Check if all motors have finished homing and moving away
-            if (x1Homed && x2Homed && yHomed && forkHomed) {
+            if (xHomed && yHomed && forkHomed) {
                 // Check if all motors have finished moving away (fork stays at home)
-                if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
+                if (!xMotor->isMoving() && !yMotor->isMoving()) {
                     
                     //! ************************************************************************
-                    //! STEP 6: RESET COORDINATES TO ZERO AT OFFSET POSITION
+                    //! STEP 6: RESET COORDINATES TO ZERO
                     //! ************************************************************************
-                    // Reset all motor positions to 0.0 after moving to the offset.
-                    // This establishes the new 0,0,0 origin at the offset position.
+                    // Reset all motor positions to 0.0 after moving away.
+                    // This establishes the new 0,0,0 origin.
                     Serial.println("Homing Phase 1 Complete - Resetting all coordinates to zero");
-                    x1Motor->setCurrentPositionAsZero();
-                    x2Motor->setCurrentPositionAsZero();
+                    xMotor->setCurrentPositionAsZero();
                     yMotor->setCurrentPositionAsZero();
                     forkMotor->setCurrentPositionAsZero();
                     
@@ -185,12 +163,10 @@ void resetHomingState() {
     homingPhase = 0;
     
     // Reset tracking variables
-    x1Homed = false;
-    x2Homed = false;
+    xHomed = false;
     yHomed = false;
     forkHomed = false;
-    x1MovedAway = false;
-    x2MovedAway = false;
+    xMovedAway = false;
     yMovedAway = false;
     forkMovedAway = false;
 }

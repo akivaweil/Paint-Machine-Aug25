@@ -11,8 +11,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 // External motor objects (declared in main.cpp)
-extern StepperMotor* x1Motor;
-extern StepperMotor* x2Motor;
+extern StepperMotor* xMotor;
 extern StepperMotor* yMotor;
 extern StepperMotor* forkMotor;
 
@@ -107,8 +106,7 @@ int runIdleState() {
     }
     
     // Update all motors (in case they're still moving from previous state)
-    if (x1Motor) x1Motor->update();
-    if (x2Motor) x2Motor->update();
+    if (xMotor) xMotor->update();
     if (yMotor) yMotor->update();
     if (forkMotor) forkMotor->update();
     
@@ -119,4 +117,4 @@ int runIdleState() {
 // Function to reset idle state
 void resetIdleState() {
     idleStateInitialized = false;
-} 
+}

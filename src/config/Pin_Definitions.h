@@ -5,13 +5,9 @@
 //* ************************ PIN DEFINITIONS *******************************
 //* ************************************************************************
 
-// Stepper Motor 1 (Top X-axis)
-#define X1_STEP_PIN 48
-#define X1_DIR_PIN 45
-
-// Stepper Motor 2 (Bottom X-axis)
-#define X2_STEP_PIN 19
-#define X2_DIR_PIN 20
+// Stepper Motor 1 (X-axis)
+#define X_STEP_PIN 19
+#define X_DIR_PIN 20
 
 // Stepper Motor 3 (Y-axis)
 #define Y_STEP_PIN 35
@@ -22,8 +18,7 @@
 #define FORK_DIR_PIN 11
 
 // Home switches (Active HIGH with pulldown)
-#define X1_HOME_PIN 6
-#define X2_HOME_PIN 7
+#define X_HOME_PIN 7
 #define Y_HOME_PIN 4
 #define FORK_HOME_PIN 5
 

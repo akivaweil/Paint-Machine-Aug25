@@ -11,8 +11,7 @@
 //* ************************************************************************
 
 // Global motor objects - all motors needed
-StepperMotor* x1Motor = nullptr;
-StepperMotor* x2Motor = nullptr;
+StepperMotor* xMotor = nullptr;
 StepperMotor* yMotor = nullptr;
 StepperMotor* forkMotor = nullptr;
 StepperMotor* storageMotor = nullptr;
@@ -37,31 +36,24 @@ void setup() {
     Serial.println("OTA IP Address: Waiting for connection...");
 
     // Create motor objects
-    x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_HOME_PIN, "X1");
-    x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_HOME_PIN, "X2");
+    xMotor = new StepperMotor(X_STEP_PIN, X_DIR_PIN, X_HOME_PIN, "X");
     yMotor = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, Y_HOME_PIN, "Y");
     forkMotor = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, FORK_HOME_PIN, "Fork");
     storageMotor = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, -1, "Storage"); // No home switch for storage motor
     
     // Initialize motors
-    x1Motor->initialize();
-    x2Motor->initialize();
+    xMotor->initialize();
     yMotor->initialize();
     forkMotor->initialize();
     storageMotor->initialize();
-    
-    // Link X2 to X1 for synchronization (X2 will mirror X1's pulses when not homing)
-    StepperMotor::setX1StepperReference(x1Motor->getStepper());
     
     Serial.println("All motors initialized");
     
     // Wait a moment to see switch states - Delay removed for faster startup
     // delay(2000); 
     Serial.println("=== SWITCH STATES AFTER INITIALIZATION ===");
-    Serial.print("X1 - Home: ");
-    Serial.println(x1Motor->isHomeSwitchTriggered());
-    Serial.print("X2 - Home: ");
-    Serial.println(x2Motor->isHomeSwitchTriggered());
+    Serial.print("X - Home: ");
+    Serial.println(xMotor->isHomeSwitchTriggered());
     Serial.print("Y - Home: ");
     Serial.println(yMotor->isHomeSwitchTriggered());
     Serial.print("Fork - Home: ");
@@ -72,8 +64,7 @@ void setup() {
     
     // Test move away directions for debugging
     Serial.println("=== MOVE AWAY DIRECTION TEST ===");
-    x1Motor->testMoveAwayDirection();
-    x2Motor->testMoveAwayDirection();
+    xMotor->testMoveAwayDirection();
     yMotor->testMoveAwayDirection();
     forkMotor->testMoveAwayDirection();
     storageMotor->testMoveAwayDirection();

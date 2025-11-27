@@ -71,13 +71,10 @@ public:
     // Stop continuous movement
     void stopContinuousMovement();
     
-    // Set X1 stepper reference for X2 synchronization (only for X2)
-    static void setX1StepperReference(FastAccelStepper* x1Stepper);
-    
     // Set homing state flag (true = in homing, false = not homing)
     static void setHomingState(bool isHoming);
     
-    // Get stepper object (for linking X2 to X1)
+    // Get stepper object
     FastAccelStepper* getStepper() { return _stepper; }
 
 private:
@@ -97,8 +94,6 @@ private:
     // Bounce2 debouncing objects
     Bounce _homeSwitchBounce;
     
-    // Static references for X2 synchronization with X1
-    static FastAccelStepper* _x1StepperRef;
     static bool _isHomingState;
     
     // Helper functions for individual motor homing settings
