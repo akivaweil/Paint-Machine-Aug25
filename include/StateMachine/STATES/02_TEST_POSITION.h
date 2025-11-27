@@ -6,6 +6,7 @@
 //* ************************************************************************
 
 // Function declarations for test position state
+bool shouldTriggerTestPosition(int currentState); // Check if test position should be triggered (centralized logic)
 void initializeTestPositionState();
 int runTestPositionState();
 int processCommand(String command);

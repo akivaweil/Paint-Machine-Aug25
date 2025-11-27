@@ -164,12 +164,9 @@ void loop() {
         startTestSequence();
     }
 
-    // Check for Web Test Position Request
-    if (isWebTestPositionRequested() && currentState != 1) { // Don't interrupt Homing
+    // Check for Web Test Position Request (logic centralized in TEST_POSITION state)
+    if (shouldTriggerTestPosition(currentState)) {
         Serial.println("=== WEB TEST POSITION REQUESTED ===");
-        clearWebTestPositionRequest(); // Clear the flag
-        
-        // Transition to TEST_POSITION state
         currentState = 2;
         stateInitialized = false;
     }

@@ -3,11 +3,13 @@
 //* ************************************************************************
 // This state moves the machine to a predefined test position
 // Used for testing and calibration
+// All test position logic is centralized in this file
 
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "Web_Manager.h"
 
 // External motor objects (declared in main.cpp)
 extern StepperMotor* x1Motor;
@@ -21,6 +23,22 @@ static int currentStep = 0;
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ ⚔️ TEST POSITION STATE                                               ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+
+// Check if test position should be triggered (from web request)
+bool shouldTriggerTestPosition(int currentState) {
+    // Don't interrupt homing state
+    if (currentState == 1) {
+        return false;
+    }
+    
+    // Check for web test position request
+    if (isWebTestPositionRequested()) {
+        clearWebTestPositionRequest(); // Clear the flag
+        return true;
+    }
+    
+    return false;
+}
 
 void resetTestPositionState() {
     movementStarted = false;

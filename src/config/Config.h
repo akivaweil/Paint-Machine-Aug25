@@ -19,8 +19,8 @@
 #define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch)
 
 // Speed and acceleration settings (in steps per second)
-#define MAX_SPEED 8000              // Maximum speed in steps per second
-#define MAX_ACCEL 5000             // Maximum acceleration in steps per second squared
+#define MAX_SPEED 5000              // Maximum speed in steps per second
+#define MAX_ACCEL 3000             // Maximum acceleration in steps per second squared
 // Safety settings
 #define MAX_TRAVEL_INCHES 40.0         // Maximum travel distance in inches
 #define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
