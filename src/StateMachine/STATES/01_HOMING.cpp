@@ -157,6 +157,16 @@ int runHomingState() {
             if (x1Homed && x2Homed && yHomed && forkHomed) {
                 // Check if all motors have finished moving away (fork stays at home)
                 if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
+                    
+                    //! ************************************************************************
+                    //! STEP 6: SYNC X AXIS COORDINATES AFTER SQUARING
+                    //! ************************************************************************
+                    // Force both X motors to the standard "move away" position value (2.0 inches)
+                    // regardless of their physical offsets. This ensures they move in sync 
+                    // for all future movements and prevents racking.
+                    x1Motor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+                    x2Motor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+                    
                     return 0; // Transition to IDLE state
                 }
             }

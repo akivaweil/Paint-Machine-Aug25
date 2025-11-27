@@ -31,6 +31,9 @@ public:
     // Set current position as zero
     void setCurrentPositionAsZero();
     
+    // Set current position to a specific value (in inches)
+    void setCurrentPosition(float position);
+    
     // Check if home switch is triggered
     bool isHomeSwitchTriggered();
     

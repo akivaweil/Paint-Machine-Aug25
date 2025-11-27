@@ -122,6 +122,19 @@ void StepperMotor::setCurrentPositionAsZero() {
     Serial.println(" position set to zero");
 }
 
+void StepperMotor::setCurrentPosition(float position) {
+    if (_stepper) {
+        // Convert inches to steps
+        long steps = inchesToSteps(position);
+        _stepper->setCurrentPosition(steps);
+    }
+    _currentPosition = position;
+    
+    Serial.print(_axisName);
+    Serial.print(" position manually set to ");
+    Serial.println(position);
+}
+
 bool StepperMotor::isHomeSwitchTriggered() {
     //! ************************************************************************
     //! STEP 1: FAST HOME SWITCH DETECTION WITH DEBOUNCING

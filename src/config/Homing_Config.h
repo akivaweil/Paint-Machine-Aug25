@@ -6,19 +6,19 @@
 //* ************************************************************************
 
 // X1 Motor Homing Settings (in steps per second)
-#define X1_HOME_SPEED 400          // Speed for X1 homing operation (reduced for better switch response)
+#define X1_HOME_SPEED 800          // Speed for X1 homing operation (reduced for better switch response)
 #define X1_HOME_ACCEL 2500         // Acceleration for X1 homing (reduced for smoother approach)
 
 // X2 Motor Homing Settings (in steps per second)
-#define X2_HOME_SPEED 400          // Speed for X2 homing operation (reduced for better switch response)
+#define X2_HOME_SPEED 800          // Speed for X2 homing operation (reduced for better switch response)
 #define X2_HOME_ACCEL 2500         // Acceleration for X2 homing (reduced for smoother approach)
 
 // Y Motor Homing Settings (in steps per second)
-#define Y_HOME_SPEED 400           // Speed for Y homing operation (reduced for better switch response)
+#define Y_HOME_SPEED 800           // Speed for Y homing operation (reduced for better switch response)
 #define Y_HOME_ACCEL 3000          // Acceleration for Y homing (reduced for smoother approach)
 
 // Fork Motor Homing Settings (in steps per second)
-#define FORK_HOME_SPEED 400        // Speed for Fork homing operation (reduced for better switch response)
+#define FORK_HOME_SPEED 800        // Speed for Fork homing operation (reduced for better switch response)
 #define FORK_HOME_ACCEL 1500       // Acceleration for Fork homing (reduced for smoother approach)
 
 // Storage Motor Settings (in steps per second) - No homing switches
@@ -52,7 +52,7 @@
 
 // X-Gantry Offsets (in inches)
 // Adjust these values to compensate for physical misalignment of home switches
-#define X1_HOME_OFFSET -1.5   // Additional offset for X1
+#define X1_HOME_OFFSET -1.7   // Additional offset for X1
 #define X2_HOME_OFFSET 0.0   // Additional offset for X2
 
 // Move away direction settings (true = positive direction, false = negative direction)
