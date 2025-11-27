@@ -165,7 +165,7 @@ int runHomingState() {
                     // This establishes the new 0,0,0 origin at the offset position.
                     x1Motor->setCurrentPositionAsZero();
                     x2Motor->setCurrentPositionAsZero();
-                    yMotor->setCurrentPositionAsZero();
+                    // yMotor->setCurrentPositionAsZero();
                     
                     return 0; // Transition to IDLE state
                 }

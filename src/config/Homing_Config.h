@@ -52,7 +52,7 @@
 
 // X-Gantry Offsets (in inches)
 // Adjust these values to compensate for physical misalignment of home switches
-#define X1_HOME_OFFSET 0.0   // Additional offset for X1 (Reset to 0 to prevent binding)
+#define X1_HOME_OFFSET -1.7   // Additional offset for X1
 #define X2_HOME_OFFSET 0.0   // Additional offset for X2
 
 // Move away direction settings (true = positive direction, false = negative direction)
