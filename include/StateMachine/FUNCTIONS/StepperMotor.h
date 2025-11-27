@@ -34,8 +34,6 @@ public:
     // Check if home switch is triggered
     bool isHomeSwitchTriggered();
     
-
-    
     // Update motor (call in main loop)
     void update();
     
@@ -54,8 +52,9 @@ public:
     // Check if homing is complete
     bool isHomingComplete();
     
-    // Move away from home position (0.5 inches)
-    void moveAwayFromHome();
+    // Move away from home position with optional distance
+    // If distance is 0.0 (default), uses configuration default
+    void moveAwayFromHome(float distance = 0.0);
     
     // Test move away direction (prints direction without moving)
     void testMoveAwayDirection();
@@ -95,4 +94,4 @@ private:
     float stepsToInches(long steps);
 };
 
-#endif // STEPPER_MOTOR_H 
+#endif // STEPPER_MOTOR_H

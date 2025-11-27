@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
+#include "config/Homing_Config.h" // Ensure this is included!
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 // External motor objects (declared in main.cpp)
@@ -134,9 +135,17 @@ int runHomingState() {
             // Move all motors away together when all are homed (except fork - it stays at home)
             if (x1Homed && x2Homed && yHomed && forkHomed && 
                 !x1MovedAway && !x2MovedAway && !yMovedAway && !forkMovedAway) {
-                x1Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
-                x2Motor->moveAwayFromHome(); // Move 2.0 inches away from home switch
-                yMotor->moveAwayFromHome(); // Move 2.0 inches away from home switch
+                
+                // Apply X1 offset: Base move away distance + individual offset
+                float x1Distance = MOVE_AWAY_FROM_HOME_DISTANCE + X1_HOME_OFFSET;
+                x1Motor->moveAwayFromHome(x1Distance); 
+                
+                // Apply X2 offset: Base move away distance + individual offset
+                float x2Distance = MOVE_AWAY_FROM_HOME_DISTANCE + X2_HOME_OFFSET;
+                x2Motor->moveAwayFromHome(x2Distance); 
+                
+                yMotor->moveAwayFromHome(); // Move standard distance away from home switch
+                
                 // Fork motor stays at home position - no move away
                 x1MovedAway = true;
                 x2MovedAway = true;

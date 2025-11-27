@@ -349,22 +349,6 @@ void StepperMotor::updateHoming() {
         }
     }
     
-    //! ************************************************************************
-    //! STEP 4: REDUCED DEBUG OUTPUT FOR LESS INTERFERENCE
-    //! ************************************************************************
-    // Debug: Show home switch state periodically (reduced frequency for less interference)
-    static unsigned long lastHomeDebugTime = 0;
-    if (millis() - lastHomeDebugTime > 5000) { // Every 5 seconds instead of 2
-        Serial.print(_axisName);
-        Serial.print(" home switch state: ");
-        Serial.print(_homeSwitchBounce.read());
-        Serial.print(", moving: ");
-        Serial.println(_isMoving ? "YES" : "NO");
-        lastHomeDebugTime = millis();
-    }
-    
- 
-    
     // Check if movement is complete
     if (!_stepper->isRunning()) {
         _isMoving = false;
@@ -375,7 +359,7 @@ bool StepperMotor::isHomingComplete() {
     return isHomeSwitchTriggered() && !isMoving();
 }
 
-void StepperMotor::moveAwayFromHome() {
+void StepperMotor::moveAwayFromHome(float distance) {
     if (!_stepper) {
         Serial.print("ERROR: ");
         Serial.print(_axisName);
@@ -383,20 +367,27 @@ void StepperMotor::moveAwayFromHome() {
         return;
     }
     
-    // Move away from home position using configured distance and direction
-    float moveDistance = MOVE_AWAY_FROM_HOME_DISTANCE; // Use configured distance
+    // Use provided distance (if > 0) or configured default distance
+    // If distance is explicitly passed as 0.0 or negative, we treat it as default request
+    // But since we want to support 0.0 offset, we should check if it's exactly 0.0 AND not the overloaded call
+    // The header default is 0.0. Let's change logic:
+    // If distance is roughly 0.0 (default param), use config.
+    // This logic is a bit flawed if we pass 0.0 intentionally.
+    // Better approach: The caller passes the FULL distance including offset.
+    
+    float moveDistance = (distance > 0.001) ? distance : MOVE_AWAY_FROM_HOME_DISTANCE;
     
     // Use explicit move away direction configuration (not based on homing direction)
     if (strcmp(_axisName, "X1") == 0) {
-        moveDistance = X1_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+        moveDistance = X1_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     } else if (strcmp(_axisName, "X2") == 0) {
-        moveDistance = X2_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+        moveDistance = X2_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     } else if (strcmp(_axisName, "Y") == 0) {
-        moveDistance = Y_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+        moveDistance = Y_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     } else if (strcmp(_axisName, "Fork") == 0) {
-        moveDistance = FORK_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+        moveDistance = FORK_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     } else if (strcmp(_axisName, "Storage") == 0) {
-        moveDistance = STORAGE_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE;
+        moveDistance = STORAGE_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
     }
     
     // Debug: Show current position and move direction
@@ -441,6 +432,12 @@ void StepperMotor::moveAwayFromHome() {
     Serial.print(targetSteps);
     Serial.println(")");
 }
+
+// This method is redundant if we use default parameter, but required if header declaration was void()
+// The previous error was because I defined void moveAwayFromHome() in cpp but header had float param default.
+// Actually, if header has default param, we only implement the one WITH the param in cpp (without default value).
+// We do NOT implement the void version separately.
+// So I will remove this implementation to fix the "redefinition" or "no declaration matches" error.
 
 void StepperMotor::testMoveAwayDirection() {
     Serial.print(_axisName);
@@ -521,4 +518,4 @@ void StepperMotor::stopContinuousMovement() {
     
     Serial.print(_axisName);
     Serial.println(" continuous movement stopped");
-} 
+}

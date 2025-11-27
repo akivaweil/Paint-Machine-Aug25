@@ -47,7 +47,13 @@
 #define STORAGE_HOME_DISTANCE_STEPS 10000  // Steps to move for Storage motor (not used for homing)
 
 // Move away from home switch distance (in inches)
+// This is the base distance to move away
 #define MOVE_AWAY_FROM_HOME_DISTANCE 2.0   // Distance to move away from home switch after homing
+
+// X-Gantry Offsets (in inches)
+// Adjust these values to compensate for physical misalignment of home switches
+#define X1_HOME_OFFSET 0.0   // Additional offset for X1
+#define X2_HOME_OFFSET 0.0   // Additional offset for X2
 
 // Move away direction settings (true = positive direction, false = negative direction)
 // These should be set based on the physical layout of your machine
@@ -57,4 +63,4 @@
 #define FORK_MOVE_AWAY_DIRECTION_POSITIVE true  // Fork moves positive to get away from home switch
 #define STORAGE_MOVE_AWAY_DIRECTION_POSITIVE true  // Storage motor direction (not used for homing)
 
-#endif // HOMING_CONFIG_H 
+#endif // HOMING_CONFIG_H
