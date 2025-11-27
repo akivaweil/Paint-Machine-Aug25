@@ -1,88 +1,58 @@
 #include "StateMachine/WEB_CONTROL/WebControl_Logic.h"
-#include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/WEB_CONTROL/Web_Manual_Control.h"
+#include "StateMachine/WEB_CONTROL/Web_Pick_Place.h"
 #include "Web_Manager.h"
 #include <Arduino.h>
 
-// External motor references
-extern StepperMotor* x1Motor;
-extern StepperMotor* x2Motor;
-extern StepperMotor* yMotor;
+// Sub-state tracking
+enum WebSubState {
+    WEB_IDLE,
+    WEB_MANUAL,
+    WEB_PICK_PLACE
+};
 
-// State variables
-static int currentStep = 0;
-static bool movementStarted = false;
-static float targetX = 0.0;
-static float targetY = 0.0;
+static WebSubState currentWebSubState = WEB_IDLE;
 
 //* ************************************************************************
 //* ************************ WEB CONTROL LOGIC *****************************
 //* ************************************************************************
 
 void initializeWebControlLogic() {
-    currentStep = 0;
-    movementStarted = false;
-    
-    // Get targets from Web Manager
-    targetX = getWebTargetX();
-    targetY = getWebTargetY();
-    
-    // Clear the request flag now that we've accepted it
-    clearWebMoveRequest();
-    
-    Serial.println("--- ENTERING WEB CONTROL STATE ---");
-    Serial.print("Target: X=");
-    Serial.print(targetX);
-    Serial.print(", Y=");
-    Serial.println(targetY);
+    // Determine what kind of web request initiated this state
+    if (isWebMoveRequested()) {
+        currentWebSubState = WEB_MANUAL;
+        initializeManualControl();
+    } else if (isWebStartRequested()) {
+        currentWebSubState = WEB_PICK_PLACE;
+        initializePickPlace();
+        clearWebStartRequest(); // Clear the flag
+    } else {
+        currentWebSubState = WEB_IDLE;
+        Serial.println("Web Control Logic Init: No specific request found");
+    }
 }
 
 int executeWebControlLogic() {
-    
-    //! ************************************************************************
-    //! STEP 1: VALIDATE COORDINATES (SKIPPED FOR RELATIVE MOVEMENT)
-    //! ************************************************************************
-    if (currentStep == 0) {
-        // Bounds checking is handled by StepperMotor class
-        currentStep++;
-    }
-    
-    //! ************************************************************************
-    //! STEP 2: START MOVEMENT (RELATIVE)
-    //! ************************************************************************
-    if (currentStep == 1) {
-        if (!movementStarted) {
-            Serial.println("Starting movement (Relative)...");
+    switch (currentWebSubState) {
+        case WEB_MANUAL:
+            if (executeManualControl() == 0) {
+                // Manual control finished, return to main IDLE
+                return 0;
+            }
+            break;
             
-            // Move motors (Relative positioning in inches)
-            // User requested "move 5 inches" behavior instead of "move to 5 inches"
+        case WEB_PICK_PLACE:
+             if (executePickPlace() == 0) {
+                 // Pick Place finished, return to main IDLE
+                 return 0;
+             }
+            break;
             
-            Serial.print("Moving X relative by: ");
-            Serial.println(targetX);
-            Serial.print("Moving Y relative by: ");
-            Serial.println(targetY);
-            
-            x1Motor->moveRelative(targetX);
-            x2Motor->moveRelative(targetX);
-            yMotor->moveRelative(targetY);
-            
-            movementStarted = true;
-        }
-        
-        // Check if all motors have reached their target
-        if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
-            Serial.println("Movement complete");
-            currentStep++;
-        }
-    }
-    
-    //! ************************************************************************
-    //! STEP 3: RETURN TO IDLE
-    //! ************************************************************************
-    if (currentStep == 2) {
-        Serial.println("--- WEB CONTROL COMPLETE ---");
-        return 0; // Return to IDLE
+        case WEB_IDLE:
+        default:
+            // If nothing to do, exit back to main IDLE
+            return 0;
     }
     
     return 4; // Stay in WEB_CONTROL state
 }
-
