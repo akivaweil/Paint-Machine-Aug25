@@ -120,6 +120,14 @@ int runTestSequenceState() {
                 Serial.print(TEST_POSITION_1_Y);
                 Serial.println(" ===");
                 
+                // Debug: Show current positions before movement
+                Serial.print("Current positions - X1: ");
+                Serial.print(x1Motor->getCurrentPosition());
+                Serial.print(", X2: ");
+                Serial.print(x2Motor->getCurrentPosition());
+                Serial.print(", Y: ");
+                Serial.println(yMotor->getCurrentPosition());
+                
                 x1Motor->moveToPosition(TEST_POSITION_1_X);
                 x2Motor->moveToPosition(TEST_POSITION_1_X);
                 yMotor->moveToPosition(TEST_POSITION_1_Y);
@@ -173,6 +181,14 @@ int runTestSequenceState() {
                 Serial.print(",");
                 Serial.print(TEST_POSITION_2_Y);
                 Serial.println(" ===");
+                
+                // Debug: Show current positions before movement
+                Serial.print("Current positions - X1: ");
+                Serial.print(x1Motor->getCurrentPosition());
+                Serial.print(", X2: ");
+                Serial.print(x2Motor->getCurrentPosition());
+                Serial.print(", Y: ");
+                Serial.println(yMotor->getCurrentPosition());
                 
                 x1Motor->moveToPosition(TEST_POSITION_2_X);
                 x2Motor->moveToPosition(TEST_POSITION_2_X);
