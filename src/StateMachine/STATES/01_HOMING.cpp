@@ -159,13 +159,13 @@ int runHomingState() {
                 if (!x1Motor->isMoving() && !x2Motor->isMoving() && !yMotor->isMoving()) {
                     
                     //! ************************************************************************
-                    //! STEP 6: SYNC X AXIS COORDINATES AFTER SQUARING
+                    //! STEP 6: RESET COORDINATES TO ZERO AT OFFSET POSITION
                     //! ************************************************************************
-                    // Force both X motors to the standard "move away" position value (2.0 inches)
-                    // regardless of their physical offsets. This ensures they move in sync 
-                    // for all future movements and prevents racking.
-                    x1Motor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
-                    x2Motor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+                    // Reset all motor positions to 0.0 after moving to the offset.
+                    // This establishes the new 0,0,0 origin at the offset position.
+                    x1Motor->setCurrentPositionAsZero();
+                    x2Motor->setCurrentPositionAsZero();
+                    yMotor->setCurrentPositionAsZero();
                     
                     return 0; // Transition to IDLE state
                 }
