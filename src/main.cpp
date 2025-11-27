@@ -4,6 +4,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/00_IDLE.h"
 #include "StateMachine/STATES/01_HOMING.h"
+#include "StateMachine/STATES/02_MOVE_TO_POSITION.h"
 
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
@@ -17,7 +18,7 @@ StepperMotor* forkMotor = nullptr;
 StepperMotor* storageMotor = nullptr;
 
 // State machine variables
-int currentState = 0; // 0 = IDLE, 1 = HOMING
+int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = MOVE_TO_POSITION
 bool stateInitialized = false;
 
 // Forward declaration for OTA manager
@@ -48,9 +49,6 @@ void setup() {
     yMotor->initialize();
     forkMotor->initialize();
     storageMotor->initialize();
-    
-    // Initialize test button pin
-    pinMode(TEST_BUTTON_PIN, INPUT_PULLDOWN);
     
     Serial.println("All motors initialized");
     
@@ -98,6 +96,10 @@ void loop() {
             // HOMING state initialization
             resetHomingState();
             stateInitialized = true;
+        } else if (currentState == 2) {
+            // MOVE_TO_POSITION state initialization
+            resetMoveToPositionState();
+            stateInitialized = true;
         }
     }
     
@@ -109,6 +111,9 @@ void loop() {
     } else if (currentState == 1) {
         // HOMING state
         newState = runHomingState();
+    } else if (currentState == 2) {
+        // MOVE_TO_POSITION state
+        newState = runMoveToPositionState();
     }
     
     // Check if state wants to change

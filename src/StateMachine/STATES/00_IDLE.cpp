@@ -5,6 +5,7 @@
 // Commands: "home" or "h" to start homing, "test" or "t" to enter test position state
 
 #include <Arduino.h>
+#include <Bounce2.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
@@ -17,10 +18,17 @@ extern StepperMotor* forkMotor;
 
 // State variables
 bool idleStateInitialized = false;
+Bounce startButtonBounce;
+bool toggleState = false; // false = move to 3,3, true = home
+bool lastButtonState = false;
 
 // Function to initialize idle state
 void initializeIdleState() {
     if (!idleStateInitialized) {
+        // Initialize start button debouncing
+        startButtonBounce.attach(TEST_BUTTON_PIN, INPUT_PULLDOWN);
+        startButtonBounce.interval(50); // 50ms debounce
+        
         Serial.println("=== IDLE STATE ===");
         Serial.println("Type 'home' or 'h' to start homing sequence");
         Serial.println("Type 'test' or 't' to enter test position state");
@@ -42,6 +50,7 @@ void initializeIdleState() {
         Serial.print(",");
         Serial.println(TEST_POSITION_FINAL_Y);
         Serial.println(")");
+        Serial.println("Press START button: First press = Move to 3,3, Second press = Home");
         Serial.println("================================");
         idleStateInitialized = true;
     }
@@ -52,6 +61,27 @@ int runIdleState() {
     // Initialize state if needed
     initializeIdleState();
     
+    // Update button debouncing
+    startButtonBounce.update();
+    
+    // Check for start button press (rising edge detection)
+    bool currentButtonState = (startButtonBounce.read() == HIGH);
+    if (currentButtonState && !lastButtonState) {
+        // Button was just pressed
+        if (!toggleState) {
+            // First press: Move to position 3,3
+            Serial.println("Start button pressed - Moving to position 3,3");
+            toggleState = true;
+            return 2; // Transition to MOVE_TO_POSITION state
+        } else {
+            // Second press: Home
+            Serial.println("Start button pressed - Starting homing sequence");
+            toggleState = false;
+            return 1; // Transition to HOMING state
+        }
+    }
+    lastButtonState = currentButtonState;
+    
     // Check for serial input
     if (Serial.available()) {
         String command = Serial.readString();
@@ -60,6 +90,7 @@ int runIdleState() {
         
         if (command == "home" || command == "h") {
             Serial.println("Homing command received - transitioning to homing state");
+            toggleState = false;
             return 1; // Transition to HOMING state
         } else if (command == "test" || command == "t") {
             Serial.println("Test position command received - transitioning to test state");
