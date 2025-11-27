@@ -21,6 +21,9 @@ volatile float webTargetY = 0.0;
 // Sequence start request variable
 volatile bool webStartRequested = false;
 
+// Test position request variable
+volatile bool webTestPositionRequested = false;
+
 // Pick and Place Sequence Variables
 volatile float webPickX = 0.0;
 volatile float webPickY = 0.0;
@@ -314,6 +317,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <h2>Actions</h2>
       <button class="btn btn-success" onclick="saveConfig()">Save All Configuration</button>
       <button class="btn btn-start" onclick="startSequence()">START SEQUENCE</button>
+      <button class="btn btn-primary" onclick="testPosition()" style="margin-top: 15px;">TEST POSITION</button>
     </div>
 
     <!-- Direct Move Card -->
@@ -421,6 +425,17 @@ const char index_html[] PROGMEM = R"rawliteral(
       };
       xhr.send();
     }
+
+    function testPosition() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "/test_position", true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          showStatus("📍 Moving to Test Position!");
+        }
+      };
+      xhr.send();
+    }
   </script>
 </body>
 </html>
@@ -487,6 +502,13 @@ void initWebServer() {
         Serial.println("=== WEB SEQUENCE START REQUESTED ===");
     });
 
+    // Route to handle test position request
+    server.on("/test_position", HTTP_GET, [](AsyncWebServerRequest *request){
+        webTestPositionRequested = true;
+        request->send(200, "text/plain", "Test Position Started");
+        Serial.println("=== WEB TEST POSITION REQUESTED ===");
+    });
+
     // Route to handle configuration
     server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("px") && request->hasParam("py") && 
@@ -533,6 +555,14 @@ bool isWebStartRequested() {
 
 void clearWebStartRequest() {
     webStartRequested = false;
+}
+
+bool isWebTestPositionRequested() {
+    return webTestPositionRequested;
+}
+
+void clearWebTestPositionRequest() {
+    webTestPositionRequested = false;
 }
 
 float getWebTargetX() { return webTargetX; }

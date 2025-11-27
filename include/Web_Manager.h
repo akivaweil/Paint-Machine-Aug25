@@ -18,6 +18,12 @@ bool isWebStartRequested();
 // Clear the sequence start request flag
 void clearWebStartRequest();
 
+// Check if a test position has been requested from the web interface
+bool isWebTestPositionRequested();
+
+// Clear the test position request flag
+void clearWebTestPositionRequest();
+
 // Get the target X coordinate
 float getWebTargetX();
 
