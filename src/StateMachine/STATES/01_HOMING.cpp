@@ -16,6 +16,9 @@ extern StepperMotor* x2Motor;
 extern StepperMotor* yMotor;
 extern StepperMotor* forkMotor;
 
+// Forward declaration for OTA manager
+void updateOTA();
+
 // State variables
 bool homingStateInitialized = false;
 int homingPhase = 0; // 0 = homing, 1 = moving away from home
@@ -56,6 +59,9 @@ void initializeHomingState() {
 
 // Function to run homing state
 int runHomingState() {
+    // Ensure OTA updates are handled even during homing
+    updateOTA();
+
     // Initialize state if needed
     initializeHomingState();
     
@@ -166,4 +172,4 @@ void resetHomingState() {
     x2MovedAway = false;
     yMovedAway = false;
     forkMovedAway = false;
-} 
+}

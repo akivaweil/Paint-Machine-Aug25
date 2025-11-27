@@ -33,13 +33,21 @@ bool testButtonPressed = false;
 // Forward declaration for test sequence
 void startTestSequence();
 
-
+// Forward declaration for OTA manager
+void initializeOTA();
+void updateOTA();
+String getOTAIpAddress();
 
 void setup() {
     // Initialize serial communication
     Serial.begin(115200);
     Serial.println("=== Paint Machine Starting ===");
     
+    // Initialize OTA
+    initializeOTA();
+    Serial.print("OTA IP Address: ");
+    Serial.println(getOTAIpAddress());
+
     // Create motor objects
     x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_HOME_PIN, "X1");
     x2Motor = new StepperMotor(X2_STEP_PIN, X2_DIR_PIN, X2_HOME_PIN, "X2");
@@ -97,6 +105,9 @@ void setup() {
 }
 
 void loop() {
+    // Update OTA
+    updateOTA();
+
     //! ************************************************************************
     //! STEP 1: CHECK TEST BUTTON (ALLOWS TRANSITION TO TEST SEQUENCE FROM ANY STATE)
     //! ************************************************************************
