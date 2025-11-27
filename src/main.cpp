@@ -6,7 +6,9 @@
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_TEST_POSITION.h"
 #include "StateMachine/STATES/03_TEST_SEQUENCE.h"
+#include "StateMachine/STATES/04_WEB_CONTROL.h"
 #include "CarouselStorage.h"
+#include "Web_Manager.h"
 
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
@@ -23,8 +25,9 @@ StepperMotor* storageMotor = nullptr;
 CarouselStorage carouselStorage;
 
 // State machine variables
-int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = TEST_POSITION, 3 = TEST_SEQUENCE
+int currentState = 0; // 0 = IDLE, 1 = HOMING, 2 = TEST_POSITION, 3 = TEST_SEQUENCE, 4 = WEB_CONTROL
 bool stateInitialized = false;
+bool webServerInitialized = false;
 
 // Test button variables
 bool lastTestButtonState = false;
@@ -37,6 +40,7 @@ void startTestSequence();
 void initializeOTA();
 void updateOTA();
 String getOTAIpAddress();
+bool isWiFiConnected();
 
 void setup() {
     // Initialize serial communication
@@ -107,6 +111,13 @@ void loop() {
     // Update OTA
     updateOTA();
 
+    // Initialize Web Server once WiFi is connected
+    if (isWiFiConnected() && !webServerInitialized) {
+        initWebServer();
+        webServerInitialized = true;
+        Serial.println("Web Server Started");
+    }
+
     //! ************************************************************************
     //! STEP 1: CHECK TEST BUTTON (ALLOWS TRANSITION TO TEST SEQUENCE FROM ANY STATE)
     //! ************************************************************************
@@ -132,6 +143,13 @@ void loop() {
     }
     
     lastTestButtonState = currentTestButtonState;
+
+    // Check for Web Move Request
+    if (isWebMoveRequested() && currentState != 4 && currentState != 1) { // Don't interrupt Homing
+        Serial.println("=== WEB MOVE REQUESTED ===");
+        currentState = 4;
+        stateInitialized = false;
+    }
     
     // State machine logic
     if (!stateInitialized) {
@@ -152,6 +170,10 @@ void loop() {
             // TEST_SEQUENCE state initialization
             resetTestSequenceState();
             stateInitialized = true;
+        } else if (currentState == 4) {
+            // WEB_CONTROL state initialization
+            resetWebControlState();
+            stateInitialized = true;
         }
     }
     
@@ -169,6 +191,9 @@ void loop() {
     } else if (currentState == 3) {
         // TEST_SEQUENCE state
         newState = runTestSequenceState();
+    } else if (currentState == 4) {
+        // WEB_CONTROL state
+        newState = runWebControlState();
     }
     
     // Check if state wants to change
