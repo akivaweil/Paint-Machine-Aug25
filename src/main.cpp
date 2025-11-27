@@ -45,8 +45,7 @@ void setup() {
     
     // Initialize OTA
     initializeOTA();
-    Serial.print("OTA IP Address: ");
-    Serial.println(getOTAIpAddress());
+    Serial.println("OTA IP Address: Waiting for connection...");
 
     // Create motor objects
     x1Motor = new StepperMotor(X1_STEP_PIN, X1_DIR_PIN, X1_HOME_PIN, "X1");
@@ -75,8 +74,8 @@ void setup() {
     Serial.print(carouselStorage.getOccupancyPercentage(), 1);
     Serial.println("%");
     
-    // Wait a moment to see switch states
-    delay(2000);
+    // Wait a moment to see switch states - Delay removed for faster startup
+    // delay(2000); 
     Serial.println("=== SWITCH STATES AFTER INITIALIZATION ===");
     Serial.print("X1 - Home: ");
     Serial.println(x1Motor->isHomeSwitchTriggered());
