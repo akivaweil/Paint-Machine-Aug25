@@ -222,11 +222,25 @@ long StepperMotor::getHomingDistance() {
 }
 
 long StepperMotor::inchesToSteps(float inches) {
-    return (long)(inches * STEPS_PER_INCH);
+    // Use motor-specific steps per inch for X1 and X2
+    float stepsPerInch = STEPS_PER_INCH;
+    if (strcmp(_axisName, "X1") == 0) {
+        stepsPerInch = X1_STEPS_PER_INCH;
+    } else if (strcmp(_axisName, "X2") == 0) {
+        stepsPerInch = X2_STEPS_PER_INCH;
+    }
+    return (long)(inches * stepsPerInch);
 }
 
 float StepperMotor::stepsToInches(long steps) {
-    return (float)steps / STEPS_PER_INCH;
+    // Use motor-specific steps per inch for X1 and X2
+    float stepsPerInch = STEPS_PER_INCH;
+    if (strcmp(_axisName, "X1") == 0) {
+        stepsPerInch = X1_STEPS_PER_INCH;
+    } else if (strcmp(_axisName, "X2") == 0) {
+        stepsPerInch = X2_STEPS_PER_INCH;
+    }
+    return (float)steps / stepsPerInch;
 }
 
 void StepperMotor::moveToPosition(float position) {

@@ -16,10 +16,14 @@
 // Motor configuration
 #define STEPPER_STEPS_PER_REV 400  // 400 steps per revolution
 #define MICROSTEPPING 1            // No microstepping (full steps)
-#define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch)
+#define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch) - Default for Y, Fork, Storage
+
+// X-axis motor specific steps per inch (if different from default)
+#define X1_STEPS_PER_INCH 150      // Steps per inch for X1 motor
+#define X2_STEPS_PER_INCH 254      // Steps per inch for X2 motor
 
 // Speed and acceleration settings (in steps per second)
-#define MAX_SPEED 5000              // Maximum speed in steps per second
+#define MAX_SPEED 1000              // Maximum speed in steps per second
 #define MAX_ACCEL 3000             // Maximum acceleration in steps per second squared
 
 // Storage motor speed and acceleration settings (in steps per second)

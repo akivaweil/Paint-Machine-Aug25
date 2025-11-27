@@ -4,8 +4,6 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/00_IDLE.h"
 #include "StateMachine/STATES/01_HOMING.h"
-#include "StateMachine/STATES/04_WEB_CONTROL.h"
-#include "Web_Manager.h"
 
 //* ************************************************************************
 //* ************************ MAIN APPLICATION *******************************
@@ -19,9 +17,8 @@ StepperMotor* forkMotor = nullptr;
 StepperMotor* storageMotor = nullptr;
 
 // State machine variables
-int currentState = 0; // 0 = IDLE, 1 = HOMING, 4 = WEB_CONTROL
+int currentState = 0; // 0 = IDLE, 1 = HOMING
 bool stateInitialized = false;
-bool webServerInitialized = false;
 
 // Forward declaration for OTA manager
 void initializeOTA();
@@ -90,20 +87,6 @@ void loop() {
     // Update OTA
     updateOTA();
 
-    // Initialize Web Server once WiFi is connected
-    if (isWiFiConnected() && !webServerInitialized) {
-        initWebServer();
-        webServerInitialized = true;
-        Serial.println("Web Server Started");
-    }
-
-    // Check for Web Move Request
-    if (isWebMoveRequested() && currentState != 4 && currentState != 1) { // Don't interrupt Homing
-        Serial.println("=== WEB MOVE REQUESTED ===");
-        currentState = 4;
-        stateInitialized = false;
-    }
-
     // State machine logic
     if (!stateInitialized) {
         // Initialize current state
@@ -114,10 +97,6 @@ void loop() {
         } else if (currentState == 1) {
             // HOMING state initialization
             resetHomingState();
-            stateInitialized = true;
-        } else if (currentState == 4) {
-            // WEB_CONTROL state initialization
-            resetWebControlState();
             stateInitialized = true;
         }
     }
@@ -130,9 +109,6 @@ void loop() {
     } else if (currentState == 1) {
         // HOMING state
         newState = runHomingState();
-    } else if (currentState == 4) {
-        // WEB_CONTROL state
-        newState = runWebControlState();
     }
     
     // Check if state wants to change
