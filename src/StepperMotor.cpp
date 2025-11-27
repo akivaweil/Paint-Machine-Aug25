@@ -320,6 +320,11 @@ void StepperMotor::moveToPosition(float position) {
     Serial.println(" steps)");
 }
 
+void StepperMotor::moveRelative(float inches) {
+    float targetPos = _currentPosition + inches;
+    moveToPosition(targetPos);
+}
+
 float StepperMotor::getCurrentPosition() {
     return _currentPosition;
 }
@@ -448,6 +453,7 @@ void StepperMotor::moveAwayFromHome(float distance) {
     _stepper->moveTo(targetSteps);
     _isMoving = true;
     
+    // Debug output
     Serial.print(_axisName);
     Serial.print(" moving away from home: ");
     Serial.print(moveDistance);
@@ -457,12 +463,6 @@ void StepperMotor::moveAwayFromHome(float distance) {
     Serial.print(targetSteps);
     Serial.println(")");
 }
-
-// This method is redundant if we use default parameter, but required if header declaration was void()
-// The previous error was because I defined void moveAwayFromHome() in cpp but header had float param default.
-// Actually, if header has default param, we only implement the one WITH the param in cpp (without default value).
-// We do NOT implement the void version separately.
-// So I will remove this implementation to fix the "redefinition" or "no declaration matches" error.
 
 void StepperMotor::testMoveAwayDirection() {
     Serial.print(_axisName);

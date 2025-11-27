@@ -39,36 +39,31 @@ void resetWebControlState() {
 int runWebControlState() {
     
     //! ************************************************************************
-    //! STEP 1: VALIDATE COORDINATES
+    //! STEP 1: VALIDATE COORDINATES (SKIPPED FOR RELATIVE MOVEMENT)
     //! ************************************************************************
     if (currentStep == 0) {
-        // Safety checks
-        if (targetX < MIN_TRAVEL_INCHES || targetX > MAX_TRAVEL_INCHES) {
-            Serial.println("Error: X coordinate out of bounds");
-            return 0; // Return to IDLE
-        }
-        
-        if (targetY < MIN_TRAVEL_INCHES || targetY > MAX_TRAVEL_INCHES) {
-            Serial.println("Error: Y coordinate out of bounds");
-            return 0; // Return to IDLE
-        }
-        
+        // Bounds checking is handled by StepperMotor class
         currentStep++;
     }
     
     //! ************************************************************************
-    //! STEP 2: START MOVEMENT
+    //! STEP 2: START MOVEMENT (RELATIVE)
     //! ************************************************************************
     if (currentStep == 1) {
         if (!movementStarted) {
-            Serial.println("Starting movement...");
+            Serial.println("Starting movement (Relative)...");
             
-            // Move motors (absolute positioning in inches)
-            // Note: StepperMotor class handles inch-to-step conversion
+            // Move motors (Relative positioning in inches)
+            // User requested "move 5 inches" behavior instead of "move to 5 inches"
             
-            x1Motor->moveToPosition(targetX);
-            x2Motor->moveToPosition(targetX);
-            yMotor->moveToPosition(targetY);
+            Serial.print("Moving X relative by: ");
+            Serial.println(targetX);
+            Serial.print("Moving Y relative by: ");
+            Serial.println(targetY);
+            
+            x1Motor->moveRelative(targetX);
+            x2Motor->moveRelative(targetX);
+            yMotor->moveRelative(targetY);
             
             movementStarted = true;
         }

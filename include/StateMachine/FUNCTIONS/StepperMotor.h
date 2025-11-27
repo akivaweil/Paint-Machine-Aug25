@@ -48,6 +48,9 @@ public:
     
     // Move to specific position (in inches)
     void moveToPosition(float position);
+
+    // Move relative distance (in inches)
+    void moveRelative(float inches);
     
     // Get current position
     float getCurrentPosition();
