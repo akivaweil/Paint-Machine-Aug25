@@ -89,12 +89,16 @@ private:
     float getHomingSpeed();
     float getHomingAcceleration();
     long getHomingDistance();
+    long getStepsPerInch(); // Helper to get steps per inch for this motor
     
     // Convert inches to steps
     long inchesToSteps(float inches);
     
     // Convert steps to inches
     float stepsToInches(long steps);
+
+    // Motor specific steps per inch
+    long _stepsPerInch;
 };
 
 #endif // STEPPER_MOTOR_H

@@ -17,6 +17,14 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axi
     _currentPosition = 0.0;
     _isMoving = false;
     
+    // Initialize steps per inch based on axis
+    if (strcmp(_axisName, "X1") == 0) _stepsPerInch = X1_STEPS_PER_INCH;
+    else if (strcmp(_axisName, "X2") == 0) _stepsPerInch = X2_STEPS_PER_INCH;
+    else if (strcmp(_axisName, "Y") == 0) _stepsPerInch = Y_STEPS_PER_INCH;
+    else if (strcmp(_axisName, "Fork") == 0) _stepsPerInch = FORK_STEPS_PER_INCH;
+    else if (strcmp(_axisName, "Storage") == 0) _stepsPerInch = STORAGE_STEPS_PER_INCH;
+    else _stepsPerInch = STEPS_PER_INCH;
+
     // Initialize FastAccelStepper pointer
     _stepper = nullptr;
     
@@ -38,7 +46,8 @@ void StepperMotor::initialize() {
     } else {
         Serial.print(" - No home switch");
     }
-    Serial.println();
+    Serial.print(" - Steps/Inch: ");
+    Serial.println(_stepsPerInch);
     
     // Initialize FastAccelStepper engine (only once)
     static FastAccelStepperEngine* engine = nullptr;
@@ -222,12 +231,17 @@ long StepperMotor::getHomingDistance() {
     return distance;
 }
 
+long StepperMotor::getStepsPerInch() {
+    return _stepsPerInch;
+}
+
 long StepperMotor::inchesToSteps(float inches) {
-    return (long)(inches * STEPS_PER_INCH);
+    return (long)(inches * _stepsPerInch);
 }
 
 float StepperMotor::stepsToInches(long steps) {
-    return (float)steps / STEPS_PER_INCH;
+    if (_stepsPerInch == 0) return 0.0;
+    return (float)steps / _stepsPerInch;
 }
 
 void StepperMotor::moveToPosition(float position) {
@@ -436,6 +450,7 @@ void StepperMotor::moveAwayFromHome(float distance) {
     _stepper->moveTo(targetSteps);
     _isMoving = true;
     
+    // Debug output
     Serial.print(_axisName);
     Serial.print(" moving away from home: ");
     Serial.print(moveDistance);
@@ -445,12 +460,6 @@ void StepperMotor::moveAwayFromHome(float distance) {
     Serial.print(targetSteps);
     Serial.println(")");
 }
-
-// This method is redundant if we use default parameter, but required if header declaration was void()
-// The previous error was because I defined void moveAwayFromHome() in cpp but header had float param default.
-// Actually, if header has default param, we only implement the one WITH the param in cpp (without default value).
-// We do NOT implement the void version separately.
-// So I will remove this implementation to fix the "redefinition" or "no declaration matches" error.
 
 void StepperMotor::testMoveAwayDirection() {
     Serial.print(_axisName);

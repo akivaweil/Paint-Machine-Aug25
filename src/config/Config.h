@@ -18,6 +18,13 @@
 #define MICROSTEPPING 1            // No microstepping (full steps)
 #define STEPS_PER_INCH 254         // Steps per inch (400 steps / 1.575 inches per rev = 254 steps/inch)
 
+// Individual Motor Steps Per Inch (allows for calibration per axis)
+#define X1_STEPS_PER_INCH STEPS_PER_INCH
+#define X2_STEPS_PER_INCH STEPS_PER_INCH
+#define Y_STEPS_PER_INCH STEPS_PER_INCH
+#define FORK_STEPS_PER_INCH STEPS_PER_INCH
+#define STORAGE_STEPS_PER_INCH STEPS_PER_INCH
+
 // Speed and acceleration settings (in steps per second)
 #define MAX_SPEED 8000              // Maximum speed in steps per second
 #define MAX_ACCEL 5000             // Maximum acceleration in steps per second squared
@@ -48,4 +55,4 @@
 #define TEST_Y_MOVE_UP_DISTANCE 0.5    // Distance to move Y up
 #define TEST_Y_MOVE_DOWN_DISTANCE 0.5  // Distance to move Y down
 
-#endif // CONFIG_H 
+#endif // CONFIG_H
