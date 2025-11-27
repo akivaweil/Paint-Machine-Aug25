@@ -18,6 +18,9 @@ volatile bool webMoveRequested = false;
 volatile float webTargetX = 0.0;
 volatile float webTargetY = 0.0;
 
+// Sequence start request variable
+volatile bool webStartRequested = false;
+
 // Pick and Place Sequence Variables
 volatile float webPickX = 0.0;
 volatile float webPickY = 0.0;
@@ -36,14 +39,16 @@ const char index_html[] PROGMEM = R"rawliteral(
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #2563eb;
-      --secondary-color: #475569;
+      --primary-color: #3b82f6;
+      --secondary-color: #94a3b8;
       --accent-color: #10b981;
-      --bg-color: #f1f5f9;
-      --card-bg: #ffffff;
-      --text-color: #1e293b;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f8fafc;
+      --input-bg: #334155;
+      --input-border: #475569;
       --border-radius: 16px;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
     }
     
     body {
@@ -71,6 +76,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       font-size: 2.2rem;
       text-transform: uppercase;
       letter-spacing: 1.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
     .header p {
@@ -95,19 +101,21 @@ const char index_html[] PROGMEM = R"rawliteral(
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       display: flex;
       flex-direction: column;
+      border: 1px solid rgba(255,255,255,0.05);
     }
     
     .card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255,255,255,0.1);
     }
 
     .card h2 {
       margin-top: 0;
       margin-bottom: 25px;
       font-size: 1.25rem;
-      color: var(--secondary-color);
-      border-bottom: 2px solid #f1f5f9;
+      color: var(--text-color);
+      border-bottom: 2px solid rgba(255,255,255,0.1);
       padding-bottom: 15px;
       display: flex;
       align-items: center;
@@ -124,6 +132,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       background-color: var(--primary-color);
       margin-right: 12px;
       border-radius: 3px;
+      box-shadow: 0 0 10px var(--primary-color);
     }
 
     .input-group {
@@ -141,18 +150,20 @@ const char index_html[] PROGMEM = R"rawliteral(
     input[type="number"] {
       width: 100%;
       padding: 14px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--input-border);
       border-radius: 10px;
       font-size: 1.1rem;
-      transition: border-color 0.3s;
+      transition: all 0.3s;
       box-sizing: border-box;
-      background: #f8fafc;
+      background: var(--input-bg);
+      color: white;
     }
 
     input[type="number"]:focus {
       border-color: var(--primary-color);
       outline: none;
-      background: #fff;
+      background: #405570;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
     .btn {
@@ -167,6 +178,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-top: auto;
+      color: white;
     }
 
     .btn:active {
@@ -174,25 +186,34 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     .btn-primary {
-      background-color: var(--primary-color);
-      color: white;
-      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
     }
     
     .btn-primary:hover {
-      background-color: #1d4ed8;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
     }
 
     .btn-success {
-      background-color: var(--accent-color);
-      color: white;
-      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
     }
     
     .btn-success:hover {
-      background-color: #059669;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+      margin-top: 15px;
+    }
+    
+    .btn-start:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
     }
 
     .full-width {
@@ -204,17 +225,19 @@ const char index_html[] PROGMEM = R"rawliteral(
       bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #1e293b;
+      background-color: rgba(30, 41, 59, 0.95);
       color: white;
       padding: 16px 32px;
       border-radius: 50px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
       display: none;
       z-index: 1000;
       font-weight: 500;
       letter-spacing: 0.5px;
       min-width: 200px;
       text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(5px);
     }
 
     .row {
@@ -224,6 +247,12 @@ const char index_html[] PROGMEM = R"rawliteral(
     
     .col {
       flex: 1;
+    }
+
+    /* Placeholder styling */
+    ::placeholder {
+      color: #64748b;
+      opacity: 1;
     }
 
     @media (max-width: 768px) {
@@ -284,15 +313,13 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="card full-width">
       <h2>Actions</h2>
       <button class="btn btn-success" onclick="saveConfig()">Save All Configuration</button>
-      <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; text-align: center; margin-bottom: 0;">
-        Use physical START button to run sequence
-      </p>
+      <button class="btn btn-start" onclick="startSequence()">START SEQUENCE</button>
     </div>
 
     <!-- Direct Move Card -->
     <div class="card full-width">
-      <h2 style="border-bottom-color: #dbeafe;">
-        <span style="background-color: var(--primary-color); width: 6px; height: 24px; border-radius: 3px; margin-right: 12px;"></span>
+      <h2 style="border-bottom-color: rgba(255,255,255,0.1);">
+        <span style="background-color: var(--primary-color); width: 6px; height: 24px; border-radius: 3px; margin-right: 12px; box-shadow: 0 0 10px var(--primary-color);"></span>
         Manual Control
       </h2>
       <div class="row" style="margin-bottom: 10px;">
@@ -383,6 +410,17 @@ const char index_html[] PROGMEM = R"rawliteral(
       };
       xhr.send();
     }
+
+    function startSequence() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "/start_sequence", true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          showStatus("🎬 Sequence Started!");
+        }
+      };
+      xhr.send();
+    }
   </script>
 </body>
 </html>
@@ -442,6 +480,13 @@ void initWebServer() {
         }
     });
 
+    // Route to handle start sequence
+    server.on("/start_sequence", HTTP_GET, [](AsyncWebServerRequest *request){
+        webStartRequested = true;
+        request->send(200, "text/plain", "Sequence Started");
+        Serial.println("=== WEB SEQUENCE START REQUESTED ===");
+    });
+
     // Route to handle configuration
     server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("px") && request->hasParam("py") && 
@@ -480,6 +525,14 @@ bool isWebMoveRequested() {
 
 void clearWebMoveRequest() {
     webMoveRequested = false;
+}
+
+bool isWebStartRequested() {
+    return webStartRequested;
+}
+
+void clearWebStartRequest() {
+    webStartRequested = false;
 }
 
 float getWebTargetX() { return webTargetX; }

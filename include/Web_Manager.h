@@ -12,6 +12,12 @@ bool isWebMoveRequested();
 // Clear the move request flag
 void clearWebMoveRequest();
 
+// Check if a sequence start has been requested from the web interface
+bool isWebStartRequested();
+
+// Clear the sequence start request flag
+void clearWebStartRequest();
+
 // Get the target X coordinate
 float getWebTargetX();
 

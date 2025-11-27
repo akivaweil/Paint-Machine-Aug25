@@ -150,6 +150,19 @@ void loop() {
         currentState = 4;
         stateInitialized = false;
     }
+
+    // Check for Web Start Request
+    if (isWebStartRequested()) {
+        Serial.println("=== WEB START SEQUENCE REQUESTED ===");
+        clearWebStartRequest(); // Clear the flag
+        
+        // Transition to TEST_SEQUENCE state
+        currentState = 3;
+        stateInitialized = false;
+        
+        // Start the test sequence immediately
+        startTestSequence();
+    }
     
     // State machine logic
     if (!stateInitialized) {
