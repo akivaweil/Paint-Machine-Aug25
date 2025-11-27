@@ -3,11 +3,11 @@
 //* ************************************************************************
 // This state handles the test button sequence:
 // 1. Move to Pick X, Pick Y (from Web Config)
-// 2. Extend fork Fork Distance (from Web Config)
+// 2. Extend fork Pick Fork Distance (from Web Config)
 // 3. Move Y up (Hardcoded lift distance for now)
 // 4. Retract fork
 // 5. Move to Place X, Place Y (from Web Config)
-// 6. Extend fork Fork Distance
+// 6. Extend fork Place Fork Distance (from Web Config)
 // 7. Move Y down
 // 8. Retract fork
 // 9. Return to IDLE
@@ -36,7 +36,8 @@ float cfgPickX = 0.0;
 float cfgPickY = 0.0;
 float cfgPlaceX = 0.0;
 float cfgPlaceY = 0.0;
-float cfgForkDist = 0.0;
+float cfgPickForkDist = 0.0;
+float cfgPlaceForkDist = 0.0;
 
 // Forward declaration
 void startTestSequence();
@@ -57,7 +58,8 @@ void initializeTestSequenceState() {
             cfgPickY = getWebPickY();
             cfgPlaceX = getWebPlaceX();
             cfgPlaceY = getWebPlaceY();
-            cfgForkDist = getWebForkDistance();
+            cfgPickForkDist = getWebPickForkDistance();
+            cfgPlaceForkDist = getWebPlaceForkDistance();
             
             // Fallback to defaults if 0 (optional, but safer to just use what's there or print warning)
             if (cfgPickX == 0 && cfgPickY == 0 && cfgPlaceX == 0 && cfgPlaceY == 0) {
@@ -68,8 +70,9 @@ void initializeTestSequenceState() {
             Serial.println("Test sequence ready - press test button to start");
             Serial.println("Sequence Configuration:");
             Serial.print("Pick: "); Serial.print(cfgPickX); Serial.print(", "); Serial.println(cfgPickY);
+            Serial.print("Pick Fork Dist: "); Serial.println(cfgPickForkDist);
             Serial.print("Place: "); Serial.print(cfgPlaceX); Serial.print(", "); Serial.println(cfgPlaceY);
-            Serial.print("Fork Dist: "); Serial.println(cfgForkDist);
+            Serial.print("Place Fork Dist: "); Serial.println(cfgPlaceForkDist);
             Serial.println("=========================================");
         }
         
@@ -85,7 +88,8 @@ void startTestSequence() {
         cfgPickY = getWebPickY();
         cfgPlaceX = getWebPlaceX();
         cfgPlaceY = getWebPlaceY();
-        cfgForkDist = getWebForkDistance();
+        cfgPickForkDist = getWebPickForkDistance();
+        cfgPlaceForkDist = getWebPlaceForkDistance();
         
         testSequenceActive = true;
         testSequenceStep = 0;
@@ -146,13 +150,13 @@ int runTestSequenceState() {
                 
             case 1:
                 //! ************************************************************************
-                //! STEP 6: EXTEND FORK
+                //! STEP 6: EXTEND FORK (PICK)
                 //! ************************************************************************
-                Serial.print("=== STEP 2: Extending fork ");
-                Serial.print(cfgForkDist);
+                Serial.print("=== STEP 2: Extending fork (Pick) ");
+                Serial.print(cfgPickForkDist);
                 Serial.println(" inches ===");
                 
-                forkMotor->moveToPosition(cfgForkDist);
+                forkMotor->moveToPosition(cfgPickForkDist);
                 testSequenceStep++;
                 break;
                 
@@ -198,13 +202,13 @@ int runTestSequenceState() {
                 
             case 5:
                 //! ************************************************************************
-                //! STEP 10: EXTEND FORK
+                //! STEP 10: EXTEND FORK (PLACE)
                 //! ************************************************************************
-                Serial.print("=== STEP 6: Extending fork ");
-                Serial.print(cfgForkDist);
+                Serial.print("=== STEP 6: Extending fork (Place) ");
+                Serial.print(cfgPlaceForkDist);
                 Serial.println(" inches ===");
                 
-                forkMotor->moveToPosition(cfgForkDist);
+                forkMotor->moveToPosition(cfgPlaceForkDist);
                 testSequenceStep++;
                 break;
                 

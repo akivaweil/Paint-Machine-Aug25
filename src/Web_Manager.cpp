@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <Preferences.h>
 #include "Web_Manager.h"
 #include "config/Config.h"
 
@@ -10,6 +11,7 @@
 
 // Web server instance
 AsyncWebServer server(80);
+Preferences preferences;
 
 // Move request variables (Direct Move)
 volatile bool webMoveRequested = false;
@@ -21,7 +23,8 @@ volatile float webPickX = 0.0;
 volatile float webPickY = 0.0;
 volatile float webPlaceX = 0.0;
 volatile float webPlaceY = 0.0;
-volatile float webForkDistance = 0.0;
+volatile float webPickForkDistance = 0.0;
+volatile float webPlaceForkDistance = 0.0;
 
 // HTML Content
 const char index_html[] PROGMEM = R"rawliteral(
@@ -236,7 +239,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
   </style>
 </head>
-<body>
+<body onload="loadConfig()">
   <div class="header">
     <h1>Paint Machine</h1>
     <p>Control Dashboard</p>
@@ -245,38 +248,42 @@ const char index_html[] PROGMEM = R"rawliteral(
   <div class="grid-container">
     <!-- Pick Card -->
     <div class="card">
-      <h2>Pick Position</h2>
+      <h2>Pick Settings</h2>
       <div class="input-group">
-        <label for="pickX">X Coordinate (inches)</label>
+        <label for="pickX">Pick X Coordinate (in)</label>
         <input type="number" id="pickX" step="0.1" placeholder="0.0">
       </div>
       <div class="input-group">
-        <label for="pickY">Y Coordinate (inches)</label>
+        <label for="pickY">Pick Y Coordinate (in)</label>
         <input type="number" id="pickY" step="0.1" placeholder="0.0">
+      </div>
+      <div class="input-group">
+        <label for="pickForkDist">Pick Fork Distance (in)</label>
+        <input type="number" id="pickForkDist" step="0.1" placeholder="0.0">
       </div>
     </div>
 
     <!-- Place Card -->
     <div class="card">
-      <h2>Place Position</h2>
+      <h2>Place Settings</h2>
       <div class="input-group">
-        <label for="placeX">X Coordinate (inches)</label>
+        <label for="placeX">Place X Coordinate (in)</label>
         <input type="number" id="placeX" step="0.1" placeholder="0.0">
       </div>
       <div class="input-group">
-        <label for="placeY">Y Coordinate (inches)</label>
+        <label for="placeY">Place Y Coordinate (in)</label>
         <input type="number" id="placeY" step="0.1" placeholder="0.0">
+      </div>
+      <div class="input-group">
+        <label for="placeForkDist">Place Fork Distance (in)</label>
+        <input type="number" id="placeForkDist" step="0.1" placeholder="0.0">
       </div>
     </div>
 
-    <!-- Settings Card -->
-    <div class="card">
-      <h2>Sequence Settings</h2>
-      <div class="input-group">
-        <label for="forkDist">Fork Extension (inches)</label>
-        <input type="number" id="forkDist" step="0.1" placeholder="0.0">
-      </div>
-      <button class="btn btn-success" onclick="saveConfig()">Save Configuration</button>
+    <!-- Action Card -->
+    <div class="card full-width">
+      <h2>Actions</h2>
+      <button class="btn btn-success" onclick="saveConfig()">Save All Configuration</button>
       <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; text-align: center; margin-bottom: 0;">
         Use physical START button to run sequence
       </p>
@@ -309,8 +316,23 @@ const char index_html[] PROGMEM = R"rawliteral(
   <div id="status" class="status-bar"></div>
 
   <script>
-    // Load values from ESP32 if possible, or persist locally
-    // For now we rely on user inputting them or browser cache
+    function loadConfig() {
+        // Fetch current config from ESP32
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/get_config", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var data = JSON.parse(xhr.responseText);
+                document.getElementById("pickX").value = data.pickX;
+                document.getElementById("pickY").value = data.pickY;
+                document.getElementById("placeX").value = data.placeX;
+                document.getElementById("placeY").value = data.placeY;
+                document.getElementById("pickForkDist").value = data.pickForkDist;
+                document.getElementById("placeForkDist").value = data.placeForkDist;
+            }
+        };
+        xhr.send();
+    }
     
     function showStatus(msg) {
         var statusDiv = document.getElementById("status");
@@ -343,14 +365,15 @@ const char index_html[] PROGMEM = R"rawliteral(
       var py = document.getElementById("pickY").value;
       var plx = document.getElementById("placeX").value;
       var ply = document.getElementById("placeY").value;
-      var fd = document.getElementById("forkDist").value;
+      var pfd = document.getElementById("pickForkDist").value;
+      var plfd = document.getElementById("placeForkDist").value;
 
-      if(px === "" || py === "" || plx === "" || ply === "" || fd === "") {
-        showStatus("⚠️ Please fill in all Pick & Place fields");
+      if(px === "" || py === "" || plx === "" || ply === "" || pfd === "" || plfd === "") {
+        showStatus("⚠️ Please fill in all fields");
         return;
       }
 
-      var url = "/config?px=" + px + "&py=" + py + "&plx=" + plx + "&ply=" + ply + "&fd=" + fd;
+      var url = "/config?px=" + px + "&py=" + py + "&plx=" + plx + "&ply=" + ply + "&pfd=" + pfd + "&plfd=" + plfd;
       var xhr = new XMLHttpRequest();
       xhr.open("GET", url, true);
       xhr.onreadystatechange = function() {
@@ -366,9 +389,37 @@ const char index_html[] PROGMEM = R"rawliteral(
 )rawliteral";
 
 void initWebServer() {
+    // Initialize Preferences
+    preferences.begin("paint-config", false);
+    
+    // Load saved values
+    webPickX = preferences.getFloat("pickX", 0.0);
+    webPickY = preferences.getFloat("pickY", 0.0);
+    webPlaceX = preferences.getFloat("placeX", 0.0);
+    webPlaceY = preferences.getFloat("placeY", 0.0);
+    webPickForkDistance = preferences.getFloat("pickForkDist", 0.0);
+    webPlaceForkDistance = preferences.getFloat("placeForkDist", 0.0);
+    
+    Serial.println("Loaded Config from NVS:");
+    Serial.printf("Pick: %.2f, %.2f (Fork: %.2f)\n", webPickX, webPickY, webPickForkDistance);
+    Serial.printf("Place: %.2f, %.2f (Fork: %.2f)\n", webPlaceX, webPlaceY, webPlaceForkDistance);
+
     // Route for root / web page
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send_P(200, "text/html", index_html);
+    });
+
+    // Route to get current config as JSON
+    server.on("/get_config", HTTP_GET, [](AsyncWebServerRequest *request){
+        String json = "{";
+        json += "\"pickX\":" + String(webPickX) + ",";
+        json += "\"pickY\":" + String(webPickY) + ",";
+        json += "\"placeX\":" + String(webPlaceX) + ",";
+        json += "\"placeY\":" + String(webPlaceY) + ",";
+        json += "\"pickForkDist\":" + String(webPickForkDistance) + ",";
+        json += "\"placeForkDist\":" + String(webPlaceForkDistance);
+        json += "}";
+        request->send(200, "application/json", json);
     });
 
     // Route to handle move command
@@ -395,19 +446,25 @@ void initWebServer() {
     server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("px") && request->hasParam("py") && 
             request->hasParam("plx") && request->hasParam("ply") && 
-            request->hasParam("fd")) {
+            request->hasParam("pfd") && request->hasParam("plfd")) {
             
             webPickX = request->getParam("px")->value().toFloat();
             webPickY = request->getParam("py")->value().toFloat();
             webPlaceX = request->getParam("plx")->value().toFloat();
             webPlaceY = request->getParam("ply")->value().toFloat();
-            webForkDistance = request->getParam("fd")->value().toFloat();
+            webPickForkDistance = request->getParam("pfd")->value().toFloat();
+            webPlaceForkDistance = request->getParam("plfd")->value().toFloat();
+            
+            // Save to Preferences
+            preferences.putFloat("pickX", webPickX);
+            preferences.putFloat("pickY", webPickY);
+            preferences.putFloat("placeX", webPlaceX);
+            preferences.putFloat("placeY", webPlaceY);
+            preferences.putFloat("pickForkDist", webPickForkDistance);
+            preferences.putFloat("placeForkDist", webPlaceForkDistance);
             
             request->send(200, "text/plain", "Config Saved");
-            Serial.println("=== WEB CONFIG UPDATED ===");
-            Serial.print("Pick: "); Serial.print(webPickX); Serial.print(", "); Serial.println(webPickY);
-            Serial.print("Place: "); Serial.print(webPlaceX); Serial.print(", "); Serial.println(webPlaceY);
-            Serial.print("Fork Dist: "); Serial.println(webForkDistance);
+            Serial.println("=== WEB CONFIG SAVED ===");
         } else {
             request->send(400, "text/plain", "Missing parameters");
         }
@@ -432,4 +489,5 @@ float getWebPickX() { return webPickX; }
 float getWebPickY() { return webPickY; }
 float getWebPlaceX() { return webPlaceX; }
 float getWebPlaceY() { return webPlaceY; }
-float getWebForkDistance() { return webForkDistance; }
+float getWebPickForkDistance() { return webPickForkDistance; }
+float getWebPlaceForkDistance() { return webPlaceForkDistance; }

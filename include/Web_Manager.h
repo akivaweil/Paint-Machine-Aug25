@@ -23,6 +23,7 @@ float getWebPickX();
 float getWebPickY();
 float getWebPlaceX();
 float getWebPlaceY();
-float getWebForkDistance();
+float getWebPickForkDistance();
+float getWebPlaceForkDistance();
 
 #endif
