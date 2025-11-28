@@ -36,24 +36,5 @@
 // Timing settings
 #define MOTOR_TIMEOUT_MS 30000     // Motor operation timeout in milliseconds
 
-//* ************************************************************************
-//* ************************ TEST SEQUENCE CONFIG ***************************
-//* ************************************************************************
-
-// Test sequence positions (in inches) - Adjusted for negative homing direction
-#define TEST_POSITION_1_X 1.0      // First position X coordinate (moved away from home)
-#define TEST_POSITION_1_Y 10      // First position Y coordinate (moved away from home)
-#define TEST_POSITION_2_X 10.0      // Second position X coordinate (reduced from 13.0)
-#define TEST_POSITION_2_Y 8      // Second position Y coordinate (moved away from home)
-#define TEST_POSITION_FINAL_X 1.0  // Final position X coordinate (moved away from home)
-#define TEST_POSITION_FINAL_Y 2.0  // Final position Y coordinate (moved away from home)
-
-// Test sequence fork movements (in inches)
-#define TEST_FORK_EXTEND_DISTANCE 3.8  // Distance to extend fork
-#define TEST_FORK_RETRACT_POSITION 0.0 // Position to retract fork to
-
-// Test sequence Y movements (in inches)
-#define TEST_Y_MOVE_UP_DISTANCE 0.5    // Distance to move Y up
-#define TEST_Y_MOVE_DOWN_DISTANCE 0.5  // Distance to move Y down
 
 #endif // CONFIG_H 

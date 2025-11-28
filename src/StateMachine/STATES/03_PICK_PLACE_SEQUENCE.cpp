@@ -1,21 +1,22 @@
 //* ************************************************************************
 //* ************************ PICK AND PLACE SEQUENCE STATE ******************
 //* ************************************************************************
-// This state executes the pick and place test sequence:
-// 1. Move to Pick Location
-// 2. Extend Fork
+// This state executes the pick and place sequence using web dashboard settings:
+// 1. Move to Pick Location (from web config)
+// 2. Extend Fork (pick fork distance from web config)
 // 3. Move Y Up (Pick)
 // 4. Retract Fork
-// 5. Move to Place Location
-// 6. Extend Fork
+// 5. Move to Place Location (from web config)
+// 6. Extend Fork (place fork distance from web config)
 // 7. Move Y Down (Place)
 // 8. Retract Fork
-// 9. Move to Final Position (Home or Safe)
+// 9. Sequence Complete - Return to IDLE
 
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "Web_Manager.h"
 
 // External motor objects (declared in main.cpp)
 extern StepperMotor* xMotor;
@@ -27,6 +28,11 @@ bool pickPlaceStateInitialized = false;
 int pickPlaceStep = 0;
 unsigned long stepStartTime = 0;
 const int STEP_DELAY_MS = 500; // Delay between steps
+
+// Pick/Place movement distances (small mechanical movements, not positions)
+const float PICK_Y_MOVE_UP_DISTANCE = 0.5;    // Distance to move Y up for pick
+const float PLACE_Y_MOVE_DOWN_DISTANCE = 0.5;  // Distance to move Y down for place
+const float FORK_RETRACT_POSITION = 0.0;       // Position to retract fork to
 
 // Function to initialize pick place state
 void initializePickPlaceState() {
@@ -71,13 +77,13 @@ int runPickPlaceState() {
             //! STEP 1: MOVE TO PICK LOCATION
             //! ************************************************************************
             Serial.print("Step 1: Moving to Pick Location (");
-            Serial.print(TEST_POSITION_1_X);
+            Serial.print(getWebPickX());
             Serial.print(", ");
-            Serial.print(TEST_POSITION_1_Y);
+            Serial.print(getWebPickY());
             Serial.println(")");
             
-            xMotor->moveToPosition(TEST_POSITION_1_X);
-            yMotor->moveToPosition(TEST_POSITION_1_Y);
+            xMotor->moveToPosition(getWebPickX());
+            yMotor->moveToPosition(getWebPickY());
             
             pickPlaceStep++;
             stepStartTime = 0; // Reset delay for next step
@@ -88,9 +94,9 @@ int runPickPlaceState() {
             //! STEP 2: EXTEND FORK
             //! ************************************************************************
             Serial.print("Step 2: Extending Fork to ");
-            Serial.println(TEST_FORK_EXTEND_DISTANCE);
+            Serial.println(getWebPickForkDistance());
             
-            forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
+            forkMotor->moveToPosition(getWebPickForkDistance());
             
             pickPlaceStep++;
             stepStartTime = 0;
@@ -101,9 +107,9 @@ int runPickPlaceState() {
             //! STEP 3: MOVE Y UP (PICK)
             //! ************************************************************************
             Serial.print("Step 3: Moving Y Up by ");
-            Serial.println(TEST_Y_MOVE_UP_DISTANCE);
+            Serial.println(PICK_Y_MOVE_UP_DISTANCE);
             
-            yMotor->moveRelative(TEST_Y_MOVE_UP_DISTANCE);
+            yMotor->moveRelative(PICK_Y_MOVE_UP_DISTANCE);
             
             pickPlaceStep++;
             stepStartTime = 0;
@@ -114,9 +120,9 @@ int runPickPlaceState() {
             //! STEP 4: RETRACT FORK
             //! ************************************************************************
             Serial.print("Step 4: Retracting Fork to ");
-            Serial.println(TEST_FORK_RETRACT_POSITION);
+            Serial.println(FORK_RETRACT_POSITION);
             
-            forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
+            forkMotor->moveToPosition(FORK_RETRACT_POSITION);
             
             pickPlaceStep++;
             stepStartTime = 0;
@@ -127,13 +133,13 @@ int runPickPlaceState() {
             //! STEP 5: MOVE TO PLACE LOCATION
             //! ************************************************************************
             Serial.print("Step 5: Moving to Place Location (");
-            Serial.print(TEST_POSITION_2_X);
+            Serial.print(getWebPlaceX());
             Serial.print(", ");
-            Serial.print(TEST_POSITION_2_Y);
+            Serial.print(getWebPlaceY());
             Serial.println(")");
             
-            xMotor->moveToPosition(TEST_POSITION_2_X);
-            yMotor->moveToPosition(TEST_POSITION_2_Y);
+            xMotor->moveToPosition(getWebPlaceX());
+            yMotor->moveToPosition(getWebPlaceY());
             
             pickPlaceStep++;
             stepStartTime = 0;
@@ -144,9 +150,9 @@ int runPickPlaceState() {
             //! STEP 6: EXTEND FORK
             //! ************************************************************************
             Serial.print("Step 6: Extending Fork to ");
-            Serial.println(TEST_FORK_EXTEND_DISTANCE);
+            Serial.println(getWebPlaceForkDistance());
             
-            forkMotor->moveToPosition(TEST_FORK_EXTEND_DISTANCE);
+            forkMotor->moveToPosition(getWebPlaceForkDistance());
             
             pickPlaceStep++;
             stepStartTime = 0;
@@ -157,9 +163,9 @@ int runPickPlaceState() {
             //! STEP 7: MOVE Y DOWN (PLACE)
             //! ************************************************************************
             Serial.print("Step 7: Moving Y Down by ");
-            Serial.println(TEST_Y_MOVE_DOWN_DISTANCE);
+            Serial.println(PLACE_Y_MOVE_DOWN_DISTANCE);
             
-            yMotor->moveRelative(-TEST_Y_MOVE_DOWN_DISTANCE); // Negative for down
+            yMotor->moveRelative(-PLACE_Y_MOVE_DOWN_DISTANCE); // Negative for down
             
             pickPlaceStep++;
             stepStartTime = 0;
@@ -170,32 +176,15 @@ int runPickPlaceState() {
             //! STEP 8: RETRACT FORK
             //! ************************************************************************
             Serial.print("Step 8: Retracting Fork to ");
-            Serial.println(TEST_FORK_RETRACT_POSITION);
+            Serial.println(FORK_RETRACT_POSITION);
             
-            forkMotor->moveToPosition(TEST_FORK_RETRACT_POSITION);
-            
-            pickPlaceStep++;
-            stepStartTime = 0;
-            break;
-
-        case 9: // Move to Final Position
-            //! ************************************************************************
-            //! STEP 9: MOVE TO FINAL POSITION
-            //! ************************************************************************
-            Serial.print("Step 9: Moving to Final Position (");
-            Serial.print(TEST_POSITION_FINAL_X);
-            Serial.print(", ");
-            Serial.print(TEST_POSITION_FINAL_Y);
-            Serial.println(")");
-            
-            xMotor->moveToPosition(TEST_POSITION_FINAL_X);
-            yMotor->moveToPosition(TEST_POSITION_FINAL_Y);
+            forkMotor->moveToPosition(FORK_RETRACT_POSITION);
             
             pickPlaceStep++;
             stepStartTime = 0;
             break;
 
-        case 10: // Sequence Complete
+        case 9: // Sequence Complete
             //! ************************************************************************
             //! SEQUENCE COMPLETE
             //! ************************************************************************
