@@ -26,6 +26,10 @@
 #define STORAGE_STEP_PIN 21
 #define STORAGE_DIR_PIN 47
 
+// Suction and Paint Gun
+#define SUCTION_PIN 41
+#define PAINT_GUN_PIN 42
+
 // Status LEDs
 #define STATUS_LED_PIN 2  // Built-in LED on most ESP32 boards
 #define ERROR_LED_PIN 2   // Using same pin for now

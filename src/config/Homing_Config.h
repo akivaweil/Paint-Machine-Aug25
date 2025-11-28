@@ -6,11 +6,11 @@
 //* ************************************************************************
 
 // X Motor Homing Settings (in steps per second)
-#define X_HOME_SPEED 800          // Speed for X homing operation (reduced for better switch response)
+#define X_HOME_SPEED 600          // Speed for X homing operation (reduced for better switch response)
 #define X_HOME_ACCEL 2500         // Acceleration for X homing (reduced for smoother approach)
 
 // Y Motor Homing Settings (in steps per second)
-#define Y_HOME_SPEED 800           // Speed for Y homing operation (reduced for better switch response)
+#define Y_HOME_SPEED 600           // Speed for Y homing operation (reduced for better switch response)
 #define Y_HOME_ACCEL 3000          // Acceleration for Y homing (reduced for smoother approach)
 
 // Fork Motor Homing Settings (in steps per second)
@@ -23,7 +23,7 @@
 
 // Homing timeout settings
 #define HOMING_TIMEOUT_MS 60000            // 60 seconds timeout for entire homing sequence
-#define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per phase
+#define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per dphase
 
 // Home switch debounce settings (in milliseconds)
 #define HOME_SWITCH_DEBOUNCE_MS 1         // Debounce time for home switches to prevent false triggers (reduced for faster response)
@@ -42,7 +42,7 @@
 
 // Move away from home switch distance (in inches)
 // This is the base distance to move away
-#define MOVE_AWAY_FROM_HOME_DISTANCE 2.0   // Distance to move away from home switch after homing
+#define MOVE_AWAY_FROM_HOME_DISTANCE 1.0   // Distance to move away from home switch after homing
 
 // Move away direction settings (true = positive direction, false = negative direction)
 // These should be set based on the physical layout of your machine
