@@ -5,6 +5,7 @@
 #include "StateMachine/STATES/00_IDLE.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_MOVE_TO_POSITION.h"
+#include "StateMachine/STATES/03_PICK_PLACE_SEQUENCE.h"
 #include "StateMachine/WEB_CONTROL/WebControl_Logic.h"
 #include "Web_Manager.h"
 
@@ -102,6 +103,11 @@ void loop() {
             StepperMotor::setHomingState(false);
             resetMoveToPositionState();
             stateInitialized = true;
+        } else if (currentState == 3) {
+            // PICK_PLACE_SEQUENCE state initialization
+            StepperMotor::setHomingState(false);
+            resetPickPlaceState();
+            stateInitialized = true;
         } else if (currentState == 4) {
             // WEB_CONTROL state initialization
             StepperMotor::setHomingState(false);
@@ -121,6 +127,9 @@ void loop() {
     } else if (currentState == 2) {
         // MOVE_TO_POSITION state
         newState = runMoveToPositionState();
+    } else if (currentState == 3) {
+        // PICK_PLACE_SEQUENCE state
+        newState = runPickPlaceState();
     } else if (currentState == 4) {
         // WEB_CONTROL state
         newState = executeWebControlLogic();

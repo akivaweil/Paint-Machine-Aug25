@@ -76,10 +76,10 @@ int runIdleState() {
     if (currentButtonState && !lastButtonState) {
         // Button was just pressed
         if (!toggleState) {
-            // First press: Move to position 3,3
-            Serial.println("Start button pressed - Moving to position 3,3");
+            // First press: Start Pick and Place Sequence
+            Serial.println("Start button pressed - Starting Pick and Place Sequence");
             toggleState = true;
-            return 2; // Transition to MOVE_TO_POSITION state
+            return 3; // Transition to PICK_PLACE_SEQUENCE state
         } else {
             // Second press: Home
             Serial.println("Start button pressed - Starting homing sequence");
