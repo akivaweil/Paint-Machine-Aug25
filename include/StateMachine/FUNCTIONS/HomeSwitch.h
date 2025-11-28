@@ -8,19 +8,39 @@
 class HomeSwitch {
 private:
     uint8_t pin;
+    uint8_t pin2;  // Second pin for dual switches (X axis)
+    bool lastState;
+    unsigned long lastDebounceTime;
+    bool debouncedState;
+    bool hasDualPins;  // Flag to indicate if this switch has two pins
 
 public:
-    // Constructor
+    // Constructor for single pin
     HomeSwitch(uint8_t switchPin);
 
-    // Initialize the switch
+    // Constructor for dual pins (X switches)
+    HomeSwitch(uint8_t switchPin, uint8_t switchPin2);
+
+    // Initialize the switch(es)
     void begin();
 
-    // Read switch state (active high)
+    // Read switch state (active high) - single pin
     bool read();
 
-    // Check if switch is triggered (active high)
+    // Read dual switch state (both must be high)
+    bool readDual();
+
+    // Check if switch is triggered (active high) - single pin
     bool isTriggered();
+
+    // Check if dual switches are triggered (both must be high)
+    bool isDualTriggered();
+
+    // Debounced reading for single pin
+    bool readDebounced();
+
+    // Debounced reading for dual pins
+    bool readDualDebounced();
 };
 
 #endif // HOME_SWITCH_H

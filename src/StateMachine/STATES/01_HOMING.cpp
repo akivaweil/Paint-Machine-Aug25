@@ -34,8 +34,8 @@ void HomingState::enter() {
     motorY = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, STEPS_PER_INCH, Y_MAX_SPEED, Y_MAX_ACCEL);
     motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
 
-    // Initialize home switches
-    homeSwitches = new HomeSwitch(X_HOME_PIN);
+    // Initialize home switches (X uses dual switches)
+    homeSwitches = new HomeSwitch(X_HOME_PIN, X_HOME_PIN2);
     homeSwitches->begin();
 
     // Start homing sequence
@@ -52,14 +52,14 @@ void HomingState::update() {
             break;
 
         case HOMING_X_AND_Y:
-            // Check if X homing is complete
-            if (homeSwitches->isTriggered()) {
-                // X home switch triggered, stop motor
+            // Check if X homing is complete (both switches must be high with 3ms debounce)
+            if (homeSwitches->readDualDebounced()) {
+                // X home switches triggered, stop motor
                 motorX->forceStop();
                 xHomed = true;
                 currentPhase = HOMING_MOVE_AWAY;
                 phaseStartTime = millis();
-                Serial.println("X motor homed successfully");
+                Serial.println("X motor homed successfully (both switches high)");
             }
 
             // Check for timeout
