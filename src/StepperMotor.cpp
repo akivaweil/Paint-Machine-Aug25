@@ -141,17 +141,16 @@ void StepperMotor::setCurrentPosition(float position) {
 
 bool StepperMotor::isHomeSwitchTriggered() {
     //! ************************************************************************
-    //! STEP 1: FAST HOME SWITCH DETECTION WITH DEBOUNCING
+    //! STEP 1: FAST HOME SWITCH DETECTION (RAW READ)
     //! ************************************************************************
     // Check if home switch exists
     if (_homePin < 0) {
         return false; // No home switch
     }
     
-    // Use debounced read for reliable detection while maintaining responsiveness
-    return _homeSwitchBounce.read() == HIGH; // Active HIGH
-    
-    // Note: Bounce2 library with 1ms debounce provides fast response while preventing false triggers
+    // Use RAW read for maximum speed - no software debouncing
+    // We have hardware debouncing (RC filter) and/or strong pull-ups/downs
+    return digitalRead(_homePin) == HIGH; // Active HIGH
 }
 
 
@@ -365,7 +364,13 @@ void StepperMotor::updateHoming() {
     //! STEP 2: AGGRESSIVE HOME SWITCH DETECTION DURING HOMING
     //! ************************************************************************
     // Use DIRECT digital read to bypass debounce latency when moving fast
-    bool rawSwitchState = (_homePin >= 0) ? (digitalRead(_homePin) == HIGH) : false;
+    // Logic:
+    // 1. We are using external pulldown resistors (active HIGH)
+    // 2. We want the RAW value immediately to stop the motor ASAP
+    bool rawSwitchState = false;
+    if (_homePin >= 0) {
+        rawSwitchState = (digitalRead(_homePin) == HIGH);
+    }
 
     // Check if home switch is triggered during homing with immediate response
     // Only stop if we're in the initial homing phase (not moving away)
