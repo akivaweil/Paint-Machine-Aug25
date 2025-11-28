@@ -55,8 +55,8 @@ void StepperMotor::initialize() {
         _stepper->setDirectionPin(_dirPin);
         
         // Set default acceleration and speed (will be overridden during homing)
-        _stepper->setAcceleration(MAX_ACCEL);
-        _stepper->setSpeedInHz(MAX_SPEED);
+        _stepper->setAcceleration(getMaxAcceleration());
+        _stepper->setSpeedInHz(getMaxSpeed());
         
         Serial.print(_axisName);
         Serial.println(" motor initialized");
@@ -224,6 +224,22 @@ long StepperMotor::getHomingDistance() {
     return distance;
 }
 
+float StepperMotor::getMaxSpeed() {
+    if (strcmp(_axisName, "X") == 0) return X_MAX_SPEED;
+    if (strcmp(_axisName, "Y") == 0) return Y_MAX_SPEED;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_MAX_SPEED;
+    if (strcmp(_axisName, "Storage") == 0) return STORAGE_MOTOR_SPEED;
+    return MAX_SPEED;
+}
+
+float StepperMotor::getMaxAcceleration() {
+    if (strcmp(_axisName, "X") == 0) return X_MAX_ACCEL;
+    if (strcmp(_axisName, "Y") == 0) return Y_MAX_ACCEL;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_MAX_ACCEL;
+    if (strcmp(_axisName, "Storage") == 0) return STORAGE_MOTOR_ACCEL;
+    return MAX_ACCEL;
+}
+
 long StepperMotor::inchesToSteps(float inches) {
     // Use motor-specific steps per inch for X
     float stepsPerInch = STEPS_PER_INCH;
@@ -298,23 +314,16 @@ void StepperMotor::moveToPosition(float position) {
     long targetSteps = inchesToSteps(position);
     
     // Set speed and acceleration based on motor type
-    if (strcmp(_axisName, "Storage") == 0) {
-        // Use storage-specific settings
-        _stepper->setAcceleration(STORAGE_MOTOR_ACCEL);
-        _stepper->setSpeedInHz(STORAGE_MOTOR_SPEED);
-    } else {
-        // Use standard settings for other motors
-        _stepper->setAcceleration(MAX_ACCEL);
-        _stepper->setSpeedInHz(MAX_SPEED);
-    }
+    _stepper->setAcceleration(getMaxAcceleration());
+    _stepper->setSpeedInHz(getMaxSpeed());
     
     // Debug: Print speed/accel settings for X motors
     if (strcmp(_axisName, "X") == 0) {
         Serial.print(_axisName);
         Serial.print(" move settings - Speed: ");
-        Serial.print(MAX_SPEED);
+        Serial.print(getMaxSpeed());
         Serial.print(", Accel: ");
-        Serial.print(MAX_ACCEL);
+        Serial.print(getMaxAcceleration());
         Serial.print(", Dist: ");
         Serial.print(targetSteps - _stepper->getCurrentPosition());
         Serial.println(" steps");
@@ -457,15 +466,8 @@ void StepperMotor::moveAwayFromHome(float distance) {
     long targetSteps = currentSteps + inchesToSteps(moveDistance);
     
     // Set speed and acceleration based on motor type
-    if (strcmp(_axisName, "Storage") == 0) {
-        // Use storage-specific settings
-        _stepper->setAcceleration(STORAGE_MOTOR_ACCEL);
-        _stepper->setSpeedInHz(STORAGE_MOTOR_SPEED);
-    } else {
-        // Use standard settings for other motors
-        _stepper->setAcceleration(MAX_ACCEL);
-        _stepper->setSpeedInHz(MAX_SPEED);
-    }
+    _stepper->setAcceleration(getMaxAcceleration());
+    _stepper->setSpeedInHz(getMaxSpeed());
     
     // Move to target position
     _stepper->moveTo(targetSteps);

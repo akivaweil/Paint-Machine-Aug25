@@ -102,6 +102,10 @@ private:
     float getHomingAcceleration();
     long getHomingDistance();
     
+    // Helper functions for max speed/accel settings
+    float getMaxSpeed();
+    float getMaxAcceleration();
+    
     // Convert inches to steps
     long inchesToSteps(float inches);
     
