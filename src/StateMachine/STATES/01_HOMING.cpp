@@ -2,8 +2,7 @@
 //* ************************ HOMING STATE **********************************
 //* ************************************************************************
 // This state handles simultaneous homing of all motors
-// Phase 0: All motors home simultaneously
-// Phase 1: All motors move away from home simultaneously
+// Each motor moves away immediately after homing (independently)
 
 #include <Arduino.h>
 #include "config/Config.h"
@@ -101,34 +100,25 @@ int runHomingState() {
                 xHomed = true;
                 xMotor->forceStop(); // Immediate stop when switch is triggered
                 xMotor->setCurrentPositionAsZero();
+                // Move X motor away immediately after homing
+                xMotor->moveAwayFromHome();
+                xMovedAway = true;
             }
             
             if (!yHomed && yMotor->isHomeSwitchTriggered()) {
                 yHomed = true;
                 yMotor->forceStop(); // Immediate stop when switch is triggered
                 yMotor->setCurrentPositionAsZero();
+                // Move Y motor away immediately after homing
+                yMotor->moveAwayFromHome();
+                yMovedAway = true;
             }
             
             if (!forkHomed && forkMotor->isHomeSwitchTriggered()) {
                 forkHomed = true;
                 forkMotor->forceStop(); // Immediate stop when switch is triggered
                 forkMotor->setCurrentPositionAsZero();
-            }
-            
-            //! ************************************************************************
-            //! STEP 5: MOVE ALL MOTORS AWAY TOGETHER WHEN ALL ARE HOMED
-            //! ************************************************************************
-            // Move all motors away together when all are homed (except fork - it stays at home)
-            if (xHomed && yHomed && forkHomed && 
-                !xMovedAway && !yMovedAway && !forkMovedAway) {
-                
-                // Move away from home without offsets
-                xMotor->moveAwayFromHome(); // Move standard distance away from home switch
-                yMotor->moveAwayFromHome(); // Move standard distance away from home switch
-                
                 // Fork motor stays at home position - no move away
-                xMovedAway = true;
-                yMovedAway = true;
                 forkMovedAway = true; // Mark as moved away even though it didn't move
             }
             
