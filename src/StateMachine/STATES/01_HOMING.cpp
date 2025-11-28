@@ -96,13 +96,13 @@ int runHomingState() {
             //! ************************************************************************
             // Check each motor individually for homing completion with immediate response
             // Use direct home switch check and force stop immediately when triggered
+            // Each motor moves away immediately after homing, independently
             if (!xHomed && xMotor->isHomeSwitchTriggered()) {
                 xHomed = true;
                 xMotor->forceStop(); // Immediate stop when switch is triggered
                 xMotor->setCurrentPositionAsZero();
                 // Move X motor away immediately after homing
                 xMotor->moveAwayFromHome();
-                xMovedAway = true;
             }
             
             if (!yHomed && yMotor->isHomeSwitchTriggered()) {
@@ -111,15 +111,13 @@ int runHomingState() {
                 yMotor->setCurrentPositionAsZero();
                 // Move Y motor away immediately after homing
                 yMotor->moveAwayFromHome();
-                yMovedAway = true;
             }
             
             if (!forkHomed && forkMotor->isHomeSwitchTriggered()) {
                 forkHomed = true;
                 forkMotor->forceStop(); // Immediate stop when switch is triggered
                 forkMotor->setCurrentPositionAsZero();
-                // Fork motor stays at home position - no move away
-                forkMovedAway = true; // Mark as moved away even though it didn't move
+                // Fork motor stays at home position - no move away needed
             }
             
             // Check if all motors have finished homing and moving away
