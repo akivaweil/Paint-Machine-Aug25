@@ -1,567 +1,124 @@
-#include "StateMachine/FUNCTIONS/StepperMotor.h"
-#include "config/Homing_Config.h"
-#include "config/Config.h"
+#include "../include/StateMachine/FUNCTIONS/StepperMotor.h"
+#include <Arduino.h>
 
-//* ************************************************************************
-//* ************************ STEPPER MOTOR IMPLEMENTATION ******************
-//* ************************************************************************
-
-bool StepperMotor::_isHomingState = false;
-
-StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axisName) {
-    _stepPin = stepPin;
-    _dirPin = dirPin;
-    _homePin = homePin;
-    _axisName = axisName;
-    
-    // Initialize motor properties
-    _currentPosition = 0.0;
-    _isMoving = false;
-    _movingAwayFromHome = false;
-    
-    // Initialize FastAccelStepper pointer
-    _stepper = nullptr;
-    
-    // Initialize Bounce2 objects (only if pins are valid)
-    if (_homePin >= 0) {
-        _homeSwitchBounce.attach(_homePin, INPUT_PULLDOWN);
-        _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
+// Constructor
+StepperMotor::StepperMotor(MotorType type) : motorType(type), stepper(nullptr) {
+    // Set pin assignments and parameters based on motor type
+    switch (motorType) {
+        case MOTOR_X:
+            stepPin = X_STEP_PIN;
+            dirPin = X_DIR_PIN;
+            stepsPerInch = X_STEPS_PER_INCH;
+            maxSpeed = X_MAX_SPEED;
+            maxAccel = X_MAX_ACCEL;
+            break;
+        case MOTOR_Y:
+            stepPin = Y_STEP_PIN;
+            dirPin = Y_DIR_PIN;
+            stepsPerInch = STEPS_PER_INCH;
+            maxSpeed = Y_MAX_SPEED;
+            maxAccel = Y_MAX_ACCEL;
+            break;
+        case MOTOR_FORK:
+            stepPin = FORK_STEP_PIN;
+            dirPin = FORK_DIR_PIN;
+            stepsPerInch = STEPS_PER_INCH;
+            maxSpeed = FORK_MAX_SPEED;
+            maxAccel = FORK_MAX_ACCEL;
+            break;
+        case MOTOR_STORAGE:
+            stepPin = STORAGE_STEP_PIN;
+            dirPin = STORAGE_DIR_PIN;
+            stepsPerInch = STEPS_PER_INCH;
+            maxSpeed = STORAGE_MOTOR_SPEED;
+            maxAccel = STORAGE_MOTOR_ACCEL;
+            break;
     }
 }
 
-void StepperMotor::initialize() {
-    // Bounce2 objects are already initialized in constructor with proper pin modes
-    
-    // Debug: Print initial switch states (only if switches exist)
-    Serial.print(_axisName);
-    if (_homePin >= 0) {
-        Serial.print(" - Home pin state: ");
-        Serial.print(_homeSwitchBounce.read());
-    } else {
-        Serial.print(" - No home switch");
+// Initialize the motor
+void StepperMotor::init() {
+    // Create stepper engine if not exists
+    static FastAccelStepperEngine engine = FastAccelStepperEngine();
+
+    // Initialize engine if not already done
+    static bool engineInitialized = false;
+    if (!engineInitialized) {
+        engine.init();
+        engineInitialized = true;
     }
-    Serial.println();
-    
-    // Initialize FastAccelStepper engine (only once)
-    static FastAccelStepperEngine* engine = nullptr;
-    if (!engine) {
-        engine = new FastAccelStepperEngine();
-        engine->init();
-    }
-    
-    // Create stepper instance using FastAccelStepper
-    _stepper = engine->stepperConnectToPin(_stepPin);
-    if (_stepper) {
-        _stepper->setDirectionPin(_dirPin);
-        
-        // Set default acceleration and speed (will be overridden during homing)
-        _stepper->setAcceleration(getMaxAcceleration());
-        _stepper->setSpeedInHz(getMaxSpeed());
-        
-        Serial.print(_axisName);
-        Serial.println(" motor initialized");
-    } else {
-        Serial.print("ERROR: Failed to initialize ");
-        Serial.println(_axisName);
+
+    // Create stepper instance
+    stepper = engine.stepperConnectToPin(stepPin);
+    if (stepper) {
+        stepper->setDirectionPin(dirPin);
+        stepper->setSpeedInHz(maxSpeed);
+        stepper->setAcceleration(maxAccel);
+        stepper->setCurrentPosition(0);
     }
 }
 
-void StepperMotor::home() {
-    _movingAwayFromHome = false;
-    if (!_stepper) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.println(" stepper not initialized");
-        return;
-    }
-    
-    // Set individual homing speed and acceleration based on motor type
-    float homeSpeed = getHomingSpeed();
-    float homeAccel = getHomingAcceleration();
-    long homeDistance = getHomingDistance();
-    
-    // Move towards home switch at individual homing speed
-    _isMoving = true;
-    
-    // Set individual homing speed and acceleration
-    _stepper->setAcceleration(homeAccel);
-    _stepper->setSpeedInHz(homeSpeed);
-    
-    // Move towards home using individual distance and direction
-    _stepper->moveTo(homeDistance);
-    
-    Serial.print(_axisName);
-    Serial.print(" starting homing sequence (Speed: ");
-    Serial.print(homeSpeed);
-    Serial.print(" steps/s, Accel: ");
-    Serial.print(homeAccel);
-    Serial.println(" steps/s²)");
-}
-
-void StepperMotor::forceStop() {
-    _movingAwayFromHome = false;
-    if (_stepper) {
-        _stepper->forceStop();
-    }
-    _isMoving = false;
-    
-    Serial.print(_axisName);
-    Serial.println(" stopped");
-}
-
-bool StepperMotor::isMoving() {
-    if (_stepper) {
-        return _stepper->isRunning();
-    }
-    return _isMoving;
-}
-
-void StepperMotor::setCurrentPositionAsZero() {
-    if (_stepper) {
-        _stepper->setCurrentPosition(0);
-    }
-    _currentPosition = 0.0;
-    
-    Serial.print(_axisName);
-    Serial.println(" position set to zero");
-}
-
-void StepperMotor::setCurrentPosition(float position) {
-    if (_stepper) {
-        // Convert inches to steps
-        long steps = inchesToSteps(position);
-        _stepper->setCurrentPosition(steps);
-    }
-    _currentPosition = position;
-    
-    Serial.print(_axisName);
-    Serial.print(" position manually set to ");
-    Serial.println(position);
-}
-
-bool StepperMotor::isHomeSwitchTriggered() {
-    //! ************************************************************************
-    //! STEP 1: FAST HOME SWITCH DETECTION (RAW READ)
-    //! ************************************************************************
-    // Check if home switch exists
-    if (_homePin < 0) {
-        return false; // No home switch
-    }
-    
-    // Use RAW read for maximum speed - no software debouncing
-    // We have hardware debouncing (RC filter) and/or strong pull-ups/downs
-    return digitalRead(_homePin) == HIGH; // Active HIGH
-}
-
-
-
-void StepperMotor::update() {
-    if (!_stepper) return;
-    
-    // Update switch debouncing
-    updateSwitches();
-    
-    // Update current position from stepper (normal operation)
-    _currentPosition = stepsToInches(_stepper->getCurrentPosition());
-    
-    //! ************************************************************************
-    //! STEP 2: HOME SWITCH PROTECTION DURING NORMAL OPERATION
-    //! ************************************************************************
-    // Check if home switch is triggered during normal movement (not homing)
-    // This prevents motors from moving past the home switch
-    if (_isMoving && isHomeSwitchTriggered() && !_movingAwayFromHome) {
-        // If home switch is triggered, stop movement immediately
-        // This prevents the motor from moving past the home position
-        _stepper->forceStop();
-        _isMoving = false;
-        _currentPosition = 0.0; // Set to home position
-        _stepper->setCurrentPosition(0);
-        
-        Serial.print(_axisName);
-        Serial.println(" stopped at home switch during normal operation");
-    }
-    
-    // Check if movement is complete
-    if (!_stepper->isRunning()) {
-        _isMoving = false;
-        _movingAwayFromHome = false;
-    }
-}
-
-// Helper functions to get individual motor homing settings
-float StepperMotor::getHomingSpeed() {
-    // Use speeds from Homing_Config.h for each motor
-    if (strcmp(_axisName, "X") == 0) return X_HOME_SPEED;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
-    if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_SPEED;
-    return X_HOME_SPEED; // Default fallback using X settings
-}
-
-float StepperMotor::getHomingAcceleration() {
-    // Use accelerations from Homing_Config.h for each motor
-    if (strcmp(_axisName, "X") == 0) return X_HOME_ACCEL;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
-    if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_ACCEL;
-    return X_HOME_ACCEL; // Default fallback using X settings
-}
-
-long StepperMotor::getHomingDistance() {
-    long distance;
-    if (strcmp(_axisName, "X") == 0) distance = X_HOME_DISTANCE_STEPS;
-    else if (strcmp(_axisName, "Y") == 0) distance = Y_HOME_DISTANCE_STEPS;
-    else if (strcmp(_axisName, "Fork") == 0) distance = FORK_HOME_DISTANCE_STEPS;
-    else if (strcmp(_axisName, "Storage") == 0) distance = STORAGE_HOME_DISTANCE_STEPS;
-    else distance = 10000; // Default fallback
-    
-    // Apply direction based on configuration
-    if (strcmp(_axisName, "X") == 0 && !X_HOME_DIRECTION_POSITIVE) distance = -distance;
-    else if (strcmp(_axisName, "Y") == 0 && !Y_HOME_DIRECTION_POSITIVE) distance = -distance;
-    else if (strcmp(_axisName, "Fork") == 0 && !FORK_HOME_DIRECTION_POSITIVE) distance = -distance;
-    else if (strcmp(_axisName, "Storage") == 0 && !STORAGE_HOME_DIRECTION_POSITIVE) distance = -distance;
-    
-    return distance;
-}
-
-float StepperMotor::getMaxSpeed() {
-    if (strcmp(_axisName, "X") == 0) return X_MAX_SPEED;
-    if (strcmp(_axisName, "Y") == 0) return Y_MAX_SPEED;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_MAX_SPEED;
-    if (strcmp(_axisName, "Storage") == 0) return STORAGE_MOTOR_SPEED;
-    return MAX_SPEED;
-}
-
-float StepperMotor::getMaxAcceleration() {
-    if (strcmp(_axisName, "X") == 0) return X_MAX_ACCEL;
-    if (strcmp(_axisName, "Y") == 0) return Y_MAX_ACCEL;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_MAX_ACCEL;
-    if (strcmp(_axisName, "Storage") == 0) return STORAGE_MOTOR_ACCEL;
-    return MAX_ACCEL;
-}
-
+// Convert inches to steps
 long StepperMotor::inchesToSteps(float inches) {
-    // Use motor-specific steps per inch for X
-    float stepsPerInch = STEPS_PER_INCH;
-    if (strcmp(_axisName, "X") == 0) {
-        stepsPerInch = X_STEPS_PER_INCH;
-    }
     return (long)(inches * stepsPerInch);
 }
 
-float StepperMotor::stepsToInches(long steps) {
-    // Use motor-specific steps per inch for X
-    float stepsPerInch = STEPS_PER_INCH;
-    if (strcmp(_axisName, "X") == 0) {
-        stepsPerInch = X_STEPS_PER_INCH;
-    }
-    return (float)steps / stepsPerInch;
-}
-
-void StepperMotor::moveToPosition(float position) {
-    _movingAwayFromHome = false;
-    if (!_stepper) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.println(" stepper not initialized");
-        return;
-    }
-    
-    //! ************************************************************************
-    //! STEP 2: VALIDATE POSITION BOUNDS (SKIP FOR STORAGE MOTOR)
-    //! ************************************************************************
-    // Check if position is within safe limits (skip for storage motor - no limits)
-    if (strcmp(_axisName, "Storage") != 0) {
-        if (position < MIN_TRAVEL_INCHES) {
-            Serial.print("ERROR: ");
-            Serial.print(_axisName);
-            Serial.print(" position ");
-            Serial.print(position);
-            Serial.print(" inches is below minimum ");
-            Serial.print(MIN_TRAVEL_INCHES);
-            Serial.println(" inches");
-            return;
-        }
-        
-        if (position > MAX_TRAVEL_INCHES) {
-            Serial.print("ERROR: ");
-            Serial.print(_axisName);
-            Serial.print(" position ");
-            Serial.print(position);
-            Serial.print(" inches is above maximum ");
-            Serial.print(MAX_TRAVEL_INCHES);
-            Serial.println(" inches");
-            return;
-        }
-    }
-    
-    //! ************************************************************************
-    //! STEP 3: HOME SWITCH PROTECTION - PREVENT MOVING PAST HOME
-    //! ************************************************************************
-    // Check if home switch is currently triggered and we're trying to move past it
-    if (isHomeSwitchTriggered() && position < _currentPosition) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.print(" cannot move to ");
-        Serial.print(position);
-        Serial.print(" inches - would require moving past home switch (current: ");
-        Serial.print(_currentPosition);
-        Serial.println(" inches)");
-        return;
-    }
-    
-    // Convert position to steps
-    long targetSteps = inchesToSteps(position);
-    
-    // Set speed and acceleration based on motor type
-    _stepper->setAcceleration(getMaxAcceleration());
-    _stepper->setSpeedInHz(getMaxSpeed());
-    
-    // Debug: Print speed/accel settings for X motors
-    if (strcmp(_axisName, "X") == 0) {
-        Serial.print(_axisName);
-        Serial.print(" move settings - Speed: ");
-        Serial.print(getMaxSpeed());
-        Serial.print(", Accel: ");
-        Serial.print(getMaxAcceleration());
-        Serial.print(", Dist: ");
-        Serial.print(targetSteps - _stepper->getCurrentPosition());
-        Serial.println(" steps");
-    }
-    
-    // Move to target position
-    _stepper->moveTo(targetSteps);
-    _isMoving = true;
-    
-    // Debug output
-    Serial.print(_axisName);
-    Serial.print(" moving to position: ");
-    Serial.print(position);
-    Serial.print(" inches (");
-    Serial.print(targetSteps);
-    Serial.println(" steps)");
-}
-
-void StepperMotor::moveRelative(float inches) {
-    float targetPos = _currentPosition + inches;
-    moveToPosition(targetPos);
-}
-
-float StepperMotor::getCurrentPosition() {
-    return _currentPosition;
-}
-
-void StepperMotor::updateSwitches() {
-    //! ************************************************************************
-    //! STEP 1: FREQUENT SWITCH DEBOUNCING UPDATE FOR MAXIMUM RESPONSIVENESS
-    //! ************************************************************************
-    // Update Bounce2 objects to handle debouncing - called frequently for fast response
-    // Only update if switches exist
-    if (_homePin >= 0) {
-        _homeSwitchBounce.update();
-    }    
-    // Note: This method should be called as frequently as possible during homing operations
-}
-
-void StepperMotor::updateHoming() {
-    if (!_stepper) return;
-    
-    //! ************************************************************************
-    //! STEP 1: IMMEDIATE SWITCH DEBOUNCING UPDATE FOR FASTER RESPONSE
-    //! ************************************************************************
-    // Update switch debouncing immediately for faster response
-    updateSwitches();
-    
-    // Update current position from stepper
-    _currentPosition = stepsToInches(_stepper->getCurrentPosition());
-    
-    //! ************************************************************************
-    //! STEP 2: AGGRESSIVE HOME SWITCH DETECTION DURING HOMING
-    //! ************************************************************************
-    // Use DIRECT digital read to bypass debounce latency when moving fast
-    // Logic:
-    // 1. We are using external pulldown resistors (active HIGH)
-    // 2. We want the RAW value immediately to stop the motor ASAP
-    bool rawSwitchState = false;
-    if (_homePin >= 0) {
-        rawSwitchState = (digitalRead(_homePin) == HIGH);
-    }
-
-    // Check if home switch is triggered during homing with immediate response
-    // Only stop if we're in the initial homing phase (not moving away)
-    if (_isMoving && rawSwitchState && !_movingAwayFromHome) {
-        // Check if we're trying to move away from home (current position > 0 means we've already homed)
-        if (_currentPosition <= 0.0) {
-            //! ************************************************************************
-            //! STEP 3: IMMEDIATE FORCE STOP WHEN HOME SWITCH IS TRIGGERED
-            //! ************************************************************************
-            _stepper->forceStop(); // Use forceStop for immediate response
-            _isMoving = false;
-            _currentPosition = 0.0; // Set home position
-            _stepper->setCurrentPosition(0);
-            
-            Serial.print(_axisName);
-            Serial.println(" reached home switch (RAW READ) - FORCE STOPPED");
-            return;
-        } else {
-            // We're moving away from home, don't stop
-            Serial.print(_axisName);
-            Serial.println(" moving away from home - ignoring home switch");
-        }
-    }
-    
-    // Check if movement is complete
-    if (!_stepper->isRunning()) {
-        _isMoving = false;
-        _movingAwayFromHome = false;
+// Movement functions
+void StepperMotor::moveToPositionInches(float inches) {
+    if (stepper) {
+        long steps = inchesToSteps(inches);
+        stepper->moveTo(steps);
     }
 }
 
-bool StepperMotor::isHomingComplete() {
-    return isHomeSwitchTriggered() && !isMoving();
+void StepperMotor::moveRelativeInches(float inches) {
+    if (stepper) {
+        long steps = inchesToSteps(inches);
+        stepper->move(steps);
+    }
 }
 
-void StepperMotor::moveAwayFromHome(float distance) {
-    if (!_stepper) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.println(" stepper not initialized");
-        return;
+void StepperMotor::setSpeed(float speedStepsPerSec) {
+    if (stepper) {
+        stepper->setSpeedInHz(speedStepsPerSec);
     }
-    
-    // Set flag immediately to prevent updateHoming() from stopping the motor
-    // while the home switch is still triggered during move away
-    _movingAwayFromHome = true;
-    
-    // Use provided distance (if > 0) or configured default distance
-    float moveDistance = (distance > 0.001) ? distance : MOVE_AWAY_FROM_HOME_DISTANCE;
-    
-    // Use explicit move away direction configuration (not based on homing direction)
-    if (strcmp(_axisName, "X") == 0) {
-        moveDistance = X_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
-    } else if (strcmp(_axisName, "Y") == 0) {
-        moveDistance = Y_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
-    } else if (strcmp(_axisName, "Fork") == 0) {
-        moveDistance = FORK_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
-    } else if (strcmp(_axisName, "Storage") == 0) {
-        moveDistance = STORAGE_MOVE_AWAY_DIRECTION_POSITIVE ? moveDistance : -moveDistance;
-    }
-    
-    // Debug: Show current position and move direction
-    Serial.print(_axisName);
-    Serial.print(" current position: ");
-    Serial.print(_currentPosition);
-    Serial.print(" inches, moving away: ");
-    Serial.print(moveDistance);
-    Serial.println(" inches");
-    
-    // Check if home switch is still triggered - if so, we need to move away from it
-    if (isHomeSwitchTriggered()) {
-        Serial.print(_axisName);
-        Serial.println(" Home switch still triggered - moving away from switch");
-    }
-    
-    // Convert to steps - this should be a relative movement from current position
-    long currentSteps = _stepper->getCurrentPosition();
-    long targetSteps = currentSteps + inchesToSteps(moveDistance);
-    
-    // Set speed and acceleration based on motor type
-    _stepper->setAcceleration(getMaxAcceleration());
-    _stepper->setSpeedInHz(getMaxSpeed());
-    
-    // Move to target position
-    _stepper->moveTo(targetSteps);
-    _isMoving = true;
-    
-    // Debug output
-    Serial.print(_axisName);
-    Serial.print(" moving away from home: ");
-    Serial.print(moveDistance);
-    Serial.print(" inches (current steps: ");
-    Serial.print(currentSteps);
-    Serial.print(", target steps: ");
-    Serial.print(targetSteps);
-    Serial.println(")");
 }
 
-void StepperMotor::testMoveAwayDirection() {
-    Serial.print(_axisName);
-    Serial.print(" - Homing direction: ");
-    
-    // Show homing direction
-    if (strcmp(_axisName, "X") == 0) {
-        Serial.print(X_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "Y") == 0) {
-        Serial.print(Y_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "Fork") == 0) {
-        Serial.print(FORK_HOME_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "Storage") == 0) {
-        Serial.print("NO HOMING (Storage motor)");
+void StepperMotor::setAcceleration(float accelStepsPerSec2) {
+    if (stepper) {
+        stepper->setAcceleration(accelStepsPerSec2);
     }
-    
-    Serial.print(", Move away direction: ");
-    
-    // Show move away direction
-    if (strcmp(_axisName, "X") == 0) {
-        Serial.print(X_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "Y") == 0) {
-        Serial.print(Y_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "Fork") == 0) {
-        Serial.print(FORK_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    } else if (strcmp(_axisName, "Storage") == 0) {
-        Serial.print(STORAGE_MOVE_AWAY_DIRECTION_POSITIVE ? "POSITIVE" : "NEGATIVE");
-    }
-    
-    Serial.print(", Distance: ");
-    Serial.print(MOVE_AWAY_FROM_HOME_DISTANCE);
-    Serial.println(" inches");
 }
 
-void StepperMotor::startContinuousMovement(float speed) {
-    if (!_stepper) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.println(" stepper not initialized");
-        return;
+void StepperMotor::stop() {
+    if (stepper) {
+        stepper->stopMove();
     }
-    
-    //! ************************************************************************
-    //! STEP 1: START CONTINUOUS MOVEMENT FOR STORAGE MOTOR
-    //! ************************************************************************
-    // Set speed for continuous movement (use storage-specific speed if no speed provided)
-    float continuousSpeed = (speed > 0) ? speed : STORAGE_MOTOR_CONTINUOUS_SPEED;
-    _stepper->setSpeedInHz(continuousSpeed);
-    
-    // Start continuous movement in positive direction
-    _stepper->runForward();
-    _isMoving = true;
-    
-    Serial.print(_axisName);
-    Serial.print(" starting continuous movement at ");
-    Serial.print(speed);
-    Serial.println(" Hz");
 }
 
-void StepperMotor::stopContinuousMovement() {
-    if (!_stepper) {
-        Serial.print("ERROR: ");
-        Serial.print(_axisName);
-        Serial.println(" stepper not initialized");
-        return;
+void StepperMotor::emergencyStop() {
+    if (stepper) {
+        stepper->forceStop();
     }
-    
-    //! ************************************************************************
-    //! STEP 1: STOP CONTINUOUS MOVEMENT
-    //! ************************************************************************
-    // Stop the motor immediately
-    _stepper->forceStop();
-    _isMoving = false;
-    
-    Serial.print(_axisName);
-    Serial.println(" continuous movement stopped");
 }
 
-// Static method to set homing state flag
-void StepperMotor::setHomingState(bool isHoming) {
-    _isHomingState = isHoming;
+// Status functions
+bool StepperMotor::isRunning() {
+    return stepper ? stepper->isRunning() : false;
+}
+
+long StepperMotor::getCurrentPosition() {
+    return stepper ? stepper->getCurrentPosition() : 0;
+}
+
+void StepperMotor::setCurrentPosition(long position) {
+    if (stepper) {
+        stepper->setCurrentPosition(position);
+    }
+}
+
+// Home switch detection placeholder (will be implemented properly with HomeSwitch class)
+bool StepperMotor::isAtHome() {
+    // This will be implemented in the HomeSwitch class
+    return false;
 }

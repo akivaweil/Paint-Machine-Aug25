@@ -6,15 +6,15 @@
 //* ************************************************************************
 
 // X Motor Homing Settings (in steps per second)
-#define X_HOME_SPEED 1000          // Speed for X homing operation (reduced for better switch response)
+#define X_HOME_SPEED 500           // Speed for X homing operation
 #define X_HOME_ACCEL 2500         // Acceleration for X homing (reduced for smoother approach)
 
 // Y Motor Homing Settings (in steps per second)
-#define Y_HOME_SPEED 1000           // Speed for Y homing operation (reduced for better switch response)
+#define Y_HOME_SPEED 500           // Speed for Y homing operation
 #define Y_HOME_ACCEL 3000          // Acceleration for Y homing (reduced for smoother approach)
 
 // Fork Motor Homing Settings (in steps per second)
-#define FORK_HOME_SPEED 1000        // Speed for Fork homing operation (reduced for better switch response)
+#define FORK_HOME_SPEED 500        // Speed for Fork homing operation
 #define FORK_HOME_ACCEL 1500       // Acceleration for Fork homing (reduced for smoother approach)
 
 // Storage Motor Settings (in steps per second) - No homing switches
@@ -42,7 +42,7 @@
 
 // Move away from home switch distance (in inches)
 // This is the base distance to move away
-#define MOVE_AWAY_FROM_HOME_DISTANCE 1.0   // Distance to move away from home switch after homing
+#define MOVE_AWAY_FROM_HOME_DISTANCE 0.5   // Distance to move away from home switch after homing
 
 // Move away direction settings (true = positive direction, false = negative direction)
 // These should be set based on the physical layout of your machine

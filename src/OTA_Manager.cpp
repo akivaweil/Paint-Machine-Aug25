@@ -101,4 +101,4 @@ String getOTAIpAddress() {
 
 bool isWiFiConnected() {
     return wifiConnected;
-} 
+}

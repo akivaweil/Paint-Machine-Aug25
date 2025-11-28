@@ -1,51 +1,56 @@
 #ifndef HOME_SWITCH_H
 #define HOME_SWITCH_H
 
-//* ************************************************************************
-//* ************************ HOME SWITCH CONTROL ***************************
-//* ************************************************************************
-
-#include <Arduino.h>
 #include <Bounce2.h>
-#include "config/Config.h"
-#include "config/Pin_Definitions.h"
+#include "../../../src/config/Pin_Definitions.h"
+#include "../../../src/config/Homing_Config.h"
 
-class HomeSwitch {
-public:
-    // Constructor
-    HomeSwitch(int pin, const char* switchName);
-    
-    // Initialize the switch
-    void initialize();
-    
-    // Update switch state (call in main loop)
-    void update();
-    
-    // Check if switch is triggered
-    bool isTriggered();
-    
-    // Check if switch was just triggered (rising edge)
-    bool wasJustTriggered();
-    
-    // Check if switch was just released (falling edge)
-    bool wasJustReleased();
-    
-    // Get switch name
-    const char* getSwitchName();
-    
-    // Get raw switch state
-    bool getRawState();
-
-private:
-    // Switch properties
-    int _pin;
-    const char* _switchName;
-    Bounce _bounce;
-    
-    // Switch state
-    bool _isTriggered;
-    bool _wasJustTriggered;
-    bool _wasJustReleased;
+// Switch types
+enum SwitchType {
+    SWITCH_X,
+    SWITCH_Y,
+    SWITCH_FORK
 };
 
-#endif // HOME_SWITCH_H 
+class HomeSwitch {
+private:
+    Bounce* bounceX1;      // X home switch 1
+    Bounce* bounceX2;      // X home switch 2 (if exists)
+    Bounce* bounceY;       // Y home switch
+    Bounce* bounceFork;    // Fork home switch
+
+    bool hasX2Switch;      // Flag to indicate if X has two switches
+
+public:
+    // Constructor
+    HomeSwitch();
+
+    // Initialize switches
+    void init();
+
+    // Update switch states (call this in main loop)
+    void update();
+
+    // Check if switches are triggered
+    bool isXHome();
+    bool isYHome();
+    bool isForkHome();
+
+    // Check individual X switches (for two-switch X axis)
+    bool isX1Home();
+    bool isX2Home();
+
+    // Check if all required switches are home
+    bool areAllHome();  // X, Y, and Fork all home
+
+    // Get raw pin readings
+    bool getX1Raw();
+    bool getX2Raw();
+    bool getYRaw();
+    bool getForkRaw();
+
+    // Debug function
+    void printDebugInfo();
+};
+
+#endif // HOME_SWITCH_H

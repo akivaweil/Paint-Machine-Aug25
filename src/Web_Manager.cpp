@@ -574,4 +574,3 @@ float getWebPlaceX() { return webPlaceX; }
 float getWebPlaceY() { return webPlaceY; }
 float getWebPickForkDistance() { return webPickForkDistance; }
 float getWebPlaceForkDistance() { return webPlaceForkDistance; }
-

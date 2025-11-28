@@ -19,6 +19,7 @@
 
 // Home switches (Active HIGH with pulldown)
 #define X_HOME_PIN 7
+#define X_HOME_PIN2 8     // Second X home switch
 #define Y_HOME_PIN 4
 #define FORK_HOME_PIN 5
 
