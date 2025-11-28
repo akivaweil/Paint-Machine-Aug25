@@ -17,6 +17,7 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axi
     // Initialize motor properties
     _currentPosition = 0.0;
     _isMoving = false;
+    _movingAwayFromHome = false;
     
     // Initialize FastAccelStepper pointer
     _stepper = nullptr;
@@ -66,6 +67,7 @@ void StepperMotor::initialize() {
 }
 
 void StepperMotor::home() {
+    _movingAwayFromHome = false;
     if (!_stepper) {
         Serial.print("ERROR: ");
         Serial.print(_axisName);
@@ -97,6 +99,7 @@ void StepperMotor::home() {
 }
 
 void StepperMotor::forceStop() {
+    _movingAwayFromHome = false;
     if (_stepper) {
         _stepper->forceStop();
     }
@@ -167,7 +170,7 @@ void StepperMotor::update() {
     //! ************************************************************************
     // Check if home switch is triggered during normal movement (not homing)
     // This prevents motors from moving past the home switch
-    if (_isMoving && isHomeSwitchTriggered()) {
+    if (_isMoving && isHomeSwitchTriggered() && !_movingAwayFromHome) {
         // If home switch is triggered, stop movement immediately
         // This prevents the motor from moving past the home position
         _stepper->forceStop();
@@ -182,6 +185,7 @@ void StepperMotor::update() {
     // Check if movement is complete
     if (!_stepper->isRunning()) {
         _isMoving = false;
+        _movingAwayFromHome = false;
     }
 }
 
@@ -238,6 +242,7 @@ float StepperMotor::stepsToInches(long steps) {
 }
 
 void StepperMotor::moveToPosition(float position) {
+    _movingAwayFromHome = false;
     if (!_stepper) {
         Serial.print("ERROR: ");
         Serial.print(_axisName);
@@ -365,7 +370,7 @@ void StepperMotor::updateHoming() {
     //! ************************************************************************
     // Check if home switch is triggered during homing with immediate response
     // Only stop if we're in the initial homing phase (not moving away)
-    if (_isMoving && isHomeSwitchTriggered()) {
+    if (_isMoving && isHomeSwitchTriggered() && !_movingAwayFromHome) {
         // Check if we're trying to move away from home (current position > 0 means we've already homed)
         if (_currentPosition <= 0.0) {
             //! ************************************************************************
@@ -389,6 +394,7 @@ void StepperMotor::updateHoming() {
     // Check if movement is complete
     if (!_stepper->isRunning()) {
         _isMoving = false;
+        _movingAwayFromHome = false;
     }
 }
 
@@ -450,6 +456,7 @@ void StepperMotor::moveAwayFromHome(float distance) {
     // Move to target position
     _stepper->moveTo(targetSteps);
     _isMoving = true;
+    _movingAwayFromHome = true;
     
     // Debug output
     Serial.print(_axisName);

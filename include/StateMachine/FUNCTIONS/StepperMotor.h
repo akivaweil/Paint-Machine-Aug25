@@ -87,6 +87,7 @@ private:
     const char* _axisName;
     float _currentPosition;
     bool _isMoving;
+    bool _movingAwayFromHome; // Flag to indicate we are moving away from home
     
     // FastAccelStepper stepper
     FastAccelStepper* _stepper;
