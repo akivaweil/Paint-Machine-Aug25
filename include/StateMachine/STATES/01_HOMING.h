@@ -35,6 +35,10 @@ private:
     bool forkHomed;
     bool xHomed;
     bool yHomed;
+    
+    // Move away tracking
+    long moveAwayStartPosition;
+    long moveAwayTargetSteps;
 
     // Helper functions
     void startHomingSequence();

@@ -15,7 +15,9 @@ HomingState::HomingState() :
     phaseTimeout(false),
     forkHomed(false),
     xHomed(false),
-    yHomed(false) {
+    yHomed(false),
+    moveAwayStartPosition(0),
+    moveAwayTargetSteps(0) {
 }
 
 HomingState::~HomingState() {
@@ -60,6 +62,16 @@ void HomingState::update() {
                 // X home switches triggered, stop motor
                 motorX->stopContinuous();
                 xHomed = true;
+                
+                // Calculate target position for move away (0.5 inches in positive direction)
+                moveAwayStartPosition = motorX->getCurrentPosition();
+                moveAwayTargetSteps = motorX->inchesToSteps(MOVE_AWAY_FROM_HOME_DISTANCE);
+                
+                // Set direction to positive (away from home)
+                motorX->setDirection(X_MOVE_AWAY_DIRECTION_POSITIVE);
+                motorX->setSpeed(X_HOME_SPEED);
+                motorX->startContinuous();
+                
                 currentPhase = HOMING_MOVE_AWAY;
                 phaseStartTime = millis();
                 Serial.println("X motor homed successfully (both switches high)");
@@ -73,17 +85,29 @@ void HomingState::update() {
             }
             break;
 
-        case HOMING_MOVE_AWAY:
-            // Move X motor away 0.5 inches
-            if (!motorX->isMotorRunning()) {
-                Serial.println("Moving X motor away 0.5 inches...");
-                motorX->setDirection(X_MOVE_AWAY_DIRECTION_POSITIVE);
-                motorX->setSpeed(X_HOME_SPEED);
-                motorX->moveInches(MOVE_AWAY_FROM_HOME_DISTANCE);
+        case HOMING_MOVE_AWAY: {
+            // Keep motor moving continuously until target position reached
+            motorX->runContinuous();
+            
+            // Check if we've moved the target distance
+            long currentPosition = motorX->getCurrentPosition();
+            long distanceMoved = currentPosition - moveAwayStartPosition;
+            
+            if (distanceMoved >= moveAwayTargetSteps) {
+                // Target reached, stop motor
+                motorX->stopContinuous();
                 currentPhase = HOMING_COMPLETE;
                 Serial.println("X motor moved away successfully");
             }
+            
+            // Check for timeout
+            if (checkPhaseTimeout()) {
+                Serial.println("Move away timeout!");
+                motorX->stopContinuous();
+                currentPhase = HOMING_ERROR;
+            }
             break;
+        }
 
         case HOMING_COMPLETE:
         case HOMING_ERROR:
