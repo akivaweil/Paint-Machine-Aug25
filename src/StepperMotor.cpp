@@ -191,19 +191,15 @@ void StepperMotor::update() {
 
 // Helper functions to get individual motor homing settings
 float StepperMotor::getHomingSpeed() {
-    if (strcmp(_axisName, "X") == 0) return X_HOME_SPEED;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
+    // Use MAX_SPEED from Config.h for all motors during homing
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_SPEED;
-    return X_HOME_SPEED; // Default fallback using X settings
+    return MAX_SPEED;
 }
 
 float StepperMotor::getHomingAcceleration() {
-    if (strcmp(_axisName, "X") == 0) return X_HOME_ACCEL;
-    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
-    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
+    // Use MAX_ACCEL from Config.h for all motors during homing
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_ACCEL;
-    return X_HOME_ACCEL; // Default fallback using X settings
+    return MAX_ACCEL;
 }
 
 long StepperMotor::getHomingDistance() {
@@ -368,9 +364,12 @@ void StepperMotor::updateHoming() {
     //! ************************************************************************
     //! STEP 2: AGGRESSIVE HOME SWITCH DETECTION DURING HOMING
     //! ************************************************************************
+    // Use DIRECT digital read to bypass debounce latency when moving fast
+    bool rawSwitchState = (_homePin >= 0) ? (digitalRead(_homePin) == HIGH) : false;
+
     // Check if home switch is triggered during homing with immediate response
     // Only stop if we're in the initial homing phase (not moving away)
-    if (_isMoving && isHomeSwitchTriggered() && !_movingAwayFromHome) {
+    if (_isMoving && rawSwitchState && !_movingAwayFromHome) {
         // Check if we're trying to move away from home (current position > 0 means we've already homed)
         if (_currentPosition <= 0.0) {
             //! ************************************************************************
@@ -382,7 +381,7 @@ void StepperMotor::updateHoming() {
             _stepper->setCurrentPosition(0);
             
             Serial.print(_axisName);
-            Serial.println(" reached home switch - FORCE STOPPED");
+            Serial.println(" reached home switch (RAW READ) - FORCE STOPPED");
             return;
         } else {
             // We're moving away from home, don't stop
