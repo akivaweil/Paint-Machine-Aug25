@@ -410,6 +410,10 @@ void StepperMotor::moveAwayFromHome(float distance) {
         return;
     }
     
+    // Set flag immediately to prevent updateHoming() from stopping the motor
+    // while the home switch is still triggered during move away
+    _movingAwayFromHome = true;
+    
     // Use provided distance (if > 0) or configured default distance
     float moveDistance = (distance > 0.001) ? distance : MOVE_AWAY_FROM_HOME_DISTANCE;
     
@@ -456,7 +460,6 @@ void StepperMotor::moveAwayFromHome(float distance) {
     // Move to target position
     _stepper->moveTo(targetSteps);
     _isMoving = true;
-    _movingAwayFromHome = true;
     
     // Debug output
     Serial.print(_axisName);
