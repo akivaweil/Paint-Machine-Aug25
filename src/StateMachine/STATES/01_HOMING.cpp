@@ -1,8 +1,8 @@
 //* ************************************************************************
 //* ************************ HOMING STATE **********************************
 //* ************************************************************************
-// This state handles simultaneous homing of all motors
-// Logic: Move all to home -> Wait for all to home -> Move all away offset
+// This state handles sequential homing: Fork first, then X and Y simultaneously
+// Logic: Home fork -> Move fork away -> Home X and Y -> Move X and Y away -> Zero all
 
 #include <Arduino.h>
 #include "config/Config.h"
@@ -52,28 +52,73 @@ int runHomingState() {
     }
 
     switch (homingStateStep) {
-        case 0: // Start Homing
+        case 0: // Start Fork Homing
             //! ************************************************************************
-            //! STEP 2: START ALL MOTORS HOMING
+            //! STEP 2: START FORK HOMING (FIRST)
             //! ************************************************************************
             Serial.println("Starting Homing Sequence...");
+            Serial.println("Step 1: Homing Fork Motor...");
             resetHomingState(); // Ensure clean flags
             
-            xMotor->home();
-            yMotor->home();
             forkMotor->home();
             
             homingStateStep = 1;
             break;
 
-        case 1: // Wait for all to reach home switch
+        case 1: // Wait for fork to reach home switch
             //! ************************************************************************
-            //! STEP 3: UPDATE HOMING AND WAIT FOR ALL SWITCHES
+            //! STEP 3: WAIT FOR FORK TO HOME
             //! ************************************************************************
-            // Update motors to handle switch detection and stopping
+            forkMotor->updateHoming();
+
+            // Check if Fork is homed (stopped and switch triggered)
+            if (!forkHomed && !forkMotor->isMoving() && forkMotor->isHomeSwitchTriggered()) {
+                forkHomed = true;
+                Serial.println("Fork Motor Homed");
+                delay(500); // Short pause for stability
+                homingStateStep = 2;
+            }
+            break;
+
+        case 2: // Move Fork Away
+            //! ************************************************************************
+            //! STEP 4: MOVE FORK AWAY FROM SWITCH
+            //! ************************************************************************
+            forkMotor->moveAwayFromHome();
+            homingStateStep = 3;
+            break;
+
+        case 3: // Wait for fork move away completion
+            //! ************************************************************************
+            //! STEP 5: WAIT FOR FORK MOVE AWAY COMPLETION
+            //! ************************************************************************
+            forkMotor->update();
+
+            if (!forkMotor->isMoving()) {
+                Serial.println("Fork Motor moved to home offset position");
+                delay(500); // Short pause for stability
+                forkMotor->setCurrentPositionAsZero();
+                Serial.println("Step 2: Homing X and Y Motors...");
+                homingStateStep = 4;
+            }
+            break;
+
+        case 4: // Start X and Y Homing
+            //! ************************************************************************
+            //! STEP 6: START X AND Y HOMING (SIMULTANEOUSLY)
+            //! ************************************************************************
+            xMotor->home();
+            yMotor->home();
+            
+            homingStateStep = 5;
+            break;
+
+        case 5: // Wait for X and Y to reach home switch
+            //! ************************************************************************
+            //! STEP 7: WAIT FOR X AND Y TO HOME
+            //! ************************************************************************
             xMotor->updateHoming();
             yMotor->updateHoming();
-            forkMotor->updateHoming();
 
             // Check if X is homed (stopped and switch triggered)
             if (!xHomed && !xMotor->isMoving() && xMotor->isHomeSwitchTriggered()) {
@@ -87,48 +132,37 @@ int runHomingState() {
                 Serial.println("Y Motor Homed");
             }
 
-            // Check if Fork is homed
-            if (!forkHomed && !forkMotor->isMoving() && forkMotor->isHomeSwitchTriggered()) {
-                forkHomed = true;
-                Serial.println("Fork Motor Homed");
-            }
-
-            // Wait until ALL are homed
-            if (xHomed && yHomed && forkHomed) {
-                Serial.println("All Motors Homed. Moving away...");
+            // Wait until BOTH X and Y are homed
+            if (xHomed && yHomed) {
+                Serial.println("X and Y Motors Homed. Moving away...");
                 delay(500); // Short pause for stability
-                homingStateStep = 2;
+                homingStateStep = 6;
             }
             break;
 
-        case 2: // Move Away
+        case 6: // Move X and Y Away
             //! ************************************************************************
-            //! STEP 4: MOVE ALL MOTORS AWAY FROM SWITCH
+            //! STEP 8: MOVE X AND Y AWAY FROM SWITCH
             //! ************************************************************************
-            // Move all motors away by configured offset
             xMotor->moveAwayFromHome();
             yMotor->moveAwayFromHome();
-            forkMotor->moveAwayFromHome();
             
-            homingStateStep = 3;
+            homingStateStep = 7;
             break;
 
-        case 3: // Wait for move away completion
+        case 7: // Wait for X and Y move away completion
             //! ************************************************************************
-            //! STEP 5: WAIT FOR MOVE COMPLETION AND ZERO
+            //! STEP 9: WAIT FOR MOVE COMPLETION AND ZERO
             //! ************************************************************************
-            // Use update() which is safe during moveAway (checks _movingAwayFromHome flag)
             xMotor->update();
             yMotor->update();
-            forkMotor->update();
 
-            if (!xMotor->isMoving() && !yMotor->isMoving() && !forkMotor->isMoving()) {
+            if (!xMotor->isMoving() && !yMotor->isMoving()) {
                 Serial.println("Homing Complete. Zeroing coordinates.");
                 
-                // Zero all positions
+                // Zero X and Y positions (fork already zeroed)
                 xMotor->setCurrentPositionAsZero();
                 yMotor->setCurrentPositionAsZero();
-                forkMotor->setCurrentPositionAsZero();
 
                 resetHomingState(); // Reset for next time
                 return 0; // Transition to IDLE
