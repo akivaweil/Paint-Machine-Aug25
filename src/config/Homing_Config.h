@@ -6,11 +6,11 @@
 //* ************************************************************************
 
 // X Motor Homing Settings (in steps per second)
-#define X_HOME_SPEED 600          // Speed for X homing operation (reduced for better switch response)
+#define X_HOME_SPEED 400          // Speed for X homing operation (reduced for better switch response)
 #define X_HOME_ACCEL 2500         // Acceleration for X homing (reduced for smoother approach)
 
 // Y Motor Homing Settings (in steps per second)
-#define Y_HOME_SPEED 600           // Speed for Y homing operation (reduced for better switch response)
+#define Y_HOME_SPEED 400           // Speed for Y homing operation (reduced for better switch response)
 #define Y_HOME_ACCEL 3000          // Acceleration for Y homing (reduced for smoother approach)
 
 // Fork Motor Homing Settings (in steps per second)

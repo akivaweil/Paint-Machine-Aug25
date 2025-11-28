@@ -24,7 +24,7 @@ StepperMotor::StepperMotor(int stepPin, int dirPin, int homePin, const char* axi
     
     // Initialize Bounce2 objects (only if pins are valid)
     if (_homePin >= 0) {
-        _homeSwitchBounce.attach(_homePin, INPUT);
+        _homeSwitchBounce.attach(_homePin, INPUT_PULLDOWN);
         _homeSwitchBounce.interval(HOME_SWITCH_DEBOUNCE_MS);
     }
 }
