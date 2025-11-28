@@ -52,10 +52,13 @@ void HomingState::update() {
             break;
 
         case HOMING_X_AND_Y:
+            // Keep motor moving continuously
+            motorX->runContinuous();
+
             // Check if X homing is complete (both switches must be high with 3ms debounce)
             if (homeSwitches->readDualDebounced()) {
                 // X home switches triggered, stop motor
-                motorX->forceStop();
+                motorX->stopContinuous();
                 xHomed = true;
                 currentPhase = HOMING_MOVE_AWAY;
                 phaseStartTime = millis();
@@ -65,6 +68,7 @@ void HomingState::update() {
             // Check for timeout
             if (checkPhaseTimeout()) {
                 Serial.println("X homing timeout!");
+                motorX->stopContinuous();
                 currentPhase = HOMING_ERROR;
             }
             break;
@@ -142,7 +146,8 @@ void HomingState::homeXAndY() {
     // Set homing speed
     motorX->setSpeed(X_HOME_SPEED);
 
-    // Start moving towards home switch
+    // Start continuous movement towards home switch
+    motorX->startContinuous();
     currentPhase = HOMING_X_AND_Y;
     phaseStartTime = millis();
 

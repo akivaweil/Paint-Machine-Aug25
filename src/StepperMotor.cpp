@@ -15,6 +15,7 @@ StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     currentPosition = 0;
     isRunning = false;
     direction = true;  // default to positive
+    continuousMode = false;
     lastStepTime = 0;
     stepInterval = 1000000 / maxSpeed;  // microseconds per step
 }
@@ -77,6 +78,7 @@ void StepperMotor::resetPosition() {
 }
 
 void StepperMotor::forceStop() {
+    continuousMode = false;
     isRunning = false;
     // Immediately stop any ongoing movement by setting pins low
     digitalWrite(stepPin, LOW);
@@ -92,4 +94,21 @@ long StepperMotor::inchesToSteps(float inches) {
 
 float StepperMotor::stepsToInches(long steps) {
     return (float)steps / stepsPerInch;
+}
+
+void StepperMotor::startContinuous() {
+    continuousMode = true;
+    isRunning = true;
+}
+
+void StepperMotor::stopContinuous() {
+    continuousMode = false;
+    isRunning = false;
+    digitalWrite(stepPin, LOW);  // Ensure step pin is low
+}
+
+void StepperMotor::runContinuous() {
+    if (continuousMode) {
+        step();
+    }
 }

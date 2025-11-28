@@ -19,6 +19,7 @@ private:
     bool direction;  // true = positive, false = negative
     long currentPosition;  // in steps
     bool isRunning;
+    bool continuousMode;  // true when continuously moving
 
     // Timing for step generation
     unsigned long lastStepTime;
@@ -34,6 +35,11 @@ public:
     void step();
     void moveSteps(long steps);
     void moveInches(float inches);
+
+    // Continuous movement control
+    void startContinuous();
+    void stopContinuous();
+    void runContinuous();  // Call this repeatedly to keep moving
 
     // Position tracking
     long getCurrentPosition();
