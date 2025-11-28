@@ -22,8 +22,8 @@
 #define X_STEPS_PER_INCH 508      // Steps per inch for X motor
 
 // Speed and acceleration settings (in steps per second)
-#define MAX_SPEED 5000              // Maximum speed in steps per second
-#define MAX_ACCEL 3000             // Maximum acceleration in steps per second squared
+#define MAX_SPEED 10000              // Maximum speed in steps per second
+#define MAX_ACCEL 10000             // Maximum acceleration in steps per second squared
 
 // Storage motor speed and acceleration settings (in steps per second)
 #define STORAGE_MOTOR_SPEED 50              // Storage motor speed for normal operation

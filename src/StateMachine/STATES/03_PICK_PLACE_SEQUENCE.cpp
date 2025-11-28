@@ -10,11 +10,13 @@
 // 6. Extend Fork (place fork distance from web config)
 // 7. Move Y Down (Place)
 // 8. Retract Fork
-// 9. Sequence Complete - Return to IDLE
+// 9. Return to Home Offset Position
+// 10. Sequence Complete - Return to IDLE
 
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
+#include "config/Homing_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "Web_Manager.h"
 
@@ -184,7 +186,27 @@ int runPickPlaceState() {
             stepStartTime = 0;
             break;
 
-        case 9: // Sequence Complete
+        case 9: // Return to Home Offset Position
+            //! ************************************************************************
+            //! STEP 9: RETURN TO HOME OFFSET POSITION
+            //! ************************************************************************
+            Serial.print("Step 9: Returning to Home Offset Position (");
+            Serial.print(MOVE_AWAY_FROM_HOME_DISTANCE);
+            Serial.print(", ");
+            Serial.print(MOVE_AWAY_FROM_HOME_DISTANCE);
+            Serial.print(", ");
+            Serial.print(MOVE_AWAY_FROM_HOME_DISTANCE);
+            Serial.println(")");
+            
+            xMotor->moveToPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+            yMotor->moveToPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+            forkMotor->moveToPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+            
+            pickPlaceStep++;
+            stepStartTime = 0;
+            break;
+
+        case 10: // Sequence Complete
             //! ************************************************************************
             //! SEQUENCE COMPLETE
             //! ************************************************************************
