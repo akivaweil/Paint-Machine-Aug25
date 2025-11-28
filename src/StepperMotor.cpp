@@ -190,15 +190,21 @@ void StepperMotor::update() {
 
 // Helper functions to get individual motor homing settings
 float StepperMotor::getHomingSpeed() {
-    // Use 400 steps/s for all motors during homing
+    // Use speeds from Homing_Config.h for each motor
+    if (strcmp(_axisName, "X") == 0) return X_HOME_SPEED;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_SPEED;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_SPEED;
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_SPEED;
-    return 400;
+    return X_HOME_SPEED; // Default fallback using X settings
 }
 
 float StepperMotor::getHomingAcceleration() {
-    // Use MAX_ACCEL from Config.h for all motors during homing
+    // Use accelerations from Homing_Config.h for each motor
+    if (strcmp(_axisName, "X") == 0) return X_HOME_ACCEL;
+    if (strcmp(_axisName, "Y") == 0) return Y_HOME_ACCEL;
+    if (strcmp(_axisName, "Fork") == 0) return FORK_HOME_ACCEL;
     if (strcmp(_axisName, "Storage") == 0) return STORAGE_HOME_ACCEL;
-    return MAX_ACCEL;
+    return X_HOME_ACCEL; // Default fallback using X settings
 }
 
 long StepperMotor::getHomingDistance() {
