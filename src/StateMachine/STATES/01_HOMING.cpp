@@ -2,15 +2,15 @@
 //* ************************ HOMING STATE **********************************
 //* ************************************************************************
 // This state handles simultaneous homing of all motors
-// Each motor moves away immediately after homing (independently)
+// Logic: Move all to home -> Wait for all to home -> Move all away offset
 
 #include <Arduino.h>
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
-#include "config/Homing_Config.h" // Ensure this is included!
+#include "config/Homing_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
-// External motor objects (declared in main.cpp)
+// External motor objects
 extern StepperMotor* xMotor;
 extern StepperMotor* yMotor;
 extern StepperMotor* forkMotor;
@@ -19,142 +19,122 @@ extern StepperMotor* forkMotor;
 void updateOTA();
 
 // State variables
-bool homingStateInitialized = false;
-int homingPhase = 0; // 0 = homing, 1 = moving away from home
+static int homingStateStep = 0;
+static bool xHomed = false;
+static bool yHomed = false;
+static bool forkHomed = false;
 
-// Individual motor tracking
-bool xHomed = false;
-bool yHomed = false;
-bool forkHomed = false;
-bool xMovedAway = false;
-bool yMovedAway = false;
-bool forkMovedAway = false;
-
-// Function to initialize homing state
-void initializeHomingState() {
-    if (!homingStateInitialized) {
-        // Reset tracking variables for all motors
-        xHomed = false;
-        yHomed = false;
-        forkHomed = false;
-        xMovedAway = false;
-        yMovedAway = false;
-        forkMovedAway = false;
-        
-        // Start all motors homing simultaneously
-        xMotor->home();
-        yMotor->home();
-        forkMotor->home();
-        
-        homingPhase = 0;
-        homingStateInitialized = true;
-    }
+// Function to reset homing state
+void resetHomingState() {
+    homingStateStep = 0;
+    xHomed = false;
+    yHomed = false;
+    forkHomed = false;
 }
 
 // Function to run homing state
 int runHomingState() {
-    // Ensure OTA updates are handled even during homing
+    // Ensure OTA updates are handled
     updateOTA();
 
-    // Initialize state if needed
-    initializeHomingState();
-    
+    //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+    //║ ⚔️ HOMING LOGIC                                                      ║
+    //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+
     //! ************************************************************************
-    //! STEP 1: CHECK FOR SERIAL COMMANDS (ALLOW SKIP TO TEST)
+    //! STEP 1: CHECK FOR SERIAL COMMANDS
     //! ************************************************************************
     if (Serial.available()) {
         String command = Serial.readString();
         command.trim();
         command.toLowerCase();
-        
-        if (command == "m") {
-            return 2; // Transition to TEST_POSITION state
-        }
+        if (command == "m") return 2; // Transition to TEST_POSITION state
     }
-    
-    //! ************************************************************************
-    //! STEP 2: FREQUENT SWITCH UPDATES FOR MAXIMUM RESPONSIVENESS
-    //! ************************************************************************
-    // Update all motor states during homing (includes switch debouncing)
-    xMotor->updateHoming();
-    yMotor->updateHoming();
-    forkMotor->updateHoming();
-    
-    //! ************************************************************************
-    //! STEP 3: ADDITIONAL SWITCH UPDATES FOR EXTRA RESPONSIVENESS
-    //! ************************************************************************
-    // Force additional switch updates for maximum responsiveness
-    xMotor->updateSwitches();
-    yMotor->updateSwitches();
-    forkMotor->updateSwitches();
-    
-    // Handle independent motor homing and moving away
-    switch (homingPhase) {
-        case 0: // All motors homing simultaneously
+
+    switch (homingStateStep) {
+        case 0: // Start Homing
             //! ************************************************************************
-            //! STEP 4: IMMEDIATE HOME SWITCH CHECKING FOR FASTER RESPONSE
+            //! STEP 2: START ALL MOTORS HOMING
             //! ************************************************************************
-            // Check each motor individually for homing completion with immediate response
-            // Use direct home switch check and force stop immediately when triggered
-            // Each motor moves away immediately after homing, independently
-            if (!xHomed && xMotor->isHomeSwitchTriggered()) {
+            Serial.println("Starting Homing Sequence...");
+            resetHomingState(); // Ensure clean flags
+            
+            xMotor->home();
+            yMotor->home();
+            forkMotor->home();
+            
+            homingStateStep = 1;
+            break;
+
+        case 1: // Wait for all to reach home switch
+            //! ************************************************************************
+            //! STEP 3: UPDATE HOMING AND WAIT FOR ALL SWITCHES
+            //! ************************************************************************
+            // Update motors to handle switch detection and stopping
+            xMotor->updateHoming();
+            yMotor->updateHoming();
+            forkMotor->updateHoming();
+
+            // Check if X is homed (stopped and switch triggered)
+            if (!xHomed && !xMotor->isMoving() && xMotor->isHomeSwitchTriggered()) {
                 xHomed = true;
-                xMotor->forceStop(); // Immediate stop when switch is triggered
-                xMotor->setCurrentPositionAsZero();
-                // Move X motor away immediately after homing
-                xMotor->moveAwayFromHome();
+                Serial.println("X Motor Homed");
             }
-            
-            if (!yHomed && yMotor->isHomeSwitchTriggered()) {
+
+            // Check if Y is homed
+            if (!yHomed && !yMotor->isMoving() && yMotor->isHomeSwitchTriggered()) {
                 yHomed = true;
-                yMotor->forceStop(); // Immediate stop when switch is triggered
-                yMotor->setCurrentPositionAsZero();
-                // Move Y motor away immediately after homing
-                yMotor->moveAwayFromHome();
+                Serial.println("Y Motor Homed");
             }
-            
-            if (!forkHomed && forkMotor->isHomeSwitchTriggered()) {
+
+            // Check if Fork is homed
+            if (!forkHomed && !forkMotor->isMoving() && forkMotor->isHomeSwitchTriggered()) {
                 forkHomed = true;
-                forkMotor->forceStop(); // Immediate stop when switch is triggered
-                forkMotor->setCurrentPositionAsZero();
-                // Fork motor stays at home position - no move away needed
+                Serial.println("Fork Motor Homed");
             }
-            
-            // Check if all motors have finished homing and moving away
+
+            // Wait until ALL are homed
             if (xHomed && yHomed && forkHomed) {
-                // Check if all motors have finished moving away (fork stays at home)
-                if (!xMotor->isMoving() && !yMotor->isMoving()) {
-                    
-                    //! ************************************************************************
-                    //! STEP 6: RESET COORDINATES TO ZERO
-                    //! ************************************************************************
-                    // Reset all motor positions to 0.0 after moving away.
-                    // This establishes the new 0,0,0 origin.
-                    Serial.println("Homing Phase 1 Complete - Resetting all coordinates to zero");
-                    xMotor->setCurrentPositionAsZero();
-                    yMotor->setCurrentPositionAsZero();
-                    forkMotor->setCurrentPositionAsZero();
-                    
-                    return 0; // Transition to IDLE state
-                }
+                Serial.println("All Motors Homed. Moving away...");
+                delay(500); // Short pause for stability
+                homingStateStep = 2;
+            }
+            break;
+
+        case 2: // Move Away
+            //! ************************************************************************
+            //! STEP 4: MOVE ALL MOTORS AWAY FROM SWITCH
+            //! ************************************************************************
+            // Move all motors away by configured offset
+            xMotor->moveAwayFromHome();
+            yMotor->moveAwayFromHome();
+            forkMotor->moveAwayFromHome();
+            
+            homingStateStep = 3;
+            break;
+
+        case 3: // Wait for move away completion
+            //! ************************************************************************
+            //! STEP 5: WAIT FOR MOVE COMPLETION AND ZERO
+            //! ************************************************************************
+            // Use update() which is safe during moveAway (checks _movingAwayFromHome flag)
+            xMotor->update();
+            yMotor->update();
+            forkMotor->update();
+
+            if (!xMotor->isMoving() && !yMotor->isMoving() && !forkMotor->isMoving()) {
+                Serial.println("Homing Complete. Zeroing coordinates.");
+                
+                // Zero all positions
+                xMotor->setCurrentPositionAsZero();
+                yMotor->setCurrentPositionAsZero();
+                forkMotor->setCurrentPositionAsZero();
+
+                resetHomingState(); // Reset for next time
+                return 0; // Transition to IDLE
             }
             break;
     }
-    
-    // Return current state (1 = HOMING)
-    return 1;
-}
 
-// Function to reset homing state
-void resetHomingState() {
-    homingStateInitialized = false;
-    homingPhase = 0;
-    
-    // Reset tracking variables
-    xHomed = false;
-    yHomed = false;
-    forkHomed = false;
-    xMovedAway = false;
-    yMovedAway = false;
-    forkMovedAway = false;
+    return 1; // Stay in HOMING state
 }
