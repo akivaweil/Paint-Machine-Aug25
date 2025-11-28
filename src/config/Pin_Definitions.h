@@ -26,6 +26,10 @@
 #define STORAGE_STEP_PIN 21
 #define STORAGE_DIR_PIN 47
 
+// Paint Rotation Motor
+#define PAINT_ROTATION_STEP_PIN 10
+#define PAINT_ROTATION_DIR_PIN 9
+
 // Suction and Paint Gun
 #define SUCTION_PIN 41
 #define PAINT_GUN_PIN 42
