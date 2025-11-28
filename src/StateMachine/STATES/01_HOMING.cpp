@@ -97,7 +97,7 @@ int runHomingState() {
             if (!forkMotor->isMoving()) {
                 Serial.println("Fork Motor moved to home offset position");
                 delay(500); // Short pause for stability
-                forkMotor->setCurrentPositionAsZero();
+                forkMotor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
                 Serial.println("Step 2: Homing X and Y Motors...");
                 homingStateStep = 4;
             }
@@ -161,8 +161,8 @@ int runHomingState() {
                 Serial.println("Homing Complete. Zeroing coordinates.");
                 
                 // Zero X and Y positions (fork already zeroed)
-                xMotor->setCurrentPositionAsZero();
-                yMotor->setCurrentPositionAsZero();
+                xMotor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+                yMotor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
 
                 resetHomingState(); // Reset for next time
                 return 0; // Transition to IDLE
