@@ -16,6 +16,9 @@ bool wifiConnected = false;
 unsigned long lastWifiCheck = 0;
 const unsigned long WIFI_CHECK_INTERVAL = 30000; // Check every 30 seconds
 
+// Function to print IP address with formatting
+void printIPAddress();
+
 void initializeOTA() {
     if (otaInitialized) {
         return;
@@ -29,33 +32,39 @@ void initializeOTA() {
     // OTA will be initialized in updateOTA() once connected
 }
 
+void printIPAddress() {
+    Serial.println("=== WIFI CONNECTED ===");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+    Serial.println("======================");
+}
+
 void setupArduinoOTA() {
     // Configure ArduinoOTA
     ArduinoOTA.setHostname("PaintMachine");
     ArduinoOTA.setPassword("paint123");
-    
+
     ArduinoOTA.onStart([]() {
         // Turn off status LED during update
         digitalWrite(STATUS_LED_PIN, LOW);
     });
-    
+
     ArduinoOTA.onEnd([]() {
         // Turn on status LED when update complete
         digitalWrite(STATUS_LED_PIN, HIGH);
     });
-    
+
     ArduinoOTA.onError([](ota_error_t error) {
         // Blink error LED on update error
         digitalWrite(ERROR_LED_PIN, HIGH);
     });
-    
+
     // Start OTA
     ArduinoOTA.begin();
-    
+
     otaInitialized = true;
     Serial.println("OTA Initialized");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    printIPAddress();
 }
 
 void updateOTA() {
@@ -78,6 +87,10 @@ void updateOTA() {
             // Try to reconnect
             WiFi.reconnect();
         } else {
+            // If we just reconnected, print IP address
+            if (!wifiConnected) {
+                printIPAddress();
+            }
             wifiConnected = true;
             // If we reconnected but OTA wasn't initialized (shouldn't happen if logic above is correct, but safety)
             if (!otaInitialized) {
