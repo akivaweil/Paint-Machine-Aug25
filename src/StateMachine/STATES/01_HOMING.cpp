@@ -1,108 +1,177 @@
 #include "../../../include/StateMachine/STATES/01_HOMING.h"
-#include <Arduino.h>
+#include "../../../src/config/Pin_Definitions.h"
 
-// Constructor
-HomingState::HomingState()
-    : motorX(nullptr), motorY(nullptr), motorFork(nullptr), homeSwitches(nullptr),
-      currentPhase(HOMING_INIT), phaseStartTime(0), phaseTimeout(false),
-      forkHomed(false), xHomed(false), yHomed(false) {
+//* ************************************************************************
+//* ************************ HOMING STATE IMPLEMENTATION ***************************
+//* ************************************************************************
+
+HomingState::HomingState() :
+    motorX(nullptr),
+    motorY(nullptr),
+    motorFork(nullptr),
+    homeSwitches(nullptr),
+    currentPhase(HOMING_INIT),
+    phaseStartTime(0),
+    phaseTimeout(false),
+    forkHomed(false),
+    xHomed(false),
+    yHomed(false) {
 }
 
-// Destructor
 HomingState::~HomingState() {
+    // Clean up motors and switches
     if (motorX) delete motorX;
     if (motorY) delete motorY;
     if (motorFork) delete motorFork;
     if (homeSwitches) delete homeSwitches;
 }
 
-// State interface functions
 void HomingState::enter() {
-    // Initialize motors
-    motorX = new StepperMotor(MOTOR_X);
-    motorY = new StepperMotor(MOTOR_Y);
-    motorFork = new StepperMotor(MOTOR_FORK);
+    Serial.println("Entering Homing State...");
 
-    motorX->init();
-    motorY->init();
-    motorFork->init();
+    // Initialize motors
+    motorX = new StepperMotor(X_STEP_PIN, X_DIR_PIN, X_STEPS_PER_INCH, X_MAX_SPEED, X_MAX_ACCEL);
+    motorY = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, STEPS_PER_INCH, Y_MAX_SPEED, Y_MAX_ACCEL);
+    motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
 
     // Initialize home switches
-    homeSwitches = new HomeSwitch();
-    homeSwitches->init();
+    homeSwitches = new HomeSwitch(X_HOME_PIN);
+    homeSwitches->begin();
 
-    // Set homing speeds and start all motors toward home
-    motorX->setSpeed(X_HOME_SPEED);
-    motorY->setSpeed(Y_HOME_SPEED);
-    motorFork->setSpeed(FORK_HOME_SPEED);
+    // Start homing sequence
+    startHomingSequence();
 
-    // Move all motors toward home simultaneously
-    motorX->moveRelativeInches(X_HOME_DIRECTION_POSITIVE ? 20.0 : -20.0);
-    motorY->moveRelativeInches(Y_HOME_DIRECTION_POSITIVE ? 20.0 : -20.0);
-    motorFork->moveRelativeInches(FORK_HOME_DIRECTION_POSITIVE ? 10.0 : -10.0);
+    Serial.println("Homing State initialized");
 }
 
 void HomingState::update() {
-    homeSwitches->update();
+    switch (currentPhase) {
+        case HOMING_INIT:
+            // Immediately start X homing
+            homeXAndY();
+            break;
 
-    // Check if all motors have reached home
-    bool xHome = homeSwitches->isXHome();
-    bool yHome = homeSwitches->isYHome();
-    bool forkHome = homeSwitches->isForkHome();
+        case HOMING_X_AND_Y:
+            // Check if X homing is complete
+            if (homeSwitches->isTriggered()) {
+                // X home switch triggered, stop motor
+                motorX->forceStop();
+                xHomed = true;
+                currentPhase = HOMING_MOVE_AWAY;
+                phaseStartTime = millis();
+                Serial.println("X motor homed successfully");
+            }
 
-    if (xHome && !xHomed) {
-        motorX->stop();
-        motorX->setCurrentPosition(0);
-        xHomed = true;
-    }
+            // Check for timeout
+            if (checkPhaseTimeout()) {
+                Serial.println("X homing timeout!");
+                currentPhase = HOMING_ERROR;
+            }
+            break;
 
-    if (yHome && !yHomed) {
-        motorY->stop();
-        motorY->setCurrentPosition(0);
-        yHomed = true;
-    }
+        case HOMING_MOVE_AWAY:
+            // Move X motor away 0.5 inches
+            if (!motorX->isMotorRunning()) {
+                Serial.println("Moving X motor away 0.5 inches...");
+                motorX->setDirection(X_MOVE_AWAY_DIRECTION_POSITIVE);
+                motorX->setSpeed(X_HOME_SPEED);
+                motorX->moveInches(MOVE_AWAY_FROM_HOME_DISTANCE);
+                currentPhase = HOMING_COMPLETE;
+                Serial.println("X motor moved away successfully");
+            }
+            break;
 
-    if (forkHome && !forkHomed) {
-        motorFork->stop();
-        motorFork->setCurrentPosition(0);
-        forkHomed = true;
-    }
+        case HOMING_COMPLETE:
+        case HOMING_ERROR:
+            // Nothing to do in these states
+            break;
 
-    // When all are homed, move away from switches
-    if (xHomed && yHomed && forkHomed && currentPhase == HOMING_INIT) {
-        currentPhase = HOMING_MOVE_AWAY;
-
-        motorX->moveRelativeInches(X_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE);
-        motorY->moveRelativeInches(Y_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE);
-        motorFork->moveRelativeInches(FORK_MOVE_AWAY_DIRECTION_POSITIVE ? MOVE_AWAY_FROM_HOME_DISTANCE : -MOVE_AWAY_FROM_HOME_DISTANCE);
-    }
-
-    // Check if move away is complete
-    if (currentPhase == HOMING_MOVE_AWAY && !motorX->isRunning() && !motorY->isRunning() && !motorFork->isRunning()) {
-        currentPhase = HOMING_COMPLETE;
+        default:
+            currentPhase = HOMING_ERROR;
+            break;
     }
 }
 
 void HomingState::exit() {
-    emergencyStop();
+    Serial.println("Exiting Homing State...");
+
+    // Force stop all motors
+    if (motorX) motorX->forceStop();
+    if (motorY) motorY->forceStop();
+    if (motorFork) motorFork->forceStop();
+
+    // Clean up
+    if (motorX) delete motorX;
+    if (motorY) delete motorY;
+    if (motorFork) delete motorFork;
+    if (homeSwitches) delete homeSwitches;
+
+    motorX = nullptr;
+    motorY = nullptr;
+    motorFork = nullptr;
+    homeSwitches = nullptr;
+
+    Serial.println("Homing State exited");
 }
 
-// Status functions
+//* ************************************************************************
+//* STEP 1: START HOMING SEQUENCE
+//! ************************************************************************
+void HomingState::startHomingSequence() {
+    currentPhase = HOMING_INIT;
+    phaseStartTime = millis();
+    phaseTimeout = false;
+
+    // Reset homing flags
+    xHomed = false;
+    yHomed = false;
+    forkHomed = false;
+
+    Serial.println("Homing sequence started");
+}
+
+//* ************************************************************************
+//* STEP 2: HOME X AND Y MOTORS (X ONLY FOR NOW)
+//! ************************************************************************
+void HomingState::homeXAndY() {
+    Serial.println("Starting X motor homing...");
+
+    // Set X motor direction for homing (towards home switch)
+    motorX->setDirection(X_HOME_DIRECTION_POSITIVE);
+
+    // Set homing speed
+    motorX->setSpeed(X_HOME_SPEED);
+
+    // Start moving towards home switch
+    currentPhase = HOMING_X_AND_Y;
+    phaseStartTime = millis();
+
+    Serial.println("X motor moving towards home switch");
+}
+
+// Legacy methods (not used for X-only homing)
+void HomingState::homeFork() {}
+void HomingState::moveAwayFromHome() {}
+
+bool HomingState::checkPhaseTimeout() {
+    return (millis() - phaseStartTime) > PHASE_TIMEOUT_MS;
+}
+
 bool HomingState::isComplete() {
     return currentPhase == HOMING_COMPLETE;
 }
 
 bool HomingState::hasError() {
-    return false; // No error handling
+    return currentPhase == HOMING_ERROR;
 }
 
 HomingPhase HomingState::getCurrentPhase() {
     return currentPhase;
 }
 
-// Emergency functions
 void HomingState::emergencyStop() {
-    if (motorX) motorX->emergencyStop();
-    if (motorY) motorY->emergencyStop();
-    if (motorFork) motorFork->emergencyStop();
+    if (motorX) motorX->forceStop();
+    if (motorY) motorY->forceStop();
+    if (motorFork) motorFork->forceStop();
+    currentPhase = HOMING_ERROR;
 }

@@ -1,56 +1,54 @@
 #ifndef STEPPER_MOTOR_H
 #define STEPPER_MOTOR_H
 
-#include <FastAccelStepper.h>
+#include <Arduino.h>
 #include "../../../src/config/Config.h"
-#include "../../../src/config/Pin_Definitions.h"
-
-// Motor types
-enum MotorType {
-    MOTOR_X,
-    MOTOR_Y,
-    MOTOR_FORK,
-    MOTOR_STORAGE
-};
 
 class StepperMotor {
 private:
-    FastAccelStepper* stepper;
-    MotorType motorType;
-    int stepPin;
-    int dirPin;
+    // Pin definitions
+    uint8_t stepPin;
+    uint8_t dirPin;
+
+    // Motor parameters
     float stepsPerInch;
     long maxSpeed;
     long maxAccel;
 
-    // Convert inches to steps
-    long inchesToSteps(float inches);
+    // Current state
+    bool direction;  // true = positive, false = negative
+    long currentPosition;  // in steps
+    bool isRunning;
+
+    // Timing for step generation
+    unsigned long lastStepTime;
+    unsigned long stepInterval;
 
 public:
     // Constructor
-    StepperMotor(MotorType type);
+    StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long maxSpd, long maxAcc);
 
-    // Initialize the motor
-    void init();
+    // Basic motor control
+    void setDirection(bool positive);
+    void setSpeed(long speed);
+    void step();
+    void moveSteps(long steps);
+    void moveInches(float inches);
 
-    // Movement functions
-    void moveToPositionInches(float inches);
-    void moveRelativeInches(float inches);
-    void setSpeed(float speedStepsPerSec);
-    void setAcceleration(float accelStepsPerSec2);
-    void stop();
-    void emergencyStop();
-
-    // Status functions
-    bool isRunning();
+    // Position tracking
     long getCurrentPosition();
     void setCurrentPosition(long position);
+    void resetPosition();
 
-    // Home switch detection (will be implemented in HomeSwitch class)
-    bool isAtHome();
+    // Force stop functionality
+    void forceStop();
 
-    // Get stepper pointer for advanced operations
-    FastAccelStepper* getStepper() { return stepper; }
+    // Status
+    bool isMotorRunning();
+
+    // Movement calculations
+    long inchesToSteps(float inches);
+    float stepsToInches(long steps);
 };
 
 #endif // STEPPER_MOTOR_H
