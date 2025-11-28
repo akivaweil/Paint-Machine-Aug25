@@ -2,28 +2,22 @@
 #define STEPPER_MOTOR_H
 
 #include <Arduino.h>
+#include <FastAccelStepper.h>
 #include "../../../src/config/Config.h"
 
 class StepperMotor {
 private:
-    // Pin definitions
-    uint8_t stepPin;
-    uint8_t dirPin;
-
+    // FastAccelStepper object
+    FastAccelStepper* stepper;
+    
     // Motor parameters
     float stepsPerInch;
     long maxSpeed;
     long maxAccel;
-
+    
     // Current state
-    bool direction;  // true = positive, false = negative
-    long currentPosition;  // in steps
-    bool isRunning;
     bool continuousMode;  // true when continuously moving
-
-    // Timing for step generation
-    unsigned long lastStepTime;
-    unsigned long stepInterval;
+    bool continuousDirection;  // true = positive, false = negative
 
 public:
     // Constructor

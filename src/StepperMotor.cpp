@@ -1,63 +1,61 @@
 #include "../include/StateMachine/FUNCTIONS/StepperMotor.h"
 
+// Global FastAccelStepperEngine instance (shared across all motors)
+FastAccelStepperEngine* engine = nullptr;
+
 StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long maxSpd, long maxAcc) {
-    this->stepPin = step;
-    this->dirPin = dir;
     this->stepsPerInch = stepsPerInch;
     this->maxSpeed = maxSpd;
     this->maxAccel = maxAcc;
+    this->continuousMode = false;
+    this->continuousDirection = true;
+    this->stepper = nullptr;
 
-    // Initialize pins
-    pinMode(stepPin, OUTPUT);
-    pinMode(dirPin, OUTPUT);
+    // Initialize engine once (shared across all motors)
+    if (engine == nullptr) {
+        engine = new FastAccelStepperEngine();
+        engine->init();
+    }
 
-    // Initialize state
-    currentPosition = 0;
-    isRunning = false;
-    direction = true;  // default to positive
-    continuousMode = false;
-    lastStepTime = 0;
-    stepInterval = 1000000 / maxSpeed;  // microseconds per step
+    // Connect stepper to step pin
+    if (engine) {
+        stepper = engine->stepperConnectToPin(step);
+        if (stepper) {
+            stepper->setDirectionPin(dir, false);  // false = direction pin is not inverted
+            stepper->setSpeedInHz(maxSpd);
+            stepper->setAcceleration(maxAcc);
+            stepper->setCurrentPosition(0);
+        }
+    }
 }
 
 void StepperMotor::setDirection(bool positive) {
-    direction = positive;
-    digitalWrite(dirPin, positive ? HIGH : LOW);
+    continuousDirection = positive;
+    // Direction is set automatically by FastAccelStepper when moving
 }
 
 void StepperMotor::setSpeed(long speed) {
-    if (speed > 0 && speed <= maxSpeed) {
-        stepInterval = 1000000 / speed;  // microseconds per step
+    if (stepper && speed > 0 && speed <= maxSpeed) {
+        stepper->setSpeedInHz(speed);
     }
 }
 
 void StepperMotor::step() {
-    unsigned long currentTime = micros();
-
-    if (currentTime - lastStepTime >= stepInterval) {
-        digitalWrite(stepPin, HIGH);
-        delayMicroseconds(1);  // Brief pulse
-        digitalWrite(stepPin, LOW);
-
-        // Update position based on direction
-        currentPosition += direction ? 1 : -1;
-        lastStepTime = currentTime;
+    // Single step not typically used with FastAccelStepper
+    // This is kept for compatibility but may not work as expected
+    if (stepper) {
+        if (continuousDirection) {
+            stepper->move(1);
+        } else {
+            stepper->move(-1);
+        }
     }
 }
 
 void StepperMotor::moveSteps(long steps) {
-    if (steps == 0) return;
-
-    bool moveDirection = (steps > 0);
-    setDirection(moveDirection);
-    long stepsToMove = abs(steps);
-
-    for (long i = 0; i < stepsToMove; i++) {
-        step();
-        delayMicroseconds(stepInterval / 2);  // Wait between steps
+    if (stepper && steps != 0) {
+        stepper->move(steps);
     }
-
-    isRunning = false;
 }
 
 void StepperMotor::moveInches(float inches) {
@@ -66,26 +64,34 @@ void StepperMotor::moveInches(float inches) {
 }
 
 long StepperMotor::getCurrentPosition() {
-    return currentPosition;
+    if (stepper) {
+        return stepper->getCurrentPosition();
+    }
+    return 0;
 }
 
 void StepperMotor::setCurrentPosition(long position) {
-    currentPosition = position;
+    if (stepper) {
+        stepper->setCurrentPosition(position);
+    }
 }
 
 void StepperMotor::resetPosition() {
-    currentPosition = 0;
+    setCurrentPosition(0);
 }
 
 void StepperMotor::forceStop() {
+    if (stepper) {
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
+    }
     continuousMode = false;
-    isRunning = false;
-    // Immediately stop any ongoing movement by setting pins low
-    digitalWrite(stepPin, LOW);
 }
 
 bool StepperMotor::isMotorRunning() {
-    return isRunning;
+    if (stepper) {
+        return stepper->isRunning();
+    }
+    return false;
 }
 
 long StepperMotor::inchesToSteps(float inches) {
@@ -98,17 +104,33 @@ float StepperMotor::stepsToInches(long steps) {
 
 void StepperMotor::startContinuous() {
     continuousMode = true;
-    isRunning = true;
+    if (stepper) {
+        if (continuousDirection) {
+            stepper->runForward();
+        } else {
+            stepper->runBackward();
+        }
+    }
 }
 
 void StepperMotor::stopContinuous() {
     continuousMode = false;
-    isRunning = false;
-    digitalWrite(stepPin, LOW);  // Ensure step pin is low
+    if (stepper) {
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
+    }
 }
 
 void StepperMotor::runContinuous() {
-    if (continuousMode) {
-        step();
+    // FastAccelStepper handles continuous movement automatically
+    // Just need to ensure it's still running in the correct direction
+    if (continuousMode && stepper) {
+        if (!stepper->isRunning()) {
+            // Restart if it stopped
+            if (continuousDirection) {
+                stepper->runForward();
+            } else {
+                stepper->runBackward();
+            }
+        }
     }
 }

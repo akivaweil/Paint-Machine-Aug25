@@ -6,7 +6,7 @@
 //* ************************************************************************
 
 // X Motor Homing Settings (in steps per second)
-#define X_HOME_SPEED 500           // Speed for X homing operation
+#define X_HOME_SPEED 2000           // Speed for X homing operation
 #define X_HOME_ACCEL 2500         // Acceleration for X homing (reduced for smoother approach)
 
 // Y Motor Homing Settings (in steps per second)
@@ -26,7 +26,7 @@
 #define PHASE_TIMEOUT_MS 30000             // 30 seconds timeout per dphase
 
 // Home switch debounce settings (in milliseconds)
-#define HOME_SWITCH_DEBOUNCE_MS 2         // Debounce time for home switches to prevent false triggers (reduced for faster response)
+#define HOME_SWITCH_DEBOUNCE_MS 1        // Debounce time for home switches to prevent false triggers (reduced for faster response)
 
 // Homing direction settings (true = positive direction, false = negative direction)
 #define X_HOME_DIRECTION_POSITIVE false   // X homes in negative direction
