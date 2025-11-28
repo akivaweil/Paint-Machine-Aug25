@@ -10,6 +10,9 @@
 #include "config/Homing_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 
+// Configuration
+#define FORK_HOME_OFFSET 0.5 // Offset in inches for Fork motor after homing
+
 // External motor objects
 extern StepperMotor* xMotor;
 extern StepperMotor* yMotor;
@@ -84,7 +87,7 @@ int runHomingState() {
             //! ************************************************************************
             //! STEP 4: MOVE FORK AWAY FROM SWITCH
             //! ************************************************************************
-            forkMotor->moveAwayFromHome();
+            forkMotor->moveAwayFromHome(FORK_HOME_OFFSET);
             homingStateStep = 3;
             break;
 
@@ -97,7 +100,7 @@ int runHomingState() {
             if (!forkMotor->isMoving()) {
                 Serial.println("Fork Motor moved to home offset position");
                 delay(500); // Short pause for stability
-                forkMotor->setCurrentPosition(MOVE_AWAY_FROM_HOME_DISTANCE);
+                forkMotor->setCurrentPosition(FORK_HOME_OFFSET);
                 Serial.println("Step 2: Homing X and Y Motors...");
                 homingStateStep = 4;
             }
