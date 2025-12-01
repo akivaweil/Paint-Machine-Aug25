@@ -1,12 +1,8 @@
 #include <Arduino.h>
-#include "StateMachine/STATES/01_HOMING.h"
 
 // OTA Manager functions (declared in OTA_Manager.cpp)
 extern void initializeOTA();
 extern void updateOTA();
-
-// Global state machine instance
-HomingState* homingState = nullptr;
 
 // Setup function - called once at startup
 void setup() {
@@ -14,47 +10,14 @@ void setup() {
     Serial.begin(115200);
     delay(1000);
 
-    Serial.println("Paint Machine Homing Sequence Starting...");
-
     // Initialize OTA (WiFi connection)
     initializeOTA();
-
-    // Create and initialize homing state
-    homingState = new HomingState();
-    homingState->enter();
-
-    Serial.println("Homing state initialized");
 }
 
 // Loop function - called repeatedly
 void loop() {
     // Handle OTA updates (WiFi and firmware updates)
     updateOTA();
-
-    if (homingState) {
-        // Update the homing state
-        homingState->update();
-
-        // Check if homing is complete
-        if (homingState->isComplete()) {
-            Serial.println("Homing sequence completed successfully!");
-            homingState->exit();
-            delete homingState;
-            homingState = nullptr;
-
-            // Could transition to next state here
-            Serial.println("Ready for next operation");
-
-        } else if (homingState->hasError()) {
-            Serial.println("Homing sequence failed with error!");
-            homingState->exit();
-            delete homingState;
-            homingState = nullptr;
-
-            // Could handle error state here
-            Serial.println("Error state - check switches and motors");
-        }
-    }
 
     // Small delay to prevent overwhelming the processor
     delay(10);

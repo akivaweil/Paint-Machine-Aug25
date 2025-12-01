@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "../../../src/config/Config.h"
-#include "../../../src/config/Homing_Config.h"
 
 class HomeSwitch {
 private:
