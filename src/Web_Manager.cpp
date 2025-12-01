@@ -5,6 +5,7 @@
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/FUNCTIONS/HomeSwitch.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -20,6 +21,11 @@ bool sensorsInitialized = false;
 StepperMotor* motorX = nullptr;
 StepperMotor* motorY = nullptr;
 StepperMotor* motorFork = nullptr;
+
+// Home switch instances
+HomeSwitch* homeSwitchX = nullptr;
+HomeSwitch* homeSwitchY = nullptr;
+HomeSwitch* homeSwitchFork = nullptr;
 
 // Move request variables
 volatile bool webMoveRequested = false;
@@ -329,6 +335,48 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       font-size: 0.85rem;
     }
     
+    .home-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .home-btn {
+      background: var(--card-border);
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .home-btn:hover {
+      background: var(--accent-yellow);
+      border-color: var(--accent-yellow);
+      transform: scale(1.05);
+    }
+    
+    .home-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .home-btn.all {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+    
+    .home-btn.all:hover {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+    }
+    
     @media (max-width: 768px) {
       .sensor-grid {
         grid-template-columns: 1fr;
@@ -351,31 +399,38 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     </div>
     
     <div class="control-panel">
-      <h2>Gantry Control</h2>
-      <div class="axis-label">Y Axis (Up/Down)</div>
-      <div class="arrow-controls">
-        <button class="arrow-btn up" id="btnUp" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">&uarr;</button>
-        <button class="arrow-btn left" id="btnLeft" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">&larr;</button>
-        <button class="arrow-btn right" id="btnRight" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">&rarr;</button>
-        <button class="arrow-btn down" id="btnDown" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">&darr;</button>
+      <h2>Manual Controls</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+        <div>
+          <div class="axis-label">Gantry (X/Y)</div>
+          <div class="arrow-controls" style="max-width: 250px;">
+            <button class="arrow-btn up" id="btnUp" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">&uarr;</button>
+            <button class="arrow-btn left" id="btnLeft" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">&larr;</button>
+            <button class="arrow-btn right" id="btnRight" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">&rarr;</button>
+            <button class="arrow-btn down" id="btnDown" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">&darr;</button>
+          </div>
+          <div class="distance-selector" style="margin-top: 15px;">
+            <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1"</button>
+            <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3"</button>
+          </div>
+        </div>
+        <div>
+          <div class="axis-label">Fork</div>
+          <div class="arrow-controls" style="max-width: 150px;">
+            <button class="arrow-btn up" id="btnForkUp" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
+            <button class="arrow-btn down" id="btnForkDown" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
+          </div>
+          <div class="distance-selector" style="margin-top: 15px;">
+            <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1"</button>
+            <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
+          </div>
+        </div>
       </div>
-      <div class="axis-label" style="margin-top: 20px;">X Axis (Left/Right)</div>
-      <div class="distance-selector">
-        <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1 inch</button>
-        <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3 inches</button>
-      </div>
-    </div>
-    
-    <div class="control-panel">
-      <h2>Fork Control</h2>
-      <div class="axis-label">Fork (Extend/Retract)</div>
-      <div class="arrow-controls" style="max-width: 200px;">
-        <button class="arrow-btn up" id="btnForkUp" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
-        <button class="arrow-btn down" id="btnForkDown" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
-      </div>
-      <div class="distance-selector">
-        <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1 inch</button>
-        <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3 inches</button>
+      <div class="home-buttons">
+        <button class="home-btn" onclick="homeAxis('x')">Home X</button>
+        <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
+        <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
+        <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
       </div>
     </div>
     
@@ -482,6 +537,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       // The server handles the movement as a single command
     }
     
+    function homeAxis(axis) {
+      fetch('/api/home?axis=' + axis)
+        .then(response => response.text())
+        .then(data => {
+          console.log('Home response:', data);
+        })
+        .catch(error => console.error('Home error:', error));
+    }
+    
     // Keyboard controls
     document.addEventListener('keydown', function(e) {
       if (e.key === 'ArrowUp') {
@@ -516,6 +580,20 @@ void initializeSensors() {
     // Initialize test button (assuming active LOW with pullup, adjust if needed)
     pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
     
+    // Initialize HomeSwitch instances
+    if (homeSwitchX == nullptr) {
+        homeSwitchX = new HomeSwitch(X_HOME_PIN, X_HOME_PIN2);
+        homeSwitchX->begin();
+    }
+    if (homeSwitchY == nullptr) {
+        homeSwitchY = new HomeSwitch(Y_HOME_PIN);
+        homeSwitchY->begin();
+    }
+    if (homeSwitchFork == nullptr) {
+        homeSwitchFork = new HomeSwitch(FORK_HOME_PIN);
+        homeSwitchFork->begin();
+    }
+    
     sensorsInitialized = true;
 }
 
@@ -530,6 +608,67 @@ void initializeMotors() {
     if (motorFork == nullptr) {
         motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
     }
+}
+
+// Home X axis
+void homeXAxis() {
+    if (!motorX || !homeSwitchX) return;
+    
+    // Move backward until home switch is triggered
+    while (!homeSwitchX->readDualDebounced()) {
+        motorX->moveInches(-0.1);
+        delay(10);
+        while (motorX->isMotorRunning()) {
+            delay(1);
+        }
+    }
+    
+    // Stop and reset position
+    motorX->forceStop();
+    motorX->resetPosition();
+}
+
+// Home Y axis
+void homeYAxis() {
+    if (!motorY || !homeSwitchY) return;
+    
+    // Move backward until home switch is triggered
+    while (!homeSwitchY->readDebounced()) {
+        motorY->moveInches(-0.1);
+        delay(10);
+        while (motorY->isMotorRunning()) {
+            delay(1);
+        }
+    }
+    
+    // Stop and reset position
+    motorY->forceStop();
+    motorY->resetPosition();
+}
+
+// Home Fork axis
+void homeForkAxis() {
+    if (!motorFork || !homeSwitchFork) return;
+    
+    // Move backward until home switch is triggered
+    while (!homeSwitchFork->readDebounced()) {
+        motorFork->moveInches(-0.1);
+        delay(10);
+        while (motorFork->isMotorRunning()) {
+            delay(1);
+        }
+    }
+    
+    // Stop and reset position
+    motorFork->forceStop();
+    motorFork->resetPosition();
+}
+
+// Home all axes
+void homeAllAxes() {
+    homeXAxis();
+    homeYAxis();
+    homeForkAxis();
 }
 
 // Read sensor states
@@ -592,6 +731,35 @@ void initWebServer() {
             }
         } else {
             request->send(400, "text/plain", "Missing parameters");
+        }
+    });
+    
+    // API endpoint for homing
+    server.on("/api/home", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("axis")) {
+            String axis = request->getParam("axis")->value();
+            
+            if (axis == "x") {
+                homeXAxis();
+                request->send(200, "text/plain", "OK");
+                Serial.println("Web Request: Home X axis");
+            } else if (axis == "y") {
+                homeYAxis();
+                request->send(200, "text/plain", "OK");
+                Serial.println("Web Request: Home Y axis");
+            } else if (axis == "fork") {
+                homeForkAxis();
+                request->send(200, "text/plain", "OK");
+                Serial.println("Web Request: Home Fork axis");
+            } else if (axis == "all") {
+                homeAllAxes();
+                request->send(200, "text/plain", "OK");
+                Serial.println("Web Request: Home all axes");
+            } else {
+                request->send(400, "text/plain", "Invalid axis");
+            }
+        } else {
+            request->send(400, "text/plain", "Missing axis parameter");
         }
     });
 
