@@ -6,6 +6,7 @@
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
+#include "StateMachine/STATES/01_HOMING.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -444,7 +445,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
   <script>
     const sensors = [
       { id: 'xHome1', name: 'X Home Switch 1', pin: 'Pin 7' },
-      { id: 'xHome2', name: 'X Home Switch 2', pin: 'Pin 8' },
+      { id: 'xHome2', name: 'X Home Switch 2', pin: 'Pin 6' },
       { id: 'yHome', name: 'Y Home Switch', pin: 'Pin 4' },
       { id: 'forkHome', name: 'Fork Home Switch', pin: 'Pin 18' },
       { id: 'testButton', name: 'Test Button', pin: 'Pin 38' }
@@ -610,69 +611,6 @@ void initializeMotors() {
     }
 }
 
-// Home X axis
-void homeXAxis() {
-    if (!motorX || !homeSwitchX) return;
-    
-    // Set direction to move toward home (positive direction)
-    motorX->setDirection(true);
-    
-    // Start continuous movement toward home
-    motorX->startContinuous();
-    
-    // Keep moving until home switch is triggered
-    while (!homeSwitchX->readDual()) {
-        motorX->runContinuous();
-        delay(1);
-    }
-    
-    // Stop and reset position
-    motorX->stopContinuous();
-    motorX->resetPosition();
-}
-
-// Home Y axis
-void homeYAxis() {
-    if (!motorY || !homeSwitchY) return;
-    
-    // Move backward until home switch is triggered
-    while (!homeSwitchY->read()) {
-        motorY->moveInches(-0.1);
-        delay(10);
-        while (motorY->isMotorRunning()) {
-            delay(1);
-        }
-    }
-    
-    // Stop and reset position
-    motorY->forceStop();
-    motorY->resetPosition();
-}
-
-// Home Fork axis
-void homeForkAxis() {
-    if (!motorFork || !homeSwitchFork) return;
-    
-    // Move backward until home switch is triggered
-    while (!homeSwitchFork->read()) {
-        motorFork->moveInches(-0.1);
-        delay(10);
-        while (motorFork->isMotorRunning()) {
-            delay(1);
-        }
-    }
-    
-    // Stop and reset position
-    motorFork->forceStop();
-    motorFork->resetPosition();
-}
-
-// Home all axes
-void homeAllAxes() {
-    homeXAxis();
-    homeYAxis();
-    homeForkAxis();
-}
 
 // Read sensor states
 String getSensorStatesJSON() {
