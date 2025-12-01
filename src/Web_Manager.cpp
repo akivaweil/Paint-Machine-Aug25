@@ -786,14 +786,14 @@ void initWebServer() {
     Serial.printf("Pick: %.2f, %.2f (Fork: %.2f)\n", webPickX, webPickY, webPickForkDistance);
     Serial.printf("Place: %.2f, %.2f (Fork: %.2f)\n", webPlaceX, webPlaceY, webPlaceForkDistance);
 
-    // Route for root / web page
+    // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send_P(200, "text/html", index_html);
+        request->send_P(200, "text/html", sensors_html);
     });
     
-    // Route for sensor dashboard
-    server.on("/sensors", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send_P(200, "text/html", sensors_html);
+    // Route for old control dashboard
+    server.on("/control", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send_P(200, "text/html", index_html);
     });
     
     // API endpoint for sensor states
