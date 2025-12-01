@@ -28,11 +28,6 @@ HomeSwitch* homeSwitchX = nullptr;
 HomeSwitch* homeSwitchY = nullptr;
 HomeSwitch* homeSwitchFork = nullptr;
 
-// Move request variables
-volatile bool webMoveRequested = false;
-volatile float webMoveX = 0.0;
-volatile float webMoveY = 0.0;
-
 // Sensor Dashboard HTML
 const char sensors_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML>
@@ -572,16 +567,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
 void initializeSensors() {
     if (sensorsInitialized) return;
     
-    // Initialize home switches (Active HIGH with pulldown)
-    pinMode(X_HOME_PIN, INPUT_PULLDOWN);
-    pinMode(X_HOME_PIN2, INPUT_PULLDOWN);
-    pinMode(Y_HOME_PIN, INPUT_PULLDOWN);
-    pinMode(FORK_HOME_PIN, INPUT_PULLDOWN);
-    
     // Initialize test button (assuming active LOW with pullup, adjust if needed)
     pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
     
-    // Initialize HomeSwitch instances
+    // Initialize HomeSwitch instances (pins configured in begin())
     if (homeSwitchX == nullptr) {
         homeSwitchX = new HomeSwitch(X_HOME_PIN, X_HOME_PIN2);
         homeSwitchX->begin();
@@ -614,10 +603,12 @@ void initializeMotors() {
 
 // Read sensor states
 String getSensorStatesJSON() {
-    bool xHome1 = digitalRead(X_HOME_PIN);
-    bool xHome2 = digitalRead(X_HOME_PIN2);
-    bool yHome = digitalRead(Y_HOME_PIN);
-    bool forkHome = digitalRead(FORK_HOME_PIN);
+    // Read X home switches (need individual pins for JSON)
+    bool xHome1 = homeSwitchX ? digitalRead(X_HOME_PIN) : false;
+    bool xHome2 = homeSwitchX ? digitalRead(X_HOME_PIN2) : false;
+    // Read Y and Fork using HomeSwitch instances
+    bool yHome = homeSwitchY ? homeSwitchY->read() : false;
+    bool forkHome = homeSwitchFork ? homeSwitchFork->read() : false;
     bool testButton = !digitalRead(TEST_BUTTON_PIN); // Inverted for pullup
     
     String json = "{";
@@ -631,7 +622,7 @@ String getSensorStatesJSON() {
     return json;
 }
 
-void initWebServer() {
+void initializeWebServer() {
     // Initialize sensor pins
     initializeSensors();
     
@@ -655,18 +646,24 @@ void initWebServer() {
             String axis = request->getParam("axis")->value();
             float distance = request->getParam("distance")->value().toFloat();
             
-            if (axis == "x" && motorX) {
-                motorX->moveInches(distance);
+            StepperMotor* motor = nullptr;
+            const char* axisName = "";
+            
+            if (axis == "x") {
+                motor = motorX;
+                axisName = "X";
+            } else if (axis == "y") {
+                motor = motorY;
+                axisName = "Y";
+            } else if (axis == "fork") {
+                motor = motorFork;
+                axisName = "Fork";
+            }
+            
+            if (motor) {
+                motor->moveInches(distance);
                 request->send(200, "text/plain", "OK");
-                Serial.printf("Web Request: Move X by %.2f inches\n", distance);
-            } else if (axis == "y" && motorY) {
-                motorY->moveInches(distance);
-                request->send(200, "text/plain", "OK");
-                Serial.printf("Web Request: Move Y by %.2f inches\n", distance);
-            } else if (axis == "fork" && motorFork) {
-                motorFork->moveInches(distance);
-                request->send(200, "text/plain", "OK");
-                Serial.printf("Web Request: Move Fork by %.2f inches\n", distance);
+                Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
             } else {
                 request->send(400, "text/plain", "Invalid axis or motor not initialized");
             }
@@ -709,9 +706,6 @@ void initWebServer() {
     Serial.println("Sensor Dashboard available at /");
 }
 
-void initializeWebServer() {
-    initWebServer();
-}
 
 void updateWebServer() {
     // Web server handles requests asynchronously, no update needed

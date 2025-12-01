@@ -17,85 +17,46 @@ void homingState() {
     // State implementation will go here
 }
 
-// Home X axis
-void homeXAxis() {
-    if (!motorX || !homeSwitchX) return;
+// Helper function to home a single axis
+static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool useDual) {
+    if (!motor || !homeSwitch) return;
     
     // Set direction to move toward home (positive direction)
-    motorX->setDirection(true);
+    motor->setDirection(true);
     
     // Start continuous movement toward home
-    motorX->startContinuous();
+    motor->startContinuous();
     
     // Keep moving until home switch is triggered
-    while (!homeSwitchX->readDual()) {
-        motorX->runContinuous();
+    while (useDual ? !homeSwitch->readDual() : !homeSwitch->read()) {
+        motor->runContinuous();
         delay(1);
     }
     
     // Stop and reset position
-    motorX->stopContinuous();
-    motorX->resetPosition();
+    motor->stopContinuous();
+    motor->resetPosition();
     
     // Move 0.5 inches away from home
-    motorX->moveInches(-0.5);
-    while (motorX->isMotorRunning()) {
+    motor->moveInches(-0.5);
+    while (motor->isMotorRunning()) {
         delay(1);
     }
+}
+
+// Home X axis
+void homeXAxis() {
+    homeSingleAxis(motorX, homeSwitchX, true);  // X uses dual switches
 }
 
 // Home Y axis
 void homeYAxis() {
-    if (!motorY || !homeSwitchY) return;
-    
-    // Set direction to move toward home (positive direction)
-    motorY->setDirection(true);
-    
-    // Start continuous movement toward home
-    motorY->startContinuous();
-    
-    // Keep moving until home switch is triggered
-    while (!homeSwitchY->read()) {
-        motorY->runContinuous();
-        delay(1);
-    }
-    
-    // Stop and reset position
-    motorY->stopContinuous();
-    motorY->resetPosition();
-    
-    // Move 0.5 inches away from home
-    motorY->moveInches(-0.5);
-    while (motorY->isMotorRunning()) {
-        delay(1);
-    }
+    homeSingleAxis(motorY, homeSwitchY, false);
 }
 
 // Home Fork axis
 void homeForkAxis() {
-    if (!motorFork || !homeSwitchFork) return;
-    
-    // Set direction to move toward home (positive direction)
-    motorFork->setDirection(true);
-    
-    // Start continuous movement toward home
-    motorFork->startContinuous();
-    
-    // Keep moving until home switch is triggered
-    while (!homeSwitchFork->read()) {
-        motorFork->runContinuous();
-        delay(1);
-    }
-    
-    // Stop and reset position
-    motorFork->stopContinuous();
-    motorFork->resetPosition();
-    
-    // Move 0.5 inches away from home
-    motorFork->moveInches(-0.5);
-    while (motorFork->isMotorRunning()) {
-        delay(1);
-    }
+    homeSingleAxis(motorFork, homeSwitchFork, false);
 }
 
 // Home all axes
