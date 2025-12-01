@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "StateMachine/STATES/01_HOMING.h"
+#include "../../config/Config.h"
 
 // External motor and switch instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
@@ -18,8 +19,11 @@ void homingState() {
 }
 
 // Helper function to home a single axis
-static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool useDual) {
+static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool useDual, long maxSpeed) {
     if (!motor || !homeSwitch) return;
+    
+    // Set homing speed to 1/4 of max speed
+    motor->setSpeed(maxSpeed / 4);
     
     // Set direction to move toward home (positive direction)
     motor->setDirection(true);
@@ -42,21 +46,24 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     while (motor->isMotorRunning()) {
         delay(1);
     }
+    
+    // Restore full speed for normal operations
+    motor->setSpeed(maxSpeed);
 }
 
 // Home X axis
 void homeXAxis() {
-    homeSingleAxis(motorX, homeSwitchX, true);  // X uses dual switches
+    homeSingleAxis(motorX, homeSwitchX, true, X_MAX_SPEED);  // X uses dual switches
 }
 
 // Home Y axis
 void homeYAxis() {
-    homeSingleAxis(motorY, homeSwitchY, false);
+    homeSingleAxis(motorY, homeSwitchY, false, Y_MAX_SPEED);
 }
 
 // Home Fork axis
 void homeForkAxis() {
-    homeSingleAxis(motorFork, homeSwitchFork, false);
+    homeSingleAxis(motorFork, homeSwitchFork, false, FORK_MAX_SPEED);
 }
 
 // Home all axes
@@ -67,6 +74,11 @@ void homeAllAxes() {
     bool xHomed = false;
     bool yHomed = false;
     bool forkHomed = false;
+    
+    // Set homing speeds to 1/4 of max speeds
+    motorX->setSpeed(X_MAX_SPEED / 4);
+    motorY->setSpeed(Y_MAX_SPEED / 4);
+    motorFork->setSpeed(FORK_MAX_SPEED / 4);
     
     // Set all directions to move toward home (positive direction)
     motorX->setDirection(true);
@@ -120,5 +132,10 @@ void homeAllAxes() {
     while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
         delay(1);
     }
+    
+    // Restore full speeds for normal operations
+    motorX->setSpeed(X_MAX_SPEED);
+    motorY->setSpeed(Y_MAX_SPEED);
+    motorFork->setSpeed(FORK_MAX_SPEED);
 }
 

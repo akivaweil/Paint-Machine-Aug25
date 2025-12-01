@@ -26,15 +26,15 @@
 #define MAX_ACCEL 10000             // Default Maximum acceleration in steps per second squared
 
 // X Motor Settings
-#define X_MAX_SPEED 500            // Maximum speed for X motor
+#define X_MAX_SPEED 2000            // Maximum speed for X motor (4x for homing at 1/4 speed)
 #define X_MAX_ACCEL 2000            // Maximum acceleration for X motor
 
 // Y Motor Settings
-#define Y_MAX_SPEED 500            // Maximum speed for Y motor
+#define Y_MAX_SPEED 2000            // Maximum speed for Y motor (4x for homing at 1/4 speed)
 #define Y_MAX_ACCEL 2000            // Maximum acceleration for Y motor
 
 // Fork Motor Settings
-#define FORK_MAX_SPEED 500         // Maximum speed for Fork motor
+#define FORK_MAX_SPEED 2000         // Maximum speed for Fork motor (4x for homing at 1/4 speed)
 #define FORK_MAX_ACCEL 2000         // Maximum acceleration for Fork motor
 
 // Storage motor speed and acceleration settings (in steps per second)
