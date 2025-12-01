@@ -19,6 +19,7 @@ bool sensorsInitialized = false;
 // Motor instances
 StepperMotor* motorX = nullptr;
 StepperMotor* motorY = nullptr;
+StepperMotor* motorFork = nullptr;
 
 // Move request variables
 volatile bool webMoveRequested = false;
@@ -365,6 +366,19 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       </div>
     </div>
     
+    <div class="control-panel">
+      <h2>Fork Control</h2>
+      <div class="axis-label">Fork (Extend/Retract)</div>
+      <div class="arrow-controls" style="max-width: 200px;">
+        <button class="arrow-btn up" id="btnForkUp" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
+        <button class="arrow-btn down" id="btnForkDown" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
+      </div>
+      <div class="distance-selector">
+        <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1 inch</button>
+        <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3 inches</button>
+      </div>
+    </div>
+    
     <div class="last-update" id="lastUpdate">Last update: --</div>
     
     <div class="footer">
@@ -431,11 +445,18 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     // Movement control
     let moveDistance = 1; // Default 1 inch
+    let forkDistance = 1; // Default 1 inch
     
     function setDistance(inches) {
       moveDistance = inches;
       document.getElementById('btn1in').classList.toggle('active', inches === 1);
       document.getElementById('btn3in').classList.toggle('active', inches === 3);
+    }
+    
+    function setForkDistance(inches) {
+      forkDistance = inches;
+      document.getElementById('btnFork1in').classList.toggle('active', inches === 1);
+      document.getElementById('btnFork3in').classList.toggle('active', inches === 3);
     }
     
     function moveX(direction) {
@@ -447,6 +468,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function moveY(direction) {
       const distance = direction * moveDistance;
       fetch('/api/move?axis=y&distance=' + distance)
+        .catch(error => console.error('Move error:', error));
+    }
+    
+    function moveFork(direction) {
+      const distance = direction * forkDistance;
+      fetch('/api/move?axis=fork&distance=' + distance)
         .catch(error => console.error('Move error:', error));
     }
     
@@ -499,6 +526,9 @@ void initializeMotors() {
     }
     if (motorY == nullptr) {
         motorY = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, STEPS_PER_INCH, Y_MAX_SPEED, Y_MAX_ACCEL);
+    }
+    if (motorFork == nullptr) {
+        motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
     }
 }
 
@@ -553,6 +583,10 @@ void initWebServer() {
                 motorY->moveInches(distance);
                 request->send(200, "text/plain", "OK");
                 Serial.printf("Web Request: Move Y by %.2f inches\n", distance);
+            } else if (axis == "fork" && motorFork) {
+                motorFork->moveInches(distance);
+                request->send(200, "text/plain", "OK");
+                Serial.printf("Web Request: Move Fork by %.2f inches\n", distance);
             } else {
                 request->send(400, "text/plain", "Invalid axis or motor not initialized");
             }
