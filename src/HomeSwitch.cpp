@@ -20,12 +20,22 @@ void HomeSwitch::begin() {
 }
 
 bool HomeSwitch::read() {
-    return digitalRead(pin);
+    // Debounce: if pin reads HIGH, wait 5ms and verify it's still HIGH
+    if (digitalRead(pin) == HIGH) {
+        delay(5);
+        return digitalRead(pin) == HIGH;
+    }
+    return false;
 }
 
 bool HomeSwitch::readDual() {
     if (!hasDualPins) return read();
-    return digitalRead(pin) && digitalRead(pin2);  // Both must be HIGH
+    // Debounce: if both pins read HIGH, wait 5ms and verify they're still HIGH
+    if (digitalRead(pin) == HIGH && digitalRead(pin2) == HIGH) {
+        delay(5);
+        return digitalRead(pin) == HIGH && digitalRead(pin2) == HIGH;
+    }
+    return false;
 }
 
 bool HomeSwitch::isTriggered() {
