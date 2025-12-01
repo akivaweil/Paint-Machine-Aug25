@@ -614,17 +614,20 @@ void initializeMotors() {
 void homeXAxis() {
     if (!motorX || !homeSwitchX) return;
     
-    // Move backward until home switch is triggered
-    while (!homeSwitchX->readDualDebounced()) {
-        motorX->moveInches(-0.1);
-        delay(10);
-        while (motorX->isMotorRunning()) {
-            delay(1);
-        }
+    // Set direction to move toward home (positive direction)
+    motorX->setDirection(true);
+    
+    // Start continuous movement toward home
+    motorX->startContinuous();
+    
+    // Keep moving until home switch is triggered
+    while (!homeSwitchX->readDual()) {
+        motorX->runContinuous();
+        delay(1);
     }
     
     // Stop and reset position
-    motorX->forceStop();
+    motorX->stopContinuous();
     motorX->resetPosition();
 }
 
@@ -633,7 +636,7 @@ void homeYAxis() {
     if (!motorY || !homeSwitchY) return;
     
     // Move backward until home switch is triggered
-    while (!homeSwitchY->readDebounced()) {
+    while (!homeSwitchY->read()) {
         motorY->moveInches(-0.1);
         delay(10);
         while (motorY->isMotorRunning()) {
@@ -651,7 +654,7 @@ void homeForkAxis() {
     if (!motorFork || !homeSwitchFork) return;
     
     // Move backward until home switch is triggered
-    while (!homeSwitchFork->readDebounced()) {
+    while (!homeSwitchFork->read()) {
         motorFork->moveInches(-0.1);
         delay(10);
         while (motorFork->isMotorRunning()) {
