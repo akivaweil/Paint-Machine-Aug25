@@ -27,22 +27,22 @@
 
 // X Motor Settings
 #define X_MAX_SPEED 2000            // Maximum speed for X motor (4x for homing at 1/4 speed)
-#define X_MAX_ACCEL 2000            // Maximum acceleration for X motor
+#define X_MAX_ACCEL 5000            // Maximum acceleration for X motor
 
 // Y Motor Settings
 #define Y_MAX_SPEED 2000            // Maximum speed for Y motor (4x for homing at 1/4 speed)
-#define Y_MAX_ACCEL 2000            // Maximum acceleration for Y motor
+#define Y_MAX_ACCEL 5000            // Maximum acceleration for Y motor
 
 // Fork Motor Settings
 #define FORK_MAX_SPEED 2000         // Maximum speed for Fork motor (4x for homing at 1/4 speed)
-#define FORK_MAX_ACCEL 2000         // Maximum acceleration for Fork motor
+#define FORK_MAX_ACCEL 5000         // Maximum acceleration for Fork motor
 
 // Storage motor speed and acceleration settings (in steps per second)
 #define STORAGE_MOTOR_SPEED 50              // Storage motor speed for normal operation
 #define STORAGE_MOTOR_ACCEL 200              // Storage motor acceleration for normal operation
 #define STORAGE_MOTOR_CONTINUOUS_SPEED 50   // Storage motor speed for continuous spinning
 // Safety settings
-#define MAX_TRAVEL_INCHES 40.0         // Maximum travel distance in inches
+#define MAX_TRAVEL_INCHES 150.0         // Maximum travel distance in inches
 #define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
 
 // Timing settings

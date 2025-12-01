@@ -10,12 +10,27 @@ extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;
 
+// OTA Manager function
+extern void updateOTA();
+
+// State machine function
+extern void setMachineState(int state);
+#define STATE_IDLE 1
+
 //* ************************************************************************
 //* ************************ HOMING STATE *********************************
 //* ************************************************************************
 
 void homingState() {
-    // State implementation will go here
+    static bool homingComplete = false;
+    
+    // Perform homing once on first entry
+    if (!homingComplete) {
+        homeAllAxes();
+        homingComplete = true;
+        // Transition to idle state after homing
+        setMachineState(STATE_IDLE);
+    }
 }
 
 // Helper function to home a single axis
@@ -34,6 +49,7 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     // Keep moving until home switch is triggered
     while (useDual ? !homeSwitch->readDual() : !homeSwitch->read()) {
         motor->runContinuous();
+        updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
     
@@ -44,6 +60,7 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     // Move 0.5 inches away from home
     motor->moveInches(-0.5);
     while (motor->isMotorRunning()) {
+        updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
     
@@ -120,6 +137,7 @@ void homeAllAxes() {
             forkHomed = true;
         }
         
+        updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
     
@@ -130,6 +148,7 @@ void homeAllAxes() {
     
     // Wait for all motors to finish
     while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
+        updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
     
