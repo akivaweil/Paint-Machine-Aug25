@@ -4,6 +4,7 @@
 #include "Web_Manager.h"
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
+#include "StateMachine/FUNCTIONS/StepperMotor.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -14,6 +15,15 @@ AsyncWebServer server(80);
 
 // Sensor pins initialized flag
 bool sensorsInitialized = false;
+
+// Motor instances
+StepperMotor* motorX = nullptr;
+StepperMotor* motorY = nullptr;
+
+// Move request variables
+volatile bool webMoveRequested = false;
+volatile float webMoveX = 0.0;
+volatile float webMoveY = 0.0;
 
 // Sensor Dashboard HTML
 const char sensors_html[] PROGMEM = R"rawliteral(
@@ -213,6 +223,111 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       text-align: center;
     }
     
+    .control-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-top: 30px;
+    }
+    
+    .control-panel h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .arrow-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    
+    .arrow-btn {
+      background: var(--card-border);
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    
+    .arrow-btn:hover {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      transform: scale(1.05);
+    }
+    
+    .arrow-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .arrow-btn.up {
+      grid-column: 2;
+    }
+    
+    .arrow-btn.down {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    
+    .arrow-btn.left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    
+    .arrow-btn.right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+    
+    .distance-selector {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .distance-btn {
+      background: var(--card-border);
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 20px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .distance-btn.active {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+    }
+    
+    .distance-btn:hover {
+      border-color: var(--accent-blue);
+    }
+    
+    .axis-label {
+      text-align: center;
+      margin-top: 15px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+    
     @media (max-width: 768px) {
       .sensor-grid {
         grid-template-columns: 1fr;
@@ -232,6 +347,22 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     <div class="sensor-grid" id="sensorGrid">
       <!-- Sensors will be populated by JavaScript -->
+    </div>
+    
+    <div class="control-panel">
+      <h2>Gantry Control</h2>
+      <div class="axis-label">Y Axis (Up/Down)</div>
+      <div class="arrow-controls">
+        <button class="arrow-btn up" id="btnUp" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">↑</button>
+        <button class="arrow-btn left" id="btnLeft" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">←</button>
+        <button class="arrow-btn right" id="btnRight" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">→</button>
+        <button class="arrow-btn down" id="btnDown" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">↓</button>
+      </div>
+      <div class="axis-label" style="margin-top: 20px;">X Axis (Left/Right)</div>
+      <div class="distance-selector">
+        <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1 inch</button>
+        <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3 inches</button>
+      </div>
     </div>
     
     <div class="last-update" id="lastUpdate">Last update: --</div>
@@ -297,6 +428,49 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     // Update immediately and then every 200ms
     updateSensors();
     setInterval(updateSensors, 200);
+    
+    // Movement control
+    let moveDistance = 1; // Default 1 inch
+    
+    function setDistance(inches) {
+      moveDistance = inches;
+      document.getElementById('btn1in').classList.toggle('active', inches === 1);
+      document.getElementById('btn3in').classList.toggle('active', inches === 3);
+    }
+    
+    function moveX(direction) {
+      const distance = direction * moveDistance;
+      fetch('/api/move?axis=x&distance=' + distance)
+        .catch(error => console.error('Move error:', error));
+    }
+    
+    function moveY(direction) {
+      const distance = direction * moveDistance;
+      fetch('/api/move?axis=y&distance=' + distance)
+        .catch(error => console.error('Move error:', error));
+    }
+    
+    function stopMove() {
+      // Movement stops when button is released
+      // The server handles the movement as a single command
+    }
+    
+    // Keyboard controls
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveY(-1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        moveY(1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        moveX(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        moveX(1);
+      }
+    });
   </script>
 </body>
 </html>
@@ -316,6 +490,16 @@ void initializeSensors() {
     pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
     
     sensorsInitialized = true;
+}
+
+// Initialize motors
+void initializeMotors() {
+    if (motorX == nullptr) {
+        motorX = new StepperMotor(X_STEP_PIN, X_DIR_PIN, X_STEPS_PER_INCH, X_MAX_SPEED, X_MAX_ACCEL);
+    }
+    if (motorY == nullptr) {
+        motorY = new StepperMotor(Y_STEP_PIN, Y_DIR_PIN, STEPS_PER_INCH, Y_MAX_SPEED, Y_MAX_ACCEL);
+    }
 }
 
 // Read sensor states
@@ -340,6 +524,9 @@ String getSensorStatesJSON() {
 void initWebServer() {
     // Initialize sensor pins
     initializeSensors();
+    
+    // Initialize motors
+    initializeMotors();
 
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -350,6 +537,28 @@ void initWebServer() {
     server.on("/api/sensors", HTTP_GET, [](AsyncWebServerRequest *request){
         String json = getSensorStatesJSON();
         request->send(200, "application/json", json);
+    });
+    
+    // API endpoint for movement
+    server.on("/api/move", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("axis") && request->hasParam("distance")) {
+            String axis = request->getParam("axis")->value();
+            float distance = request->getParam("distance")->value().toFloat();
+            
+            if (axis == "x" && motorX) {
+                motorX->moveInches(distance);
+                request->send(200, "text/plain", "OK");
+                Serial.printf("Web Request: Move X by %.2f inches\n", distance);
+            } else if (axis == "y" && motorY) {
+                motorY->moveInches(distance);
+                request->send(200, "text/plain", "OK");
+                Serial.printf("Web Request: Move Y by %.2f inches\n", distance);
+            } else {
+                request->send(400, "text/plain", "Invalid axis or motor not initialized");
+            }
+        } else {
+            request->send(400, "text/plain", "Missing parameters");
+        }
     });
 
     server.begin();
