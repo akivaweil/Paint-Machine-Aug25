@@ -4,6 +4,9 @@
 extern void initializeOTA();
 extern void updateOTA();
 
+// Web Manager functions (declared in Web_Manager.cpp)
+extern void initializeWebServer();
+
 // Setup function - called once at startup
 void setup() {
     // Initialize serial for debugging
@@ -12,6 +15,10 @@ void setup() {
 
     // Initialize OTA (WiFi connection)
     initializeOTA();
+    
+    // Initialize Web Server (waits for WiFi connection)
+    delay(2000); // Give WiFi time to connect
+    initializeWebServer();
 }
 
 // Loop function - called repeatedly

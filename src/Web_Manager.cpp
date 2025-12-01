@@ -4,6 +4,7 @@
 #include <Preferences.h>
 #include "Web_Manager.h"
 #include "config/Config.h"
+#include "config/Pin_Definitions.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -31,6 +32,9 @@ volatile float webPlaceX = 0.0;
 volatile float webPlaceY = 0.0;
 volatile float webPickForkDistance = 0.0;
 volatile float webPlaceForkDistance = 0.0;
+
+// Sensor pins initialized flag
+bool sensorsInitialized = false;
 
 // HTML Content
 const char index_html[] PROGMEM = R"rawliteral(
@@ -441,7 +445,332 @@ const char index_html[] PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
+// Sensor Dashboard HTML
+const char sensors_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Sensor Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0a0e1a;
+      --card-bg: #151b2e;
+      --card-border: #1e2a47;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      --border-radius: 12px;
+      --shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--bg-color) 0%, #0f172a 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px 0;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+    
+    .header p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+    
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .sensor-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .sensor-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-border);
+      transition: background 0.3s ease;
+    }
+    
+    .sensor-card.active::before {
+      background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+    
+    .sensor-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+      border-color: var(--accent-blue);
+    }
+    
+    .sensor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .sensor-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .sensor-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      transition: all 0.3s ease;
+      box-shadow: 0 0 0 0 rgba(148, 163, 184, 0.4);
+    }
+    
+    .sensor-card.active .status-indicator {
+      background: var(--accent-green);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.5);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1), 0 0 30px rgba(16, 185, 129, 0.7);
+      }
+    }
+    
+    .status-text {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .sensor-card.active .status-text {
+      color: var(--accent-green);
+    }
+    
+    .sensor-info {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--card-border);
+    }
+    
+    .sensor-info-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    
+    .sensor-info-label {
+      color: var(--text-secondary);
+    }
+    
+    .sensor-info-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    
+    .last-update {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .sensor-grid {
+        grid-template-columns: 1fr;
+      }
+      .header h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Sensor Dashboard</h1>
+      <p>Real-time Sensor Status Monitor</p>
+    </div>
+    
+    <div class="sensor-grid" id="sensorGrid">
+      <!-- Sensors will be populated by JavaScript -->
+    </div>
+    
+    <div class="last-update" id="lastUpdate">Last update: --</div>
+    
+    <div class="footer">
+      Paint Machine Control System
+    </div>
+  </div>
+  
+  <script>
+    const sensors = [
+      { id: 'xHome1', name: 'X Home Switch 1', pin: 'Pin 7' },
+      { id: 'xHome2', name: 'X Home Switch 2', pin: 'Pin 8' },
+      { id: 'yHome', name: 'Y Home Switch', pin: 'Pin 4' },
+      { id: 'forkHome', name: 'Fork Home Switch', pin: 'Pin 18' },
+      { id: 'testButton', name: 'Test Button', pin: 'Pin 38' }
+    ];
+    
+    function createSensorCard(sensor, state) {
+      const isActive = state === true || state === 1;
+      return `
+        <div class="sensor-card ${isActive ? 'active' : ''}" id="card-${sensor.id}">
+          <div class="sensor-header">
+            <div class="sensor-name">${sensor.name}</div>
+            <div class="sensor-status">
+              <div class="status-indicator"></div>
+              <span class="status-text">${isActive ? 'TRIGGERED' : 'IDLE'}</span>
+            </div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-info-item">
+              <span class="sensor-info-label">Pin:</span>
+              <span class="sensor-info-value">${sensor.pin}</span>
+            </div>
+            <div class="sensor-info-item">
+              <span class="sensor-info-label">State:</span>
+              <span class="sensor-info-value">${isActive ? 'HIGH' : 'LOW'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function updateSensors() {
+      fetch('/api/sensors')
+        .then(response => response.json())
+        .then(data => {
+          const grid = document.getElementById('sensorGrid');
+          grid.innerHTML = sensors.map(sensor => {
+            const state = data[sensor.id];
+            return createSensorCard(sensor, state);
+          }).join('');
+          
+          const now = new Date();
+          document.getElementById('lastUpdate').textContent = 
+            `Last update: ${now.toLocaleTimeString()}`;
+        })
+        .catch(error => {
+          console.error('Error fetching sensor data:', error);
+        });
+    }
+    
+    // Update immediately and then every 200ms
+    updateSensors();
+    setInterval(updateSensors, 200);
+  </script>
+</body>
+</html>
+)rawliteral";
+
+// Initialize sensor pins
+void initializeSensors() {
+    if (sensorsInitialized) return;
+    
+    // Initialize home switches (Active HIGH with pulldown)
+    pinMode(X_HOME_PIN, INPUT_PULLDOWN);
+    pinMode(X_HOME_PIN2, INPUT_PULLDOWN);
+    pinMode(Y_HOME_PIN, INPUT_PULLDOWN);
+    pinMode(FORK_HOME_PIN, INPUT_PULLDOWN);
+    
+    // Initialize test button (assuming active LOW with pullup, adjust if needed)
+    pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
+    
+    sensorsInitialized = true;
+}
+
+// Read sensor states
+String getSensorStatesJSON() {
+    bool xHome1 = digitalRead(X_HOME_PIN);
+    bool xHome2 = digitalRead(X_HOME_PIN2);
+    bool yHome = digitalRead(Y_HOME_PIN);
+    bool forkHome = digitalRead(FORK_HOME_PIN);
+    bool testButton = !digitalRead(TEST_BUTTON_PIN); // Inverted for pullup
+    
+    String json = "{";
+    json += "\"xHome1\":" + String(xHome1 ? "true" : "false") + ",";
+    json += "\"xHome2\":" + String(xHome2 ? "true" : "false") + ",";
+    json += "\"yHome\":" + String(yHome ? "true" : "false") + ",";
+    json += "\"forkHome\":" + String(forkHome ? "true" : "false") + ",";
+    json += "\"testButton\":" + String(testButton ? "true" : "false");
+    json += "}";
+    
+    return json;
+}
+
 void initWebServer() {
+    // Initialize sensor pins
+    initializeSensors();
+    
     // Initialize Preferences
     preferences.begin("paint-config", false);
     
@@ -460,6 +789,17 @@ void initWebServer() {
     // Route for root / web page
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send_P(200, "text/html", index_html);
+    });
+    
+    // Route for sensor dashboard
+    server.on("/sensors", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send_P(200, "text/html", sensors_html);
+    });
+    
+    // API endpoint for sensor states
+    server.on("/api/sensors", HTTP_GET, [](AsyncWebServerRequest *request){
+        String json = getSensorStatesJSON();
+        request->send(200, "application/json", json);
     });
 
     // Route to get current config as JSON
@@ -539,6 +879,15 @@ void initWebServer() {
 
     server.begin();
     Serial.println("Web Server initialized");
+    Serial.println("Sensor Dashboard available at /sensors");
+}
+
+void initializeWebServer() {
+    initWebServer();
+}
+
+void updateWebServer() {
+    // Web server handles requests asynchronously, no update needed
 }
 
 bool isWebMoveRequested() {
