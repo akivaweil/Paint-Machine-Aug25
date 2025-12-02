@@ -140,7 +140,7 @@ void homeAllAxes() {
     // Move all axes 0.5 inches away from home simultaneously
     motorX->moveInches(-0.5);
     motorY->moveInches(-0.5);
-    motorFork->moveInches(-0.5);
+    motorFork->moveInches(-0.2);
     
     // Wait for all motors to finish
     while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
