@@ -118,22 +118,29 @@ const char sensors_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>Sensor Dashboard</title>
+  <title>Paint Machine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0a0e1a;
-      --card-bg: #151b2e;
-      --card-border: #1e2a47;
-      --text-primary: #e2e8f0;
-      --text-secondary: #94a3b8;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-red: #ef4444;
-      --accent-yellow: #f59e0b;
-      --border-radius: 12px;
-      --shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+      --bg-deep: #0d0d0d;
+      --bg-surface: #161616;
+      --bg-elevated: #1f1f1f;
+      --bg-card: #252525;
+      --border-subtle: #333;
+      --border-accent: #444;
+      --text-primary: #fafafa;
+      --text-secondary: #888;
+      --text-muted: #555;
+      --accent-primary: #ff6b35;
+      --accent-secondary: #00d4aa;
+      --accent-warning: #ffcc00;
+      --accent-danger: #ff4757;
+      --accent-glow: rgba(255, 107, 53, 0.4);
+      --accent-green-glow: rgba(0, 212, 170, 0.4);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
     }
     
     * {
@@ -143,191 +150,279 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     body {
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, var(--bg-color) 0%, #0f172a 100%);
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-deep);
       color: var(--text-primary);
       min-height: 100vh;
-      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 107, 53, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0, 212, 170, 0.05) 0%, transparent 40%),
+        repeating-linear-gradient(0deg, transparent, transparent 100px, rgba(255,255,255,0.01) 100px, rgba(255,255,255,0.01) 101px);
+      pointer-events: none;
+      z-index: 0;
     }
     
     .container {
-      max-width: 1200px;
+      max-width: 1100px;
       margin: 0 auto;
+      padding: 30px 20px;
+      position: relative;
+      z-index: 1;
     }
     
     .header {
       text-align: center;
-      margin-bottom: 40px;
-      padding: 30px 0;
+      margin-bottom: 50px;
+      padding: 20px 0;
+      position: relative;
+    }
+    
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
     }
     
     .header h1 {
-      font-size: 2.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.2rem;
       font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-green) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 10px;
-      letter-spacing: 2px;
+      color: var(--text-primary);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    
+    .header h1 span {
+      color: var(--accent-primary);
     }
     
     .header p {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    
+    .main-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+    
+    .sensor-panel {
+      position: sticky;
+      top: 30px;
+    }
+    
+    .panel-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-left: 4px;
     }
     
     .sensor-grid {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 30px;
-      width: 20%;
-      min-width: 180px;
-      align-self: flex-start;
+      gap: 8px;
     }
     
     .sensor-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      transition: all 0.3s ease;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
-      width: 100%;
     }
     
     .sensor-card::before {
       content: '';
       position: absolute;
-      top: 0;
       left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--card-border);
-      transition: background 0.3s ease;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--border-subtle);
+      transition: all 0.25s ease;
+    }
+    
+    .sensor-card.active {
+      border-color: var(--accent-secondary);
+      background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(0, 212, 170, 0.05) 100%);
     }
     
     .sensor-card.active::before {
-      background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-blue) 100%);
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-    }
-    
-    .sensor-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-      border-color: var(--accent-blue);
+      background: var(--accent-secondary);
+      box-shadow: 0 0 12px var(--accent-green-glow);
     }
     
     .sensor-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
     }
     
     .sensor-name {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .sensor-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .status-indicator {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--text-secondary);
-      transition: all 0.3s ease;
-      box-shadow: 0 0 0 0 rgba(148, 163, 184, 0.4);
-    }
-    
-    .sensor-card.active .status-indicator {
-      background: var(--accent-green);
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.5);
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% {
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.5);
-      }
-      50% {
-        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1), 0 0 30px rgba(16, 185, 129, 0.7);
-      }
-    }
-    
-    .status-text {
-      font-size: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
       font-weight: 500;
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
-    .sensor-card.active .status-text {
-      color: var(--accent-green);
+    .sensor-card.active .sensor-name {
+      color: var(--text-primary);
     }
     
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      padding: 20px;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: all 0.25s ease;
     }
     
-    .last-update {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      margin-top: 20px;
-      text-align: center;
+    .sensor-card.active .status-indicator {
+      background: var(--accent-secondary);
+      box-shadow: 0 0 8px var(--accent-green-glow), 0 0 16px var(--accent-green-glow);
+      animation: glow 1.5s ease-in-out infinite alternate;
     }
     
-    .control-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--border-radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      margin-top: 30px;
+    @keyframes glow {
+      from { box-shadow: 0 0 8px var(--accent-green-glow), 0 0 16px var(--accent-green-glow); }
+      to { box-shadow: 0 0 12px var(--accent-green-glow), 0 0 24px var(--accent-green-glow); }
     }
     
-    .control-panel h2 {
-      font-size: 1.2rem;
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #ff8f5a 100%);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    
+    .card-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 20px;
-      text-transform: uppercase;
       letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    
+    .card-body {
+      padding: 24px;
+    }
+    
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    
+    .control-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .control-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    
+    .position-display {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .pos-item {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    
+    .pos-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    
+    .pos-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent-primary);
     }
     
     .arrow-controls {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      max-width: 300px;
-      margin: 0 auto;
+      grid-template-columns: repeat(3, 48px);
+      grid-template-rows: repeat(2, 48px);
+      gap: 6px;
     }
     
     .arrow-btn {
-      background: var(--card-border);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 20px;
-      font-size: 1.5rem;
-      color: var(--text-primary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-size: 1.2rem;
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -335,128 +430,93 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     .arrow-btn:hover {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: var(--text-primary);
       transform: scale(1.05);
+      box-shadow: 0 4px 20px var(--accent-glow);
     }
     
     .arrow-btn:active {
       transform: scale(0.95);
     }
     
-    .arrow-btn.up {
-      grid-column: 2;
-    }
-    
-    .arrow-btn.down {
-      grid-column: 2;
-      grid-row: 2;
-    }
-    
-    .arrow-btn.left {
-      grid-column: 1;
-      grid-row: 2;
-    }
-    
-    .arrow-btn.right {
-      grid-column: 3;
-      grid-row: 2;
-    }
+    .arrow-btn.up { grid-column: 2; }
+    .arrow-btn.down { grid-column: 2; grid-row: 2; }
+    .arrow-btn.left { grid-column: 1; grid-row: 2; }
+    .arrow-btn.right { grid-column: 3; grid-row: 2; }
     
     .distance-selector {
       display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 20px;
+      gap: 8px;
+      margin-top: 16px;
     }
     
     .distance-btn {
-      background: var(--card-border);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 10px 20px;
-      color: var(--text-primary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.9rem;
+      transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
       font-weight: 500;
     }
     
     .distance-btn.active {
-      background: var(--accent-green);
-      border-color: var(--accent-green);
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+      color: var(--bg-deep);
     }
     
-    .distance-btn:hover {
-      border-color: var(--accent-blue);
-    }
-    
-    .axis-label {
-      text-align: center;
-      margin-top: 15px;
-      color: var(--text-secondary);
-      font-size: 0.85rem;
+    .distance-btn:hover:not(.active) {
+      border-color: var(--accent-secondary);
+      color: var(--accent-secondary);
     }
     
     .home-buttons {
       display: flex;
       gap: 10px;
       justify-content: center;
-      margin-top: 20px;
-      flex-wrap: wrap;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: 24px;
     }
     
     .home-btn {
-      background: var(--card-border);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 12px 20px;
-      color: var(--text-primary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.9rem;
+      transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
       font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
     
     .home-btn:hover {
-      background: var(--accent-yellow);
-      border-color: var(--accent-yellow);
-      transform: scale(1.05);
-    }
-    
-    .home-btn:active {
-      transform: scale(0.95);
+      background: var(--accent-warning);
+      border-color: var(--accent-warning);
+      color: var(--bg-deep);
+      transform: translateY(-2px);
     }
     
     .home-btn.all {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: white;
     }
     
     .home-btn.all:hover {
-      background: var(--accent-green);
-      border-color: var(--accent-green);
-    }
-    
-    .test-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--border-radius);
-      padding: 0;
-      box-shadow: var(--shadow);
-      margin-top: 30px;
-      overflow: hidden;
-    }
-    
-    .test-panel h2 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+      box-shadow: 0 4px 20px var(--accent-green-glow);
     }
     
     .collapsible-header {
@@ -465,24 +525,29 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       justify-content: space-between;
       cursor: pointer;
       user-select: none;
-      padding: 12px 24px;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 0;
-      transition: color 0.2s ease;
+      padding: 16px 20px;
+      border-bottom: 1px solid transparent;
+      transition: all 0.2s ease;
     }
     
     .collapsible-header:hover {
-      color: var(--accent-blue);
+      background: var(--bg-elevated);
     }
     
-    .collapsible-header h2 {
-      margin-bottom: 0;
+    .collapsible-header.active {
+      border-bottom-color: var(--border-subtle);
+    }
+    
+    .collapsible-header .card-header-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     
     .chevron {
       transition: transform 0.3s ease;
-      font-size: 1rem;
-      color: var(--text-secondary);
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
     
     .collapsible-header.active .chevron {
@@ -492,34 +557,36 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     .collapsible-content {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease, padding 0.3s ease;
-      padding: 0 24px;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .collapsible-content.expanded {
-      max-height: 2000px;
-      padding: 24px;
+      max-height: 1000px;
     }
     
     .position-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 30px;
+      gap: 20px;
       margin-bottom: 20px;
     }
     
     .position-inputs {
-      background: var(--card-border);
-      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
       padding: 16px;
     }
     
     .position-inputs h3 {
-      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
       font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 12px;
+      color: var(--accent-primary);
+      margin-bottom: 14px;
       text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
     
     .input-row {
@@ -529,9 +596,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       margin-bottom: 10px;
     }
     
+    .input-row:last-child {
+      margin-bottom: 0;
+    }
+    
     .input-row label {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
       min-width: 50px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -539,51 +611,108 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .input-row input {
       flex: 1;
-      background: var(--bg-color);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 8px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
       color: var(--text-primary);
-      font-size: 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
     }
     
     .input-row input:focus {
       outline: none;
-      border-color: var(--accent-blue);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
     
-    .test-btn {
-      background: var(--accent-green);
-      border: 2px solid var(--accent-green);
-      border-radius: 8px;
+    .action-btn {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #ff8f5a 100%);
+      border: none;
+      border-radius: var(--radius-md);
       padding: 14px 30px;
-      color: var(--text-primary);
+      color: white;
       cursor: pointer;
       transition: all 0.2s ease;
-      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       width: 100%;
-      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
     }
     
-    .test-btn:hover {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
-      transform: scale(1.02);
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
     }
     
-    .test-btn:active {
-      transform: scale(0.98);
+    .action-btn:hover::before {
+      left: 100%;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+    
+    .action-btn:active {
+      transform: translateY(0);
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+    }
+    
+    .footer-text {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    
+    .last-update {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      text-align: center;
+      margin-top: 16px;
+      letter-spacing: 1px;
     }
     
     @media (max-width: 768px) {
-      .sensor-grid {
+      .main-layout {
         grid-template-columns: 1fr;
       }
-      .header h1 {
-        font-size: 2rem;
+      .sensor-panel {
+        position: static;
+      }
+      .sensor-grid {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .sensor-card {
+        flex: 1;
+        min-width: 120px;
+      }
+      .controls-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .position-group {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -591,157 +720,187 @@ const char sensors_html[] PROGMEM = R"rawliteral(
 <body>
   <div class="container">
     <div class="header">
-      <h1>Sensor Dashboard</h1>
-      <p>Real-time Sensor Status Monitor</p>
+      <h1>Paint<span>Machine</span></h1>
+      <p>Control Interface</p>
     </div>
     
-    <div class="sensor-grid" id="sensorGrid">
-      <!-- Sensors will be populated by JavaScript -->
+    <div class="main-layout">
+      <div class="sensor-panel">
+        <div class="panel-label">Sensors</div>
+        <div class="sensor-grid" id="sensorGrid">
+          <!-- Sensors populated by JS -->
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">⎈</div>
+            <span class="card-title">Manual Controls</span>
+          </div>
+          <div class="card-body">
+            <div class="controls-grid">
+              <div class="control-section">
+                <div class="control-label">Gantry X/Y</div>
+                <div class="position-display">
+                  <div class="pos-item">
+                    <span class="pos-label">X</span>
+                    <span class="pos-value" id="posX">0.00"</span>
+                  </div>
+                  <div class="pos-item">
+                    <span class="pos-label">Y</span>
+                    <span class="pos-value" id="posY">0.00"</span>
+                  </div>
+                </div>
+                <div class="arrow-controls">
+                  <button class="arrow-btn up" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">↑</button>
+                  <button class="arrow-btn left" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">←</button>
+                  <button class="arrow-btn right" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">→</button>
+                  <button class="arrow-btn down" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">↓</button>
+                </div>
+                <div class="distance-selector">
+                  <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1"</button>
+                  <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3"</button>
+                </div>
+              </div>
+              <div class="control-section">
+                <div class="control-label">Fork</div>
+                <div class="position-display">
+                  <div class="pos-item">
+                    <span class="pos-label">Z</span>
+                    <span class="pos-value" id="posFork">0.00"</span>
+                  </div>
+                </div>
+                <div class="arrow-controls" style="grid-template-columns: 48px;">
+                  <button class="arrow-btn up" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">↑</button>
+                  <button class="arrow-btn down" style="grid-column: 1;" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">↓</button>
+                </div>
+                <div class="distance-selector">
+                  <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1"</button>
+                  <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
+                </div>
+              </div>
+            </div>
+            <div class="home-buttons">
+              <button class="home-btn" onclick="homeAxis('x')">Home X</button>
+              <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
+              <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
+              <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">⚡</div>
+            <span class="card-title">Test Sequence</span>
+          </div>
+          <div class="card-body">
+            <div class="position-group">
+              <div class="position-inputs">
+                <h3>Position 1</h3>
+                <div class="input-row">
+                  <label>X:</label>
+                  <input type="number" id="pos1X" step="0.1" value="0" placeholder="0.0">
+                </div>
+                <div class="input-row">
+                  <label>Y:</label>
+                  <input type="number" id="pos1Y" step="0.1" value="0" placeholder="0.0">
+                </div>
+                <div class="input-row">
+                  <label>Fork:</label>
+                  <input type="number" id="pos1Fork" step="0.1" value="0" placeholder="0.0">
+                </div>
+              </div>
+              <div class="position-inputs">
+                <h3>Position 2</h3>
+                <div class="input-row">
+                  <label>X:</label>
+                  <input type="number" id="pos2X" step="0.1" value="0" placeholder="0.0">
+                </div>
+                <div class="input-row">
+                  <label>Y:</label>
+                  <input type="number" id="pos2Y" step="0.1" value="0" placeholder="0.0">
+                </div>
+                <div class="input-row">
+                  <label>Fork:</label>
+                  <input type="number" id="pos2Fork" step="0.1" value="0" placeholder="0.0">
+                </div>
+              </div>
+            </div>
+            <button class="action-btn" onclick="startTest()">Run Test</button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="collapsible-header" onclick="toggleMotorSettings()">
+            <div class="card-header-content">
+              <div class="card-icon" style="background: linear-gradient(135deg, #666 0%, #888 100%);">⚙</div>
+              <span class="card-title">Motor Settings</span>
+            </div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="collapsible-content" id="motorSettingsContent">
+            <div class="card-body">
+              <div class="position-group">
+                <div class="position-inputs">
+                  <h3>X Motor</h3>
+                  <div class="input-row">
+                    <label>Speed:</label>
+                    <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
+                  </div>
+                  <div class="input-row">
+                    <label>Accel:</label>
+                    <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
+                  </div>
+                </div>
+                <div class="position-inputs">
+                  <h3>Y Motor</h3>
+                  <div class="input-row">
+                    <label>Speed:</label>
+                    <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
+                  </div>
+                  <div class="input-row">
+                    <label>Accel:</label>
+                    <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
+                  </div>
+                </div>
+              </div>
+              <div class="position-group">
+                <div class="position-inputs">
+                  <h3>Fork Motor</h3>
+                  <div class="input-row">
+                    <label>Speed:</label>
+                    <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
+                  </div>
+                  <div class="input-row">
+                    <label>Accel:</label>
+                    <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
+                  </div>
+                </div>
+                <div style="opacity: 0; pointer-events: none;"></div>
+              </div>
+              <button class="action-btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);" onclick="saveMotorSettings()">Save Settings</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="last-update" id="lastUpdate">Last update: --</div>
+      </div>
     </div>
-    
-    <div class="control-panel">
-      <h2>Manual Controls</h2>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
-        <div>
-          <div class="axis-label">Gantry (X/Y)</div>
-          <div style="text-align: center; margin-bottom: 10px; color: var(--text-secondary); font-size: 0.9rem;">
-            <div>X: <span id="posX" style="color: var(--accent-blue); font-weight: 600;">0.00"</span></div>
-            <div>Y: <span id="posY" style="color: var(--accent-blue); font-weight: 600;">0.00"</span></div>
-          </div>
-          <div class="arrow-controls" style="max-width: 250px;">
-            <button class="arrow-btn up" id="btnUp" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">&uarr;</button>
-            <button class="arrow-btn left" id="btnLeft" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">&larr;</button>
-            <button class="arrow-btn right" id="btnRight" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">&rarr;</button>
-            <button class="arrow-btn down" id="btnDown" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">&darr;</button>
-          </div>
-          <div class="distance-selector" style="margin-top: 15px;">
-            <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1"</button>
-            <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3"</button>
-          </div>
-        </div>
-        <div>
-          <div class="axis-label">Fork</div>
-          <div style="text-align: center; margin-bottom: 10px; color: var(--text-secondary); font-size: 0.9rem;">
-            <div>Fork: <span id="posFork" style="color: var(--accent-blue); font-weight: 600;">0.00"</span></div>
-          </div>
-          <div class="arrow-controls" style="max-width: 150px;">
-            <button class="arrow-btn up" id="btnForkUp" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
-            <button class="arrow-btn down" id="btnForkDown" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
-          </div>
-          <div class="distance-selector" style="margin-top: 15px;">
-            <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1"</button>
-            <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
-          </div>
-        </div>
-      </div>
-      <div class="home-buttons">
-        <button class="home-btn" onclick="homeAxis('x')">Home X</button>
-        <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
-        <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
-        <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
-      </div>
-    </div>
-    
-    <div class="test-panel">
-      <h2>Test Sequence</h2>
-      <div class="position-group">
-        <div class="position-inputs">
-          <h3>Position 1</h3>
-          <div class="input-row">
-            <label>X:</label>
-            <input type="number" id="pos1X" step="0.1" value="0" placeholder="0.0">
-          </div>
-          <div class="input-row">
-            <label>Y:</label>
-            <input type="number" id="pos1Y" step="0.1" value="0" placeholder="0.0">
-          </div>
-          <div class="input-row">
-            <label>Fork:</label>
-            <input type="number" id="pos1Fork" step="0.1" value="0" placeholder="0.0">
-          </div>
-        </div>
-        <div class="position-inputs">
-          <h3>Position 2</h3>
-          <div class="input-row">
-            <label>X:</label>
-            <input type="number" id="pos2X" step="0.1" value="0" placeholder="0.0">
-          </div>
-          <div class="input-row">
-            <label>Y:</label>
-            <input type="number" id="pos2Y" step="0.1" value="0" placeholder="0.0">
-          </div>
-          <div class="input-row">
-            <label>Fork:</label>
-            <input type="number" id="pos2Fork" step="0.1" value="0" placeholder="0.0">
-          </div>
-        </div>
-      </div>
-      <button class="test-btn" onclick="startTest()">Start Test</button>
-    </div>
-    
-    <div class="test-panel">
-      <div class="collapsible-header" onclick="toggleMotorSettings()">
-        <h2>Motor Settings</h2>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="collapsible-content" id="motorSettingsContent">
-        <div class="position-group">
-          <div class="position-inputs">
-            <h3>X Motor</h3>
-            <div class="input-row">
-              <label>Speed:</label>
-              <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
-            </div>
-            <div class="input-row">
-              <label>Accel:</label>
-              <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
-            </div>
-          </div>
-          <div class="position-inputs">
-            <h3>Y Motor</h3>
-            <div class="input-row">
-              <label>Speed:</label>
-              <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
-            </div>
-            <div class="input-row">
-              <label>Accel:</label>
-              <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
-            </div>
-          </div>
-        </div>
-        <div class="position-group" style="margin-top: 10px;">
-          <div class="position-inputs">
-            <h3>Fork Motor</h3>
-            <div class="input-row">
-              <label>Speed:</label>
-              <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
-            </div>
-            <div class="input-row">
-              <label>Accel:</label>
-              <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
-            </div>
-          </div>
-          <div class="position-inputs" style="opacity: 0; pointer-events: none;">
-          </div>
-        </div>
-        <button class="test-btn" onclick="saveMotorSettings()">Save Motor Settings</button>
-      </div>
-    </div>
-    
-    <div class="last-update" id="lastUpdate">Last update: --</div>
     
     <div class="footer">
-      Paint Machine Control System
+      <div class="footer-text">Paint Machine Control System</div>
     </div>
   </div>
   
   <script>
     const sensors = [
-      { id: 'xHome1', name: 'X Home Switch 1', pin: 'Pin 7' },
-      { id: 'xHome2', name: 'X Home Switch 2', pin: 'Pin 6' },
-      { id: 'yHome', name: 'Y Home Switch', pin: 'Pin 4' },
-      { id: 'forkHome', name: 'Fork Home Switch', pin: 'Pin 18' },
-      { id: 'testButton', name: 'Test Button', pin: 'Pin 38' }
+      { id: 'xHome1', name: 'X Home 1' },
+      { id: 'xHome2', name: 'X Home 2' },
+      { id: 'yHome', name: 'Y Home' },
+      { id: 'forkHome', name: 'Fork Home' },
+      { id: 'testButton', name: 'Test Btn' }
     ];
     
     function createSensorCard(sensor, state) {
@@ -749,11 +908,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       return `
         <div class="sensor-card ${isActive ? 'active' : ''}" id="card-${sensor.id}">
           <div class="sensor-header">
-            <div class="sensor-name">${sensor.name}</div>
-            <div class="sensor-status">
-              <div class="status-indicator"></div>
-              <span class="status-text">${isActive ? 'TRIGGERED' : 'IDLE'}</span>
-            </div>
+            <span class="sensor-name">${sensor.name}</span>
+            <div class="status-indicator"></div>
           </div>
         </div>
       `;
