@@ -89,9 +89,9 @@ void homeAllAxes() {
     bool forkHomed = false;
     
     // Set homing speeds to 1/4 of max speeds
-    motorX->setSpeed(X_MAX_SPEED / 6);
-    motorY->setSpeed(Y_MAX_SPEED / 6);
-    motorFork->setSpeed(FORK_MAX_SPEED / 6);
+    motorX->setSpeed(X_MAX_SPEED / 10);
+    motorY->setSpeed(Y_MAX_SPEED / 10);
+    motorFork->setSpeed(FORK_MAX_SPEED / 10);
     
     // Start continuous movement for all axes toward home (positive direction)
     motorX->startContinuous(true);

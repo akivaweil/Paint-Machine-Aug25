@@ -1151,15 +1151,15 @@ void initializeWebServer() {
         
         if (motorX) {
             long steps = motorX->getCurrentPosition();
-            posX = motorX->stepsToInches(steps);
+            posX = -motorX->stepsToInches(steps);  // Flip sign
         }
         if (motorY) {
             long steps = motorY->getCurrentPosition();
-            posY = motorY->stepsToInches(steps);
+            posY = -motorY->stepsToInches(steps);  // Flip sign
         }
         if (motorFork) {
             long steps = motorFork->getCurrentPosition();
-            posFork = motorFork->stepsToInches(steps);
+            posFork = -motorFork->stepsToInches(steps);  // Flip sign
         }
         
         String json = "{";
