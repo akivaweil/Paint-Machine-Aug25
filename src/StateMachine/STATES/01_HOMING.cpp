@@ -83,32 +83,34 @@ void homeForkAxis() {
 void homeAllAxes() {
     if (!motorX || !homeSwitchX || !motorY || !homeSwitchY || !motorFork || !homeSwitchFork) return;
     
+    //! ************************************************************************
+    //! STEP 1: HOME FORK FIRST
+    //! ************************************************************************
+    homeForkAxis();
+    
+    //! ************************************************************************
+    //! STEP 2: HOME X AND Y AXES SIMULTANEOUSLY
+    //! ************************************************************************
     // Track which axes are still homing
     bool xHomed = false;
     bool yHomed = false;
-    bool forkHomed = false;
     
     // Set homing speeds to 700
     motorX->setSpeed(700);
     motorY->setSpeed(700);
-    motorFork->setSpeed(700);
     
-    // Start continuous movement for all axes toward home (positive direction)
+    // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
     motorY->startContinuous(true);
-    motorFork->startContinuous(true);
     
-    // Keep moving until all home switches are triggered
-    while (!xHomed || !yHomed || !forkHomed) {
-        // Run all motors continuously
+    // Keep moving until both home switches are triggered
+    while (!xHomed || !yHomed) {
+        // Run both motors continuously
         if (!xHomed) {
             motorX->runContinuous();
         }
         if (!yHomed) {
             motorY->runContinuous();
-        }
-        if (!forkHomed) {
-            motorFork->runContinuous();
         }
         
         // Check switches and stop motors when triggered
@@ -120,34 +122,27 @@ void homeAllAxes() {
             motorY->stopContinuous();
             yHomed = true;
         }
-        if (!forkHomed && homeSwitchFork->read()) {
-            motorFork->stopContinuous();
-            forkHomed = true;
-        }
         
         updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
     
-    // Move all axes 0.5 inches away from home simultaneously
+    // Move X and Y axes 0.5 inches away from home simultaneously
     motorX->moveInches(-0.5);
     motorY->moveInches(-0.5);
-    motorFork->moveInches(-0.2);
     
-    // Wait for all motors to finish
-    while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
+    // Wait for both motors to finish
+    while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
         updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
     
-    // Set home offset as position zero for all axes
+    // Set home offset as position zero for X and Y axes
     motorX->resetPosition();
     motorY->resetPosition();
-    motorFork->resetPosition();
     
     // Restore full speeds for normal operations
     motorX->setSpeed(X_MAX_SPEED);
     motorY->setSpeed(Y_MAX_SPEED);
-    motorFork->setSpeed(FORK_MAX_SPEED);
 }
 
