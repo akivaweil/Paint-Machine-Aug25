@@ -69,10 +69,10 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: EXTEND FORK AT POSITION 1
+    //! STEP 2: EXTEND FORK MOTOR AT POSITION 1
     //! ************************************************************************
     else if (step == 1) {
-        // Get current fork position
+        // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
@@ -83,7 +83,7 @@ void testState() {
         
         motorFork->moveInches(moveFork);
         
-        // Wait for fork to finish extending
+        // Wait for fork motor to finish extending
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -106,12 +106,12 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: RETRACT FORK AT POSITION 1
+    //! STEP 4: RETRACT FORK MOTOR AT POSITION 1
     //! ************************************************************************
     else if (step == 3) {
         motorFork->moveInches(testPos1Fork);
         
-        // Wait for fork to finish retracting
+        // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -148,10 +148,10 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 6: EXTEND FORK AT POSITION 2
+    //! STEP 6: EXTEND FORK MOTOR AT POSITION 2
     //! ************************************************************************
     else if (step == 5) {
-        // Get current fork position
+        // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
@@ -162,7 +162,7 @@ void testState() {
         
         motorFork->moveInches(moveFork);
         
-        // Wait for fork to finish extending
+        // Wait for fork motor to finish extending
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -185,12 +185,12 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 8: RETRACT FORK AT POSITION 2
+    //! STEP 8: RETRACT FORK MOTOR AT POSITION 2
     //! ************************************************************************
     else if (step == 7) {
         motorFork->moveInches(testPos2Fork);
         
-        // Wait for fork to finish retracting
+        // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -227,10 +227,10 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 10: EXTEND FORK AT POSITION 3
+    //! STEP 10: EXTEND FORK MOTOR AT POSITION 3
     //! ************************************************************************
     else if (step == 9) {
-        // Get current fork position
+        // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
@@ -241,7 +241,7 @@ void testState() {
         
         motorFork->moveInches(moveFork);
         
-        // Wait for fork to finish extending
+        // Wait for fork motor to finish extending
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -264,15 +264,15 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 12: RETRACT FORK AT POSITION 3
+    //! STEP 12: RETRACT FORK MOTOR AT POSITION 3
     //! ************************************************************************
     else if (step == 11) {
-        // Get current fork position and retract to home
+        // Get current fork motor position and retract to home
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         motorFork->moveInches(-currentFork);
         
-        // Wait for fork to finish retracting
+        // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -309,10 +309,10 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 14: EXTEND FORK AT POSITION 4
+    //! STEP 14: EXTEND FORK MOTOR AT POSITION 4
     //! ************************************************************************
     else if (step == 13) {
-        // Get current fork position
+        // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
@@ -323,7 +323,7 @@ void testState() {
         
         motorFork->moveInches(moveFork);
         
-        // Wait for fork to finish extending
+        // Wait for fork motor to finish extending
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -346,12 +346,12 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 16: RETRACT FORK AT POSITION 4
+    //! STEP 16: RETRACT FORK MOTOR AT POSITION 4
     //! ************************************************************************
     else if (step == 15) {
         motorFork->moveInches(testPos1Fork);
         
-        // Wait for fork to finish retracting
+        // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -378,14 +378,14 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 18: RETURN Y AND FORK TO HOME POSITION
+    //! STEP 18: RETURN Y AND FORK MOTOR TO HOME POSITION
     //! ************************************************************************
     else if (step == 17) {
         // Get current positions
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
-        // Move Y and fork back to home (0, 0)
+        // Move Y and fork motor back to home (0, 0)
         motorY->moveInches(-currentY);
         motorFork->moveInches(-currentFork);
         

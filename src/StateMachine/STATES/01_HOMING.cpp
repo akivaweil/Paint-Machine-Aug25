@@ -53,8 +53,8 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     // Stop motor
     motor->stopContinuous();
     
-    // Move 0.5 inches away from home
-    motor->moveInches(-0.5);
+    // Move 0.2 inches away from home
+    motor->moveInches(-0.2);
     while (motor->isMotorRunning()) {
         updateOTA(); // Allow OTA updates during homing
         delay(1);
@@ -74,7 +74,7 @@ void homeYAxis() {
     homeSingleAxis(motorY, homeSwitchY, false, Y_MAX_SPEED);
 }
 
-// Home Fork axis
+// Home Fork Motor axis
 void homeForkAxis() {
     homeSingleAxis(motorFork, homeSwitchFork, false, FORK_MAX_SPEED);
 }
@@ -84,7 +84,7 @@ void homeAllAxes() {
     if (!motorX || !homeSwitchX || !motorY || !homeSwitchY || !motorFork || !homeSwitchFork) return;
     
     //! ************************************************************************
-    //! STEP 1: HOME FORK FIRST
+    //! STEP 1: HOME FORK MOTOR FIRST
     //! ************************************************************************
     homeForkAxis();
     

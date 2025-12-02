@@ -766,7 +766,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
               <div class="control-section">
-                <div class="control-label">Fork</div>
+                <div class="control-label">Fork Motor</div>
                 <div class="position-display">
                   <div class="pos-item">
                     <span class="pos-label">Z</span>
@@ -787,7 +787,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       <div class="home-buttons">
         <button class="home-btn" onclick="homeAxis('x')">Home X</button>
         <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
-        <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
+        <button class="home-btn" onclick="homeAxis('fork')">Home Fork Motor</button>
         <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
             </div>
       </div>
@@ -811,7 +811,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <input type="number" id="pos1Y" step="0.1" value="0" placeholder="0.0">
           </div>
           <div class="input-row">
-            <label>Fork:</label>
+            <label>Fork Motor:</label>
             <input type="number" id="pos1Fork" step="0.1" value="0" placeholder="0.0">
           </div>
         </div>
@@ -826,7 +826,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <input type="number" id="pos2Y" step="0.1" value="0" placeholder="0.0">
           </div>
           <div class="input-row">
-            <label>Fork:</label>
+            <label>Fork Motor:</label>
             <input type="number" id="pos2Fork" step="0.1" value="0" placeholder="0.0">
           </div>
         </div>
@@ -1220,7 +1220,7 @@ void initializeWebServer() {
                 axisName = "Y";
             } else if (axis == "fork") {
                 motor = motorFork;
-                axisName = "Fork";
+                axisName = "Fork Motor";
             }
             
             if (motor) {
@@ -1251,7 +1251,7 @@ void initializeWebServer() {
             } else if (axis == "fork") {
                 homeForkAxis();
                 request->send(200, "text/plain", "OK");
-                Serial.println("Web Request: Home Fork axis");
+                Serial.println("Web Request: Home Fork Motor axis");
             } else if (axis == "all") {
                 homeAllAxes();
                 request->send(200, "text/plain", "OK");
