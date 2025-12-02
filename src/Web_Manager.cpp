@@ -604,6 +604,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
         <div>
           <div class="axis-label">Gantry (X/Y)</div>
+          <div style="text-align: center; margin-bottom: 10px; color: var(--text-secondary); font-size: 0.9rem;">
+            <div>X: <span id="posX" style="color: var(--accent-blue); font-weight: 600;">0.00"</span></div>
+            <div>Y: <span id="posY" style="color: var(--accent-blue); font-weight: 600;">0.00"</span></div>
+          </div>
           <div class="arrow-controls" style="max-width: 250px;">
             <button class="arrow-btn up" id="btnUp" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">&uarr;</button>
             <button class="arrow-btn left" id="btnLeft" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">&larr;</button>
@@ -617,6 +621,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         </div>
         <div>
           <div class="axis-label">Fork</div>
+          <div style="text-align: center; margin-bottom: 10px; color: var(--text-secondary); font-size: 0.9rem;">
+            <div>Fork: <span id="posFork" style="color: var(--accent-blue); font-weight: 600;">0.00"</span></div>
+          </div>
           <div class="arrow-controls" style="max-width: 150px;">
             <button class="arrow-btn up" id="btnForkUp" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
             <button class="arrow-btn down" id="btnForkDown" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
@@ -774,6 +781,24 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     // Update immediately and then every 200ms
     updateSensors();
     setInterval(updateSensors, 200);
+    
+    // Update positions
+    function updatePositions() {
+      fetch('/api/positions')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('posX').textContent = data.posX.toFixed(2) + '"';
+          document.getElementById('posY').textContent = data.posY.toFixed(2) + '"';
+          document.getElementById('posFork').textContent = data.posFork.toFixed(2) + '"';
+        })
+        .catch(error => {
+          console.error('Error fetching position data:', error);
+        });
+    }
+    
+    // Update positions immediately and then every 200ms
+    updatePositions();
+    setInterval(updatePositions, 200);
     
     // Load saved test positions on page load
     function loadTestPositions() {
@@ -1116,6 +1141,33 @@ void initializeWebServer() {
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
+    });
+    
+    // API endpoint for current positions
+    server.on("/api/positions", HTTP_GET, [](AsyncWebServerRequest *request){
+        float posX = 0.0;
+        float posY = 0.0;
+        float posFork = 0.0;
+        
+        if (motorX) {
+            long steps = motorX->getCurrentPosition();
+            posX = motorX->stepsToInches(steps);
+        }
+        if (motorY) {
+            long steps = motorY->getCurrentPosition();
+            posY = motorY->stepsToInches(steps);
+        }
+        if (motorFork) {
+            long steps = motorFork->getCurrentPosition();
+            posFork = motorFork->stepsToInches(steps);
+        }
+        
+        String json = "{";
+        json += "\"posX\":" + String(posX) + ",";
+        json += "\"posY\":" + String(posY) + ",";
+        json += "\"posFork\":" + String(posFork);
+        json += "}";
+        request->send(200, "application/json", json);
     });
     
     // API endpoint for motor settings (GET to retrieve, GET with params to set)
