@@ -37,8 +37,8 @@ void homingState() {
 static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool useDual, long maxSpeed) {
     if (!motor || !homeSwitch) return;
     
-    // Set homing speed to 1/4 of max speed
-    motor->setSpeed(maxSpeed / 4);
+    // Set homing speed to 700
+    motor->setSpeed(700);
     
     // Start continuous movement toward home (positive direction)
     motor->startContinuous(true);
@@ -88,10 +88,10 @@ void homeAllAxes() {
     bool yHomed = false;
     bool forkHomed = false;
     
-    // Set homing speeds to 1/4 of max speeds
-    motorX->setSpeed(X_MAX_SPEED / 10);
-    motorY->setSpeed(Y_MAX_SPEED / 10);
-    motorFork->setSpeed(FORK_MAX_SPEED / 10);
+    // Set homing speeds to 700
+    motorX->setSpeed(700);
+    motorY->setSpeed(700);
+    motorFork->setSpeed(700);
     
     // Start continuous movement for all axes toward home (positive direction)
     motorX->startContinuous(true);
