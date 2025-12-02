@@ -794,8 +794,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <div class="control-section">
                 <div class="control-label">Storage Motor</div>
                 <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
-                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="moveStorage(-1)">&uarr;</button>
-                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="moveStorage(1)">&darr;</button>
+                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="moveStorage(-1)">↺</button>
+                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="moveStorage(1)">↻</button>
           </div>
         </div>
               <div class="control-section">
