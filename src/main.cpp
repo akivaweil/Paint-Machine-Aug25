@@ -21,9 +21,6 @@ enum MachineState {
 
 MachineState currentState = STATE_HOMING;
 
-// Forward declaration of MachineState enum
-enum MachineState;
-
 // Function to set state (accessible from states)
 void setMachineState(int newState) {
     currentState = (MachineState)newState;

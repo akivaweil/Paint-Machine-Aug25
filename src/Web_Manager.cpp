@@ -10,9 +10,9 @@
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_TEST.h"
 
-//* ************************************************************************
-//* ************************ WEB MANAGER ***********************************
-//* ************************************************************************
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🌐 WEB MANAGER                                                        ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 
 // Web server instance
 AsyncWebServer server(80);
@@ -1235,8 +1235,8 @@ void initializeWebServer() {
                     // Clamp to 0-12 inch range
                     if (newPos < 0) {
                         distance = -currentPos;  // Move only to 0
-                    } else if (newPos > 12.0) {
-                        distance = 12.0 - currentPos;  // Move only to 12
+                    } else if (newPos > -12.0) {
+                        distance = -12.0 - currentPos;  // Move only to 12
                     }
                 }
                 
@@ -1388,9 +1388,4 @@ void initializeWebServer() {
     server.begin();
     Serial.println("Web Server initialized");
     Serial.println("Sensor Dashboard available at /");
-}
-
-
-void updateWebServer() {
-    // Web server handles requests asynchronously, no update needed
 }
