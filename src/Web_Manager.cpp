@@ -24,6 +24,7 @@ bool sensorsInitialized = false;
 StepperMotor* motorX = nullptr;
 StepperMotor* motorY = nullptr;
 StepperMotor* motorFork = nullptr;
+StepperMotor* motorStorage = nullptr;
 
 // Home switch instances
 HomeSwitch* homeSwitchX = nullptr;
@@ -366,7 +367,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .controls-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 40px;
     }
     
@@ -783,6 +784,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
           </div>
         </div>
+              <div class="control-section">
+                <div class="control-label">Storage Motor</div>
+                <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
+                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="moveStorage(-1)">&uarr;</button>
+                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="moveStorage(1)">&darr;</button>
+                </div>
+        </div>
       </div>
       <div class="home-buttons">
         <button class="home-btn" onclick="homeAxis('x')">Home X</button>
@@ -1056,6 +1064,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Move error:', error));
     }
     
+    function moveStorage(direction) {
+      fetch('/api/move?axis=storage&steps=' + (direction * 200))
+        .catch(error => console.error('Move error:', error));
+    }
+    
     function stopMove() {
       // Movement stops when button is released
       // The server handles the movement as a single command
@@ -1152,6 +1165,9 @@ void initializeMotors() {
     if (motorFork == nullptr) {
         motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
     }
+    if (motorStorage == nullptr) {
+        motorStorage = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, STORAGE_MOTOR_SPEED, STORAGE_MOTOR_ACCEL);
+    }
 }
 
 
@@ -1205,30 +1221,73 @@ void initializeWebServer() {
     
     // API endpoint for movement
     server.on("/api/move", HTTP_GET, [](AsyncWebServerRequest *request){
-        if (request->hasParam("axis") && request->hasParam("distance")) {
+        if (request->hasParam("axis")) {
             String axis = request->getParam("axis")->value();
-            float distance = request->getParam("distance")->value().toFloat();
-            
             StepperMotor* motor = nullptr;
             const char* axisName = "";
             
             if (axis == "x") {
-                motor = motorX;
-                axisName = "X";
+                if (request->hasParam("distance")) {
+                    float distance = request->getParam("distance")->value().toFloat();
+                    motor = motorX;
+                    axisName = "X";
+                    if (motor) {
+                        motor->moveInches(distance);
+                        request->send(200, "text/plain", "OK");
+                        Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
+                    } else {
+                        request->send(400, "text/plain", "Motor not initialized");
+                    }
+                } else {
+                    request->send(400, "text/plain", "Missing distance parameter");
+                }
             } else if (axis == "y") {
-                motor = motorY;
-                axisName = "Y";
+                if (request->hasParam("distance")) {
+                    float distance = request->getParam("distance")->value().toFloat();
+                    motor = motorY;
+                    axisName = "Y";
+                    if (motor) {
+                        motor->moveInches(distance);
+                        request->send(200, "text/plain", "OK");
+                        Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
+                    } else {
+                        request->send(400, "text/plain", "Motor not initialized");
+                    }
+                } else {
+                    request->send(400, "text/plain", "Missing distance parameter");
+                }
             } else if (axis == "fork") {
-                motor = motorFork;
-                axisName = "Fork Motor";
-            }
-            
-            if (motor) {
-                motor->moveInches(distance);
-                request->send(200, "text/plain", "OK");
-                Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
+                if (request->hasParam("distance")) {
+                    float distance = request->getParam("distance")->value().toFloat();
+                    motor = motorFork;
+                    axisName = "Fork Motor";
+                    if (motor) {
+                        motor->moveInches(distance);
+                        request->send(200, "text/plain", "OK");
+                        Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
+                    } else {
+                        request->send(400, "text/plain", "Motor not initialized");
+                    }
+                } else {
+                    request->send(400, "text/plain", "Missing distance parameter");
+                }
+            } else if (axis == "storage") {
+                if (request->hasParam("steps")) {
+                    long steps = request->getParam("steps")->value().toInt();
+                    motor = motorStorage;
+                    axisName = "Storage Motor";
+                    if (motor) {
+                        motor->moveSteps(steps);
+                        request->send(200, "text/plain", "OK");
+                        Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
+                    } else {
+                        request->send(400, "text/plain", "Motor not initialized");
+                    }
+                } else {
+                    request->send(400, "text/plain", "Missing steps parameter");
+                }
             } else {
-                request->send(400, "text/plain", "Invalid axis or motor not initialized");
+                request->send(400, "text/plain", "Invalid axis");
             }
         } else {
             request->send(400, "text/plain", "Missing parameters");

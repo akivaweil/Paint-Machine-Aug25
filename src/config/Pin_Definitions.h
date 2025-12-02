@@ -40,6 +40,6 @@
 #define ERROR_LED_PIN 2   // Using same pin for now
 
 // Test button
-#define TEST_BUTTON_PIN 38
+#define TEST_BUTTON_PIN 37
 
 #endif // PIN_DEFINITIONS_H 
