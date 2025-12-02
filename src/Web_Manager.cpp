@@ -1096,38 +1096,20 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Test error:', error));
     }
     
-    // Keyboard controls - track pressed keys to prevent multiple movements
-    const pressedKeys = new Set();
-    
+    // Keyboard controls
     document.addEventListener('keydown', function(e) {
-      if (pressedKeys.has(e.key)) {
-        e.preventDefault();
-        return; // Key already pressed, ignore repeat events
-      }
-      
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        pressedKeys.add(e.key);
         moveY(-1);
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        pressedKeys.add(e.key);
         moveY(1);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        pressedKeys.add(e.key);
         moveX(-1);
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        pressedKeys.add(e.key);
         moveX(1);
-      }
-    });
-    
-    document.addEventListener('keyup', function(e) {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
-          e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        pressedKeys.delete(e.key);
       }
     });
   </script>

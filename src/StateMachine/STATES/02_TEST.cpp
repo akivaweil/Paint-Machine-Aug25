@@ -44,10 +44,21 @@ void testState() {
     //! STEP 1: MOVE TO POSITION 1
     //! ************************************************************************
     if (step == 0) {
-        // Move X and Y simultaneously to position 1
-        // Negate values because positive direction moves toward home switches
-        motorX->moveInches(-testPos1X);
-        motorY->moveInches(-testPos1Y);
+        // Get current positions
+        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
+        
+        // Calculate target absolute positions (negate because positive direction moves toward home switches)
+        float targetX = -testPos1X;
+        float targetY = -testPos1Y;
+        
+        // Calculate relative movement needed to reach absolute position
+        float moveX = targetX - currentX;
+        float moveY = targetY - currentY;
+        
+        // Move X and Y simultaneously to absolute position 1
+        motorX->moveInches(moveX);
+        motorY->moveInches(moveY);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -61,7 +72,16 @@ void testState() {
     //! STEP 2: EXTEND FORK AT POSITION 1
     //! ************************************************************************
     else if (step == 1) {
-        motorFork->moveInches(-testPos1Fork);
+        // Get current fork position
+        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
+        
+        // Calculate target absolute position (negate because positive direction moves toward home switches)
+        float targetFork = -testPos1Fork;
+        
+        // Calculate relative movement needed to reach absolute position
+        float moveFork = targetFork - currentFork;
+        
+        motorFork->moveInches(moveFork);
         
         // Wait for fork to finish extending
         while (motorFork->isMotorRunning()) {
@@ -103,14 +123,21 @@ void testState() {
     //! STEP 5: MOVE TO POSITION 2
     //! ************************************************************************
     else if (step == 4) {
-        // Calculate relative movement to position 2
-        // Negate because positive direction moves toward home switches
-        float deltaX = -(testPos2X - testPos1X);
-        float deltaY = -(testPos2Y - testPos1Y);
+        // Get current positions
+        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
-        // Move X and Y simultaneously to position 2
-        motorX->moveInches(deltaX);
-        motorY->moveInches(deltaY);
+        // Calculate target absolute positions (negate because positive direction moves toward home switches)
+        float targetX = -testPos2X;
+        float targetY = -testPos2Y;
+        
+        // Calculate relative movement needed to reach absolute position
+        float moveX = targetX - currentX;
+        float moveY = targetY - currentY;
+        
+        // Move X and Y simultaneously to absolute position 2
+        motorX->moveInches(moveX);
+        motorY->moveInches(moveY);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -124,7 +151,16 @@ void testState() {
     //! STEP 6: EXTEND FORK AT POSITION 2
     //! ************************************************************************
     else if (step == 5) {
-        motorFork->moveInches(-testPos2Fork);
+        // Get current fork position
+        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
+        
+        // Calculate target absolute position (negate because positive direction moves toward home switches)
+        float targetFork = -testPos2Fork;
+        
+        // Calculate relative movement needed to reach absolute position
+        float moveFork = targetFork - currentFork;
+        
+        motorFork->moveInches(moveFork);
         
         // Wait for fork to finish extending
         while (motorFork->isMotorRunning()) {
