@@ -444,9 +444,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: var(--border-radius);
-      padding: 24px;
+      padding: 0;
       box-shadow: var(--shadow);
       margin-top: 30px;
+      overflow: hidden;
     }
     
     .test-panel h2 {
@@ -456,6 +457,48 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       margin-bottom: 20px;
       text-transform: uppercase;
       letter-spacing: 1px;
+    }
+    
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 0;
+      transition: color 0.2s ease;
+    }
+    
+    .collapsible-header:hover {
+      color: var(--accent-blue);
+    }
+    
+    .collapsible-header h2 {
+      margin-bottom: 0;
+    }
+    
+    .chevron {
+      transition: transform 0.3s ease;
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+    
+    .collapsible-header.active .chevron {
+      transform: rotate(180deg);
+    }
+    
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 24px;
+    }
+    
+    .collapsible-content.expanded {
+      max-height: 2000px;
+      padding: 24px;
     }
     
     .position-group {
@@ -630,47 +673,52 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     </div>
     
     <div class="test-panel">
-      <h2>Motor Settings</h2>
-      <div class="position-group">
-        <div class="position-inputs">
-          <h3>X Motor</h3>
-          <div class="input-row">
-            <label>Speed:</label>
-            <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
-          </div>
-          <div class="input-row">
-            <label>Accel:</label>
-            <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
-          </div>
-        </div>
-        <div class="position-inputs">
-          <h3>Y Motor</h3>
-          <div class="input-row">
-            <label>Speed:</label>
-            <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
-          </div>
-          <div class="input-row">
-            <label>Accel:</label>
-            <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
-          </div>
-        </div>
+      <div class="collapsible-header" onclick="toggleMotorSettings()">
+        <h2>Motor Settings</h2>
+        <span class="chevron">▼</span>
       </div>
-      <div class="position-group" style="margin-top: 10px;">
-        <div class="position-inputs">
-          <h3>Fork Motor</h3>
-          <div class="input-row">
-            <label>Speed:</label>
-            <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
+      <div class="collapsible-content" id="motorSettingsContent">
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>X Motor</h3>
+            <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
+            </div>
           </div>
-          <div class="input-row">
-            <label>Accel:</label>
-            <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
+          <div class="position-inputs">
+            <h3>Y Motor</h3>
+            <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
+            </div>
           </div>
         </div>
-        <div class="position-inputs" style="opacity: 0; pointer-events: none;">
+        <div class="position-group" style="margin-top: 10px;">
+          <div class="position-inputs">
+            <h3>Fork Motor</h3>
+            <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
+            </div>
+          </div>
+          <div class="position-inputs" style="opacity: 0; pointer-events: none;">
+          </div>
         </div>
+        <button class="test-btn" onclick="saveMotorSettings()">Save Motor Settings</button>
       </div>
-      <button class="test-btn" onclick="saveMotorSettings()">Save Motor Settings</button>
     </div>
     
     <div class="last-update" id="lastUpdate">Last update: --</div>
@@ -825,6 +873,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function stopMove() {
       // Movement stops when button is released
       // The server handles the movement as a single command
+    }
+    
+    function toggleMotorSettings() {
+      const content = document.getElementById('motorSettingsContent');
+      const header = document.querySelector('.collapsible-header');
+      content.classList.toggle('expanded');
+      header.classList.toggle('active');
     }
     
     function homeAxis(axis) {
