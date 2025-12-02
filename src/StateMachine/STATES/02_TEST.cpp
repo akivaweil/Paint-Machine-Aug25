@@ -199,21 +199,37 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 9: RETURN TO HOME POSITION
+    //! STEP 9: RETURN X TO HOME POSITION
     //! ************************************************************************
     else if (step == 8) {
-        // Get current positions
+        // Get current X position
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+        
+        // Move X back to home (0)
+        motorX->moveInches(-currentX);
+        
+        // Wait for X motor to finish
+        while (motorX->isMotorRunning()) {
+            updateOTA();
+            delay(1);
+        }
+        step = 9;
+    }
+    
+    //! ************************************************************************
+    //! STEP 10: RETURN Y AND FORK TO HOME POSITION
+    //! ************************************************************************
+    else if (step == 9) {
+        // Get current positions
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
-        // Move all axes back to home (0, 0, 0)
-        motorX->moveInches(-currentX);
+        // Move Y and fork back to home (0, 0)
         motorY->moveInches(-currentY);
         motorFork->moveInches(-currentFork);
         
-        // Wait for all motors to finish
-        while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
+        // Wait for Y and fork motors to finish
+        while (motorY->isMotorRunning() || motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
         }
