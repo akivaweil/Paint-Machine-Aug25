@@ -913,7 +913,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'forkHome', name: 'Fork Home' },
       { id: 'testButton', name: 'Test Btn' }
     ];
-    const STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+    const STORAGE_MOTOR_STEPS_PER_CLICK = %STORAGE_MOTOR_STEPS_PER_CLICK_VALUE%;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1193,6 +1193,14 @@ String getSensorStatesJSON() {
     return json;
 }
 
+// Processor function to replace placeholder in HTML
+String processor(const String& var) {
+    if (var == "STORAGE_MOTOR_STEPS_PER_CLICK_VALUE") {
+        return String(STORAGE_MOTOR_STEPS_PER_CLICK);
+    }
+    return "";
+}
+
 void initializeWebServer() {
     // Load saved test position values
     loadTestPositions();
@@ -1211,9 +1219,7 @@ void initializeWebServer() {
 
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        String html = String(sensors_html);
-        html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", String(STORAGE_MOTOR_STEPS_PER_CLICK));
-        request->send(200, "text/html", html);
+        request->send_P(200, "text/html", sensors_html, processor);
     });
     
     // API endpoint for sensor states
