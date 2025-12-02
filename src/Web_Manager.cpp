@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <Preferences.h>
 #include "Web_Manager.h"
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
@@ -36,6 +37,33 @@ float testPos1Fork = 0.0;
 float testPos2X = 0.0;
 float testPos2Y = 0.0;
 float testPos2Fork = 0.0;
+
+// Preferences namespace for test sequence persistence
+Preferences preferences;
+
+// Save test position values to non-volatile storage
+void saveTestPositions() {
+    preferences.begin("testSeq", false);
+    preferences.putFloat("pos1X", testPos1X);
+    preferences.putFloat("pos1Y", testPos1Y);
+    preferences.putFloat("pos1Fork", testPos1Fork);
+    preferences.putFloat("pos2X", testPos2X);
+    preferences.putFloat("pos2Y", testPos2Y);
+    preferences.putFloat("pos2Fork", testPos2Fork);
+    preferences.end();
+}
+
+// Load test position values from non-volatile storage
+void loadTestPositions() {
+    preferences.begin("testSeq", true);
+    testPos1X = preferences.getFloat("pos1X", 0.0);
+    testPos1Y = preferences.getFloat("pos1Y", 0.0);
+    testPos1Fork = preferences.getFloat("pos1Fork", 0.0);
+    testPos2X = preferences.getFloat("pos2X", 0.0);
+    testPos2Y = preferences.getFloat("pos2Y", 0.0);
+    testPos2Fork = preferences.getFloat("pos2Fork", 0.0);
+    preferences.end();
+}
 
 // Sensor Dashboard HTML
 const char sensors_html[] PROGMEM = R"rawliteral(
@@ -755,6 +783,9 @@ String getSensorStatesJSON() {
 }
 
 void initializeWebServer() {
+    // Load saved test position values
+    loadTestPositions();
+    
     // Initialize sensor pins
     initializeSensors();
     
@@ -845,6 +876,9 @@ void initializeWebServer() {
             testPos2X = request->getParam("pos2X")->value().toFloat();
             testPos2Y = request->getParam("pos2Y")->value().toFloat();
             testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            
+            // Save values to persistent storage
+            saveTestPositions();
             
             // Start test state (STATE_TEST = 2)
             extern void setMachineState(int state);
