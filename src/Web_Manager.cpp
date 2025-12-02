@@ -9,6 +9,7 @@
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_TEST.h"
+#include "ServoControl.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -30,6 +31,9 @@ StepperMotor* motorStorage = nullptr;
 HomeSwitch* homeSwitchX = nullptr;
 HomeSwitch* homeSwitchY = nullptr;
 HomeSwitch* homeSwitchFork = nullptr;
+
+// Servo instance
+ServoControl* servo = nullptr;
 
 // Test position values
 float testPos1X = 0.0;
@@ -1171,11 +1175,12 @@ void initializeSensors() {
     // Initialize test button (assuming active LOW with pullup, adjust if needed)
     pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
     
-    // Initialize Servo with LEDC PWM (50Hz, 16-bit resolution)
-    // Channel 0, 50Hz frequency, 16-bit resolution
-    ledcSetup(0, 50, 16);  // channel, frequency, resolution bits
-    ledcAttachPin(SERVO_PIN, 0);  // pin, channel
-    ledcWrite(0, 4915);  // Set to 90 degrees (1.5ms pulse = 90 degrees)
+    // Initialize Servo
+    if (servo == nullptr) {
+        servo = new ServoControl();
+        servo->init(SERVO_PIN, 0, 50, 16);  // pin, channel, frequency, resolution
+        servo->write(90);  // Set to 90 degrees
+    }
     
     // Initialize HomeSwitch instances (pins configured in begin())
     if (homeSwitchX == nullptr) {
@@ -1196,18 +1201,9 @@ void initializeSensors() {
 
 // Set servo angle (0-180 degrees)
 void setServoAngle(float angle) {
-    // Clamp angle to 0-180 range
-    if (angle < 0) angle = 0;
-    if (angle > 180) angle = 180;
-    
-    // Convert angle to pulse width
-    // Standard servo: 1ms (0°) to 2ms (180°)
-    // At 50Hz with 16-bit resolution (65536 steps), 20ms period = 65536
-    // 1ms = 3277, 2ms = 6554
-    // Formula: pulse = 3277 + (angle / 180.0) * (6554 - 3277)
-    uint32_t pulse = 3277 + (uint32_t)((angle / 180.0) * 3277);
-    
-    ledcWrite(0, pulse);
+    if (servo) {
+        servo->write(angle);
+    }
 }
 
 // Initialize motors
