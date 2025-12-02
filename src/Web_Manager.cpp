@@ -635,6 +635,26 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     updateSensors();
     setInterval(updateSensors, 200);
     
+    // Load saved test positions on page load
+    function loadTestPositions() {
+      fetch('/api/test/positions')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('pos1X').value = data.pos1X || 0;
+          document.getElementById('pos1Y').value = data.pos1Y || 0;
+          document.getElementById('pos1Fork').value = data.pos1Fork || 0;
+          document.getElementById('pos2X').value = data.pos2X || 0;
+          document.getElementById('pos2Y').value = data.pos2Y || 0;
+          document.getElementById('pos2Fork').value = data.pos2Fork || 0;
+        })
+        .catch(error => {
+          console.error('Error loading test positions:', error);
+        });
+    }
+    
+    // Load positions when page loads
+    loadTestPositions();
+    
     // Movement control
     let moveDistance = 1; // Default 1 inch
     let forkDistance = 1; // Default 1 inch
@@ -862,6 +882,19 @@ void initializeWebServer() {
         } else {
             request->send(400, "text/plain", "Missing axis parameter");
         }
+    });
+    
+    // API endpoint to get test position values
+    server.on("/api/test/positions", HTTP_GET, [](AsyncWebServerRequest *request){
+        String json = "{";
+        json += "\"pos1X\":" + String(testPos1X) + ",";
+        json += "\"pos1Y\":" + String(testPos1Y) + ",";
+        json += "\"pos1Fork\":" + String(testPos1Fork) + ",";
+        json += "\"pos2X\":" + String(testPos2X) + ",";
+        json += "\"pos2Y\":" + String(testPos2Y) + ",";
+        json += "\"pos2Fork\":" + String(testPos2Fork);
+        json += "}";
+        request->send(200, "application/json", json);
     });
     
     // API endpoint for test sequence
