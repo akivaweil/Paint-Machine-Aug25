@@ -1211,20 +1211,38 @@ void initializeWebServer() {
             
             StepperMotor* motor = nullptr;
             const char* axisName = "";
+            bool isGantry = false;
             
             if (axis == "x") {
                 motor = motorX;
                 axisName = "X";
+                isGantry = true;
             } else if (axis == "y") {
                 motor = motorY;
                 axisName = "Y";
+                isGantry = true;
             } else if (axis == "fork") {
                 motor = motorFork;
                 axisName = "Fork";
             }
             
             if (motor) {
-                motor->moveInches(distance);
+                // Apply position limits for gantry (0 to 12 inches)
+                if (isGantry) {
+                    float currentPos = -motor->stepsToInches(motor->getCurrentPosition());
+                    float newPos = currentPos + distance;
+                    
+                    // Clamp to 0-12 inch range
+                    if (newPos < 0) {
+                        distance = -currentPos;  // Move only to 0
+                    } else if (newPos > 12.0) {
+                        distance = 12.0 - currentPos;  // Move only to 12
+                    }
+                }
+                
+                if (distance != 0) {
+                    motor->moveInches(distance);
+                }
                 request->send(200, "text/plain", "OK");
                 Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
             } else {
