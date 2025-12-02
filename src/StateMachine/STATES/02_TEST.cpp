@@ -72,13 +72,13 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: RAISE X BY 0.5 INCHES AT POSITION 1
+    //! STEP 3: RAISE Y BY 0.5 INCHES AT POSITION 1
     //! ************************************************************************
     else if (step == 2) {
-        motorX->moveInches(0.5);
+        motorY->moveInches(-0.5);
         
         // Wait for X to finish raising
-        while (motorX->isMotorRunning()) {
+        while (motorY->isMotorRunning()) {
             updateOTA();
             delay(1);
         }
@@ -135,13 +135,13 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: LOWER X BY 0.5 INCHES AT POSITION 2
+    //! STEP 7: LOWER Y BY 0.5 INCHES AT POSITION 2
     //! ************************************************************************
     else if (step == 6) {
-        motorX->moveInches(-0.5);
+        motorY->moveInches(0.5);
         
         // Wait for X to finish lowering
-        while (motorX->isMotorRunning()) {
+        while (motorY->isMotorRunning()) {
             updateOTA();
             delay(1);
         }
