@@ -1358,7 +1358,8 @@ void initializeWebServer() {
                     motor = motorStorage;
                     axisName = "Storage Motor";
                     if (motor) {
-                        // Force stop any continuous movement before moving
+                        // Stop any continuous movement and ensure motor is stopped
+                        motor->stopContinuous();
                         motor->forceStop();
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");
@@ -1375,7 +1376,8 @@ void initializeWebServer() {
                     motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
                     if (motor) {
-                        // Force stop any continuous movement before moving
+                        // Stop any continuous movement and ensure motor is stopped
+                        motor->stopContinuous();
                         motor->forceStop();
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");

@@ -59,6 +59,13 @@ void StepperMotor::step() {
 
 void StepperMotor::moveSteps(long steps) {
     if (stepper && steps != 0) {
+        // Ensure we're not in continuous mode and motor is fully stopped
+        if (continuousMode) {
+            stopContinuous();
+        }
+        // Force stop any existing movement before starting new move
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
+        continuousMode = false;  // Ensure continuous mode is cleared
         stepper->move(steps);
     }
 }
