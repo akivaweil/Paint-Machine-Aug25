@@ -323,7 +323,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       display: flex;
       flex-direction: column;
       gap: 24px;
-    }
+      }
     
     .card {
       background: var(--bg-surface);
@@ -728,11 +728,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     <div class="main-layout">
       <div class="sensor-panel">
         <div class="panel-label">Sensors</div>
-        <div class="sensor-grid" id="sensorGrid">
+    <div class="sensor-grid" id="sensorGrid">
           <!-- Sensors populated by JS -->
         </div>
-      </div>
-      
+    </div>
+    
       <div class="content-area">
         <div class="card">
           <div class="card-header">
@@ -747,7 +747,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   <div class="pos-item">
                     <span class="pos-label">X</span>
                     <span class="pos-value" id="posX">0.00"</span>
-                  </div>
+          </div>
                   <div class="pos-item">
                     <span class="pos-label">Y</span>
                     <span class="pos-value" id="posY">0.00"</span>
@@ -761,134 +761,134 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 </div>
                 <div class="distance-selector">
                   <button class="distance-btn" id="btn01in" onclick="setDistance(0.1)">.1"</button>
-                  <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1"</button>
-                  <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3"</button>
-                </div>
-              </div>
+            <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1"</button>
+            <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3"</button>
+          </div>
+        </div>
               <div class="control-section">
                 <div class="control-label">Fork</div>
                 <div class="position-display">
                   <div class="pos-item">
                     <span class="pos-label">Z</span>
                     <span class="pos-value" id="posFork">0.00"</span>
-                  </div>
-                </div>
+          </div>
+          </div>
                 <div class="arrow-controls" style="grid-template-columns: 48px;">
                   <button class="arrow-btn up" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
                   <button class="arrow-btn down" style="grid-column: 1;" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
                 </div>
                 <div class="distance-selector">
                   <button class="distance-btn" id="btnFork01in" onclick="setForkDistance(0.1)">.1"</button>
-                  <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1"</button>
-                  <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
-                </div>
-              </div>
-            </div>
-            <div class="home-buttons">
-              <button class="home-btn" onclick="homeAxis('x')">Home X</button>
-              <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
-              <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
-              <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
-            </div>
+            <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1"</button>
+            <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
           </div>
         </div>
-        
+      </div>
+      <div class="home-buttons">
+        <button class="home-btn" onclick="homeAxis('x')">Home X</button>
+        <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
+        <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
+        <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
+            </div>
+      </div>
+    </div>
+    
         <div class="card">
           <div class="card-header">
             <div class="card-icon">&raquo;</div>
             <span class="card-title">Test Sequence</span>
           </div>
           <div class="card-body">
-            <div class="position-group">
-              <div class="position-inputs">
-                <h3>Position 1</h3>
-                <div class="input-row">
-                  <label>X:</label>
-                  <input type="number" id="pos1X" step="0.1" value="0" placeholder="0.0">
-                </div>
-                <div class="input-row">
-                  <label>Y:</label>
-                  <input type="number" id="pos1Y" step="0.1" value="0" placeholder="0.0">
-                </div>
-                <div class="input-row">
-                  <label>Fork:</label>
-                  <input type="number" id="pos1Fork" step="0.1" value="0" placeholder="0.0">
-                </div>
-              </div>
-              <div class="position-inputs">
-                <h3>Position 2</h3>
-                <div class="input-row">
-                  <label>X:</label>
-                  <input type="number" id="pos2X" step="0.1" value="0" placeholder="0.0">
-                </div>
-                <div class="input-row">
-                  <label>Y:</label>
-                  <input type="number" id="pos2Y" step="0.1" value="0" placeholder="0.0">
-                </div>
-                <div class="input-row">
-                  <label>Fork:</label>
-                  <input type="number" id="pos2Fork" step="0.1" value="0" placeholder="0.0">
-                </div>
-              </div>
-            </div>
-            <button class="action-btn" onclick="startTest()">Run Test</button>
+      <div class="position-group">
+        <div class="position-inputs">
+          <h3>Position 1</h3>
+          <div class="input-row">
+            <label>X:</label>
+            <input type="number" id="pos1X" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Y:</label>
+            <input type="number" id="pos1Y" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Fork:</label>
+            <input type="number" id="pos1Fork" step="0.1" value="0" placeholder="0.0">
           </div>
         </div>
-        
+        <div class="position-inputs">
+          <h3>Position 2</h3>
+          <div class="input-row">
+            <label>X:</label>
+            <input type="number" id="pos2X" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Y:</label>
+            <input type="number" id="pos2Y" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Fork:</label>
+            <input type="number" id="pos2Fork" step="0.1" value="0" placeholder="0.0">
+          </div>
+        </div>
+      </div>
+            <button class="action-btn" onclick="startTest()">Run Test</button>
+          </div>
+    </div>
+    
         <div class="card">
-          <div class="collapsible-header" onclick="toggleMotorSettings()">
+      <div class="collapsible-header" onclick="toggleMotorSettings()">
             <div class="card-header-content">
               <div class="card-icon" style="background: linear-gradient(135deg, #666 0%, #888 100%);">*</div>
               <span class="card-title">Motor Settings</span>
             </div>
             <span class="chevron">&darr;</span>
-          </div>
-          <div class="collapsible-content" id="motorSettingsContent">
+      </div>
+      <div class="collapsible-content" id="motorSettingsContent">
             <div class="card-body">
-              <div class="position-group">
-                <div class="position-inputs">
-                  <h3>X Motor</h3>
-                  <div class="input-row">
-                    <label>Speed:</label>
-                    <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
-                  </div>
-                  <div class="input-row">
-                    <label>Accel:</label>
-                    <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
-                  </div>
-                </div>
-                <div class="position-inputs">
-                  <h3>Y Motor</h3>
-                  <div class="input-row">
-                    <label>Speed:</label>
-                    <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
-                  </div>
-                  <div class="input-row">
-                    <label>Accel:</label>
-                    <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
-                  </div>
-                </div>
-              </div>
-              <div class="position-group">
-                <div class="position-inputs">
-                  <h3>Fork Motor</h3>
-                  <div class="input-row">
-                    <label>Speed:</label>
-                    <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
-                  </div>
-                  <div class="input-row">
-                    <label>Accel:</label>
-                    <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
-                  </div>
-                </div>
-                <div style="opacity: 0; pointer-events: none;"></div>
-              </div>
-              <button class="action-btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);" onclick="saveMotorSettings()">Save Settings</button>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>X Motor</h3>
+            <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Y Motor</h3>
+            <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
             </div>
           </div>
         </div>
-        
-        <div class="last-update" id="lastUpdate">Last update: --</div>
+              <div class="position-group">
+          <div class="position-inputs">
+            <h3>Fork Motor</h3>
+            <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
+            </div>
+          </div>
+                <div style="opacity: 0; pointer-events: none;"></div>
+          </div>
+              <button class="action-btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);" onclick="saveMotorSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="last-update" id="lastUpdate">Last update: --</div>
       </div>
     </div>
     
@@ -912,7 +912,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="sensor-card ${isActive ? 'active' : ''}" id="card-${sensor.id}">
           <div class="sensor-header">
             <span class="sensor-name">${sensor.name}</span>
-            <div class="status-indicator"></div>
+              <div class="status-indicator"></div>
           </div>
         </div>
       `;
@@ -1211,38 +1211,20 @@ void initializeWebServer() {
             
             StepperMotor* motor = nullptr;
             const char* axisName = "";
-            bool isGantry = false;
             
             if (axis == "x") {
                 motor = motorX;
                 axisName = "X";
-                isGantry = true;
             } else if (axis == "y") {
                 motor = motorY;
                 axisName = "Y";
-                isGantry = true;
             } else if (axis == "fork") {
                 motor = motorFork;
                 axisName = "Fork";
             }
             
             if (motor) {
-                // Apply position limits for gantry (0 to 12 inches)
-                if (isGantry) {
-                    float currentPos = -motor->stepsToInches(motor->getCurrentPosition());
-                    float newPos = currentPos + distance;
-                    
-                    // Clamp to 0-12 inch range
-                    if (newPos < 0) {
-                        distance = -currentPos;  // Move only to 0
-                    } else if (newPos > 12.0) {
-                        distance = 12.0 - currentPos;  // Move only to 12
-                    }
-                }
-                
-                if (distance != 0) {
-                    motor->moveInches(distance);
-                }
+                motor->moveInches(distance);
                 request->send(200, "text/plain", "OK");
                 Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
             } else {
