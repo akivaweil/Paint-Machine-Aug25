@@ -2,6 +2,7 @@
 #include "StateMachine/STATES/02_TEST.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/STATES/01_HOMING.h"
 #include "Web_Manager.h"
 
 // External motor instances (defined in Web_Manager.cpp)
@@ -41,9 +42,22 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 1: MOVE TO POSITION 1
+    //! STEP 0: HOME FORK FIRST
     //! ************************************************************************
     if (step == 0) {
+        homeForkAxis();
+        // Wait for fork to finish homing (homeForkAxis is blocking, but ensure motor is stopped)
+        while (motorFork->isMotorRunning()) {
+            updateOTA();
+            delay(1);
+        }
+        step = 1;
+    }
+    
+    //! ************************************************************************
+    //! STEP 1: MOVE TO POSITION 1
+    //! ************************************************************************
+    else if (step == 1) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -65,13 +79,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 1;
+        step = 2;
     }
     
     //! ************************************************************************
     //! STEP 2: EXTEND FORK AT POSITION 1
     //! ************************************************************************
-    else if (step == 1) {
+    else if (step == 2) {
         // Get current fork position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -88,13 +102,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 2;
+        step = 3;
     }
     
     //! ************************************************************************
     //! STEP 3: RAISE Y BY 0.5 INCHES AT POSITION 1
     //! ************************************************************************
-    else if (step == 2) {
+    else if (step == 3) {
         motorY->moveInches(-0.5);
         
         // Wait for X to finish raising
@@ -102,13 +116,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 3;
+        step = 4;
     }
     
     //! ************************************************************************
     //! STEP 4: RETRACT FORK AT POSITION 1
     //! ************************************************************************
-    else if (step == 3) {
+    else if (step == 4) {
         motorFork->moveInches(testPos1Fork);
         
         // Wait for fork to finish retracting
@@ -116,13 +130,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 4;
+        step = 5;
     }
     
     //! ************************************************************************
     //! STEP 5: MOVE TO POSITION 2
     //! ************************************************************************
-    else if (step == 4) {
+    else if (step == 5) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -144,13 +158,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 5;
+        step = 6;
     }
     
     //! ************************************************************************
     //! STEP 6: EXTEND FORK AT POSITION 2
     //! ************************************************************************
-    else if (step == 5) {
+    else if (step == 6) {
         // Get current fork position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -167,13 +181,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 6;
+        step = 7;
     }
     
     //! ************************************************************************
     //! STEP 7: LOWER Y BY 0.5 INCHES AT POSITION 2
     //! ************************************************************************
-    else if (step == 6) {
+    else if (step == 7) {
         motorY->moveInches(0.5);
         
         // Wait for X to finish lowering
@@ -181,13 +195,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 7;
+        step = 8;
     }
     
     //! ************************************************************************
     //! STEP 8: RETRACT FORK AT POSITION 2
     //! ************************************************************************
-    else if (step == 7) {
+    else if (step == 8) {
         motorFork->moveInches(testPos2Fork);
         
         // Wait for fork to finish retracting
@@ -195,13 +209,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 8;
+        step = 9;
     }
     
     //! ************************************************************************
     //! STEP 9: RETURN TO HOME POSITION
     //! ************************************************************************
-    else if (step == 8) {
+    else if (step == 9) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
