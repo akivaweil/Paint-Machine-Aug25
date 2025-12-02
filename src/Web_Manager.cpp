@@ -1048,6 +1048,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             document.getElementById('storageSteps').value = data.storageSteps;
             STORAGE_MOTOR_STEPS_PER_CLICK = data.storageSteps;
           }
+          if (data.paintRotationSteps !== undefined) {
+            PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
+          }
         })
         .catch(error => {
           console.error('Error loading motor settings:', error);
@@ -1592,7 +1595,8 @@ void initializeWebServer() {
             json += "\"accelY\":" + String(motorAccelY) + ",";
             json += "\"speedFork\":" + String(motorSpeedFork) + ",";
             json += "\"accelFork\":" + String(motorAccelFork) + ",";
-            json += "\"storageSteps\":" + String(storageMotorStepsPerClick);
+            json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
+            json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick);
             json += "}";
             request->send(200, "application/json", json);
         }

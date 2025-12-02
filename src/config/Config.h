@@ -49,6 +49,7 @@
 #define PAINT_ROTATION_MOTOR_SPEED 1000              // Paint rotation motor speed for normal operation
 #define PAINT_ROTATION_MOTOR_ACCEL 1000              // Paint rotation motor acceleration for normal operation
 #define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 2000    // Paint rotation motor steps per click in web dashboard
+
 // Safety settings
 #define MAX_TRAVEL_INCHES 14.0         // Maximum travel distance in inches
 #define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
