@@ -36,6 +36,10 @@ HomeSwitch* homeSwitchFork = nullptr;
 // Servo instance
 ServoControl* servo = nullptr;
 
+// Suction and Paint Gun state
+bool suctionState = false;
+bool paintGunState = false;
+
 // Test position values
 float testPos1X = 0.0;
 float testPos1Y = 0.0;
@@ -820,6 +824,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   </div>
                 </div>
         </div>
+              <div class="control-section">
+                <div class="control-label">Suction</div>
+                <button class="distance-btn" id="suctionBtn" onclick="toggleSuction()" style="margin-top: 16px; width: 100px;">OFF</button>
+        </div>
+              <div class="control-section">
+                <div class="control-label">Paint Gun</div>
+                <button class="distance-btn" id="paintGunBtn" onclick="togglePaintGun()" style="margin-top: 16px; width: 100px;">OFF</button>
+        </div>
       </div>
       <div class="home-buttons">
         <button class="home-btn" onclick="homeAxis('x')">Home X</button>
@@ -1071,6 +1083,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     // Load positions and settings when page loads
     loadTestPositions();
     loadMotorSettings();
+    loadDeviceStates();
     
     // Movement control
     let moveDistance = 1; // Default 1 inch
@@ -1125,6 +1138,49 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       document.getElementById('servoSlider').value = snappedAngle;
       fetch('/api/servo?angle=' + snappedAngle)
         .catch(error => console.error('Servo error:', error));
+    }
+    
+    function toggleSuction() {
+      const btn = document.getElementById('suctionBtn');
+      const isOn = btn.textContent === 'ON';
+      fetch('/api/suction?state=' + (isOn ? 'off' : 'on'))
+        .then(response => response.json())
+        .then(data => {
+          btn.textContent = data.state === 'on' ? 'ON' : 'OFF';
+          btn.classList.toggle('active', data.state === 'on');
+        })
+        .catch(error => console.error('Suction error:', error));
+    }
+    
+    function togglePaintGun() {
+      const btn = document.getElementById('paintGunBtn');
+      const isOn = btn.textContent === 'ON';
+      fetch('/api/paintgun?state=' + (isOn ? 'off' : 'on'))
+        .then(response => response.json())
+        .then(data => {
+          btn.textContent = data.state === 'on' ? 'ON' : 'OFF';
+          btn.classList.toggle('active', data.state === 'on');
+        })
+        .catch(error => console.error('Paint gun error:', error));
+    }
+    
+    // Load suction and paint gun states on page load
+    function loadDeviceStates() {
+      fetch('/api/devices/states')
+        .then(response => response.json())
+        .then(data => {
+          const suctionBtn = document.getElementById('suctionBtn');
+          const paintGunBtn = document.getElementById('paintGunBtn');
+          if (suctionBtn) {
+            suctionBtn.textContent = data.suction === 'on' ? 'ON' : 'OFF';
+            suctionBtn.classList.toggle('active', data.suction === 'on');
+          }
+          if (paintGunBtn) {
+            paintGunBtn.textContent = data.paintGun === 'on' ? 'ON' : 'OFF';
+            paintGunBtn.classList.toggle('active', data.paintGun === 'on');
+          }
+        })
+        .catch(error => console.error('Error loading device states:', error));
     }
     
     function stopMove() {
@@ -1202,6 +1258,14 @@ void initializeSensors() {
         servo->setAngleRange(0, 270);  // Set to 270 degree range
         servo->write(135);  // Set to 135 degrees (center of 270)
     }
+    
+    // Initialize Suction and Paint Gun pins as outputs
+    pinMode(SUCTION_PIN, OUTPUT);
+    pinMode(PAINT_GUN_PIN, OUTPUT);
+    digitalWrite(SUCTION_PIN, LOW);
+    digitalWrite(PAINT_GUN_PIN, LOW);
+    suctionState = false;
+    paintGunState = false;
     
     // Initialize HomeSwitch instances (pins configured in begin())
     if (homeSwitchX == nullptr) {
@@ -1544,6 +1608,45 @@ void initializeWebServer() {
         } else {
             request->send(400, "text/plain", "Missing angle parameter");
         }
+    });
+    
+    // API endpoint for suction control
+    server.on("/api/suction", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("state")) {
+            String state = request->getParam("state")->value();
+            bool on = (state == "on");
+            digitalWrite(SUCTION_PIN, on ? HIGH : LOW);
+            suctionState = on;
+            String json = "{\"state\":\"" + state + "\"}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Set suction %s\n", on ? "ON" : "OFF");
+        } else {
+            request->send(400, "text/plain", "Missing state parameter");
+        }
+    });
+    
+    // API endpoint for paint gun control
+    server.on("/api/paintgun", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("state")) {
+            String state = request->getParam("state")->value();
+            bool on = (state == "on");
+            digitalWrite(PAINT_GUN_PIN, on ? HIGH : LOW);
+            paintGunState = on;
+            String json = "{\"state\":\"" + state + "\"}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Set paint gun %s\n", on ? "ON" : "OFF");
+        } else {
+            request->send(400, "text/plain", "Missing state parameter");
+        }
+    });
+    
+    // API endpoint to get device states
+    server.on("/api/devices/states", HTTP_GET, [](AsyncWebServerRequest *request){
+        String json = "{";
+        json += "\"suction\":\"" + String(suctionState ? "on" : "off") + "\",";
+        json += "\"paintGun\":\"" + String(paintGunState ? "on" : "off") + "\"";
+        json += "}";
+        request->send(200, "application/json", json);
     });
 
     server.begin();
