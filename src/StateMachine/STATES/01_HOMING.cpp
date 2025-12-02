@@ -40,11 +40,8 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     // Set homing speed to 1/4 of max speed
     motor->setSpeed(maxSpeed / 4);
     
-    // Set direction to move toward home (negative direction)
-    motor->setDirection(false);
-    
-    // Start continuous movement toward home
-    motor->startContinuous();
+    // Start continuous movement toward home (positive direction)
+    motor->startContinuous(true);
     
     // Keep moving until home switch is triggered
     while (useDual ? !homeSwitch->readDual() : !homeSwitch->read()) {
@@ -57,7 +54,7 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     motor->stopContinuous();
     
     // Move 0.5 inches away from home
-    motor->moveInches(0.5);
+    motor->moveInches(-0.5);
     while (motor->isMotorRunning()) {
         updateOTA(); // Allow OTA updates during homing
         delay(1);
@@ -96,15 +93,10 @@ void homeAllAxes() {
     motorY->setSpeed(Y_MAX_SPEED / 4);
     motorFork->setSpeed(FORK_MAX_SPEED / 4);
     
-    // Set all directions to move toward home (negative direction)
-    motorX->setDirection(false);
-    motorY->setDirection(false);
-    motorFork->setDirection(false);
-    
-    // Start continuous movement for all axes
-    motorX->startContinuous();
-    motorY->startContinuous();
-    motorFork->startContinuous();
+    // Start continuous movement for all axes toward home (positive direction)
+    motorX->startContinuous(true);
+    motorY->startContinuous(true);
+    motorFork->startContinuous(true);
     
     // Keep moving until all home switches are triggered
     while (!xHomed || !yHomed || !forkHomed) {
@@ -138,9 +130,9 @@ void homeAllAxes() {
     }
     
     // Move all axes 0.5 inches away from home simultaneously
-    motorX->moveInches(0.5);
-    motorY->moveInches(0.5);
-    motorFork->moveInches(0.2);
+    motorX->moveInches(-0.5);
+    motorY->moveInches(-0.5);
+    motorFork->moveInches(-0.2);
     
     // Wait for all motors to finish
     while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {

@@ -24,7 +24,6 @@ public:
     StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long maxSpd, long maxAcc);
 
     // Basic motor control
-    void setDirection(bool positive);
     void setSpeed(long speed);
     void setAcceleration(long acceleration);
     void step();
@@ -32,7 +31,7 @@ public:
     void moveInches(float inches);
 
     // Continuous movement control
-    void startContinuous();
+    void startContinuous(bool positive = true);  // Direction is set here
     void stopContinuous();
     void runContinuous();  // Call this repeatedly to keep moving
 

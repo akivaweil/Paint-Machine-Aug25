@@ -21,7 +21,7 @@ StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     if (engine) {
         stepper = engine->stepperConnectToPin(step);
         if (stepper) {
-            stepper->setDirectionPin(dir, true);  // true = direction pin is inverted (positive = away from home)
+            stepper->setDirectionPin(dir, false);  // false = direction pin is not inverted
             stepper->setSpeedInHz(maxSpd);
             stepper->setAcceleration(maxAcc);
             stepper->setCurrentPosition(0);
@@ -29,10 +29,7 @@ StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     }
 }
 
-void StepperMotor::setDirection(bool positive) {
-    continuousDirection = positive;
-    // Direction is set automatically by FastAccelStepper when moving
-}
+// Direction is now set only in startContinuous() - no separate setDirection() needed
 
 void StepperMotor::setSpeed(long speed) {
     if (stepper && speed > 0 && speed <= 10000) {
@@ -110,8 +107,9 @@ float StepperMotor::stepsToInches(long steps) {
     return (float)steps / stepsPerInch;
 }
 
-void StepperMotor::startContinuous() {
+void StepperMotor::startContinuous(bool positive) {
     continuousMode = true;
+    continuousDirection = positive;  // Direction set here - single location
     if (stepper) {
         if (continuousDirection) {
             stepper->runForward();
