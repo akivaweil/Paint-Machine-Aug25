@@ -1425,9 +1425,6 @@ void initializeWebServer() {
                     motor = motorStorage;
                     axisName = "Storage Motor";
                     if (motor) {
-                        // Stop any continuous movement and ensure motor is stopped
-                        motor->stopContinuous();
-                        motor->forceStop();
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
@@ -1443,9 +1440,6 @@ void initializeWebServer() {
                     motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
                     if (motor) {
-                        // Stop any continuous movement and ensure motor is stopped
-                        motor->stopContinuous();
-                        motor->forceStop();
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);

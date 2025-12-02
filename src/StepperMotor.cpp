@@ -59,17 +59,12 @@ void StepperMotor::step() {
 
 void StepperMotor::moveSteps(long steps) {
     if (stepper && steps != 0) {
-        // Ensure we're not in continuous mode and motor is fully stopped
-        if (continuousMode) {
-            stopContinuous();
-        }
-        // Force stop any existing movement before starting new move
-        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
-        continuousMode = false;  // Ensure continuous mode is cleared
-        // Start the move - FastAccelStepper should automatically stop after move completes
+        // Clear continuous mode flag
+        continuousMode = false;
+        // Simple move - FastAccelStepper handles stopping automatically
         stepper->move(steps);
     } else if (stepper && steps == 0) {
-        // If steps is 0, ensure motor is stopped
+        // If steps is 0, stop the motor
         stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
         continuousMode = false;
     }
