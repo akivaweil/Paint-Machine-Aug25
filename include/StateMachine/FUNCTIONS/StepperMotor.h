@@ -26,6 +26,7 @@ public:
     // Basic motor control
     void setDirection(bool positive);
     void setSpeed(long speed);
+    void setAcceleration(long acceleration);
     void step();
     void moveSteps(long steps);
     void moveInches(float inches);

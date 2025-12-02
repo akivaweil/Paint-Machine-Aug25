@@ -38,6 +38,14 @@ float testPos2X = 0.0;
 float testPos2Y = 0.0;
 float testPos2Fork = 0.0;
 
+// Motor speed and acceleration settings
+long motorSpeedX = X_MAX_SPEED;
+long motorSpeedY = Y_MAX_SPEED;
+long motorSpeedFork = FORK_MAX_SPEED;
+long motorAccelX = X_MAX_ACCEL;
+long motorAccelY = Y_MAX_ACCEL;
+long motorAccelFork = FORK_MAX_ACCEL;
+
 // Preferences namespace for test sequence persistence
 Preferences preferences;
 
@@ -63,6 +71,46 @@ void loadTestPositions() {
     testPos2Y = preferences.getFloat("pos2Y", 0.0);
     testPos2Fork = preferences.getFloat("pos2Fork", 0.0);
     preferences.end();
+}
+
+// Save motor settings to non-volatile storage
+void saveMotorSettings() {
+    preferences.begin("motor", false);
+    preferences.putLong("speedX", motorSpeedX);
+    preferences.putLong("speedY", motorSpeedY);
+    preferences.putLong("speedFork", motorSpeedFork);
+    preferences.putLong("accelX", motorAccelX);
+    preferences.putLong("accelY", motorAccelY);
+    preferences.putLong("accelFork", motorAccelFork);
+    preferences.end();
+}
+
+// Load motor settings from non-volatile storage
+void loadMotorSettings() {
+    preferences.begin("motor", true);
+    motorSpeedX = preferences.getLong("speedX", X_MAX_SPEED);
+    motorSpeedY = preferences.getLong("speedY", Y_MAX_SPEED);
+    motorSpeedFork = preferences.getLong("speedFork", FORK_MAX_SPEED);
+    motorAccelX = preferences.getLong("accelX", X_MAX_ACCEL);
+    motorAccelY = preferences.getLong("accelY", Y_MAX_ACCEL);
+    motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
+    preferences.end();
+}
+
+// Apply motor settings to motors
+void applyMotorSettings() {
+    if (motorX) {
+        motorX->setSpeed(motorSpeedX);
+        motorX->setAcceleration(motorAccelX);
+    }
+    if (motorY) {
+        motorY->setSpeed(motorSpeedY);
+        motorY->setAcceleration(motorAccelY);
+    }
+    if (motorFork) {
+        motorFork->setSpeed(motorSpeedFork);
+        motorFork->setAcceleration(motorAccelFork);
+    }
 }
 
 // Sensor Dashboard HTML
@@ -581,6 +629,50 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       <button class="test-btn" onclick="startTest()">Start Test</button>
     </div>
     
+    <div class="test-panel">
+      <h2>Motor Settings</h2>
+      <div class="position-group">
+        <div class="position-inputs">
+          <h3>X Motor</h3>
+          <div class="input-row">
+            <label>Speed:</label>
+            <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
+          </div>
+          <div class="input-row">
+            <label>Accel:</label>
+            <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
+          </div>
+        </div>
+        <div class="position-inputs">
+          <h3>Y Motor</h3>
+          <div class="input-row">
+            <label>Speed:</label>
+            <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
+          </div>
+          <div class="input-row">
+            <label>Accel:</label>
+            <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
+          </div>
+        </div>
+      </div>
+      <div class="position-group" style="margin-top: 10px;">
+        <div class="position-inputs">
+          <h3>Fork Motor</h3>
+          <div class="input-row">
+            <label>Speed:</label>
+            <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
+          </div>
+          <div class="input-row">
+            <label>Accel:</label>
+            <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
+          </div>
+        </div>
+        <div class="position-inputs" style="opacity: 0; pointer-events: none;">
+        </div>
+      </div>
+      <button class="test-btn" onclick="saveMotorSettings()">Save Motor Settings</button>
+    </div>
+    
     <div class="last-update" id="lastUpdate">Last update: --</div>
     
     <div class="footer">
@@ -652,8 +744,49 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         });
     }
     
-    // Load positions when page loads
+    // Load saved motor settings on page load
+    function loadMotorSettings() {
+      fetch('/api/motor/settings')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('speedX').value = data.speedX || 2000;
+          document.getElementById('accelX').value = data.accelX || 5000;
+          document.getElementById('speedY').value = data.speedY || 2000;
+          document.getElementById('accelY').value = data.accelY || 5000;
+          document.getElementById('speedFork').value = data.speedFork || 2000;
+          document.getElementById('accelFork').value = data.accelFork || 5000;
+        })
+        .catch(error => {
+          console.error('Error loading motor settings:', error);
+        });
+    }
+    
+    // Save motor settings
+    function saveMotorSettings() {
+      const speedX = parseInt(document.getElementById('speedX').value) || 2000;
+      const accelX = parseInt(document.getElementById('accelX').value) || 5000;
+      const speedY = parseInt(document.getElementById('speedY').value) || 2000;
+      const accelY = parseInt(document.getElementById('accelY').value) || 5000;
+      const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
+      const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
+      
+      const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
+                  '&speedY=' + speedY + '&accelY=' + accelY +
+                  '&speedFork=' + speedFork + '&accelFork=' + accelFork;
+      
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          console.log('Motor settings saved:', data);
+        })
+        .catch(error => {
+          console.error('Error saving motor settings:', error);
+        });
+    }
+    
+    // Load positions and settings when page loads
     loadTestPositions();
+    loadMotorSettings();
     
     // Movement control
     let moveDistance = 1; // Default 1 inch
@@ -806,11 +939,17 @@ void initializeWebServer() {
     // Load saved test position values
     loadTestPositions();
     
+    // Load saved motor settings
+    loadMotorSettings();
+    
     // Initialize sensor pins
     initializeSensors();
     
     // Initialize motors
     initializeMotors();
+    
+    // Apply saved motor settings to motors
+    applyMotorSettings();
 
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -921,6 +1060,42 @@ void initializeWebServer() {
             Serial.println("Web Request: Start test sequence");
         } else {
             request->send(400, "text/plain", "Missing position parameters");
+        }
+    });
+    
+    // API endpoint for motor settings (GET to retrieve, GET with params to set)
+    server.on("/api/motor/settings", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("speedX") && request->hasParam("accelX") &&
+            request->hasParam("speedY") && request->hasParam("accelY") &&
+            request->hasParam("speedFork") && request->hasParam("accelFork")) {
+            
+            // Get motor settings from request
+            motorSpeedX = request->getParam("speedX")->value().toInt();
+            motorAccelX = request->getParam("accelX")->value().toInt();
+            motorSpeedY = request->getParam("speedY")->value().toInt();
+            motorAccelY = request->getParam("accelY")->value().toInt();
+            motorSpeedFork = request->getParam("speedFork")->value().toInt();
+            motorAccelFork = request->getParam("accelFork")->value().toInt();
+            
+            // Apply settings to motors
+            applyMotorSettings();
+            
+            // Save to persistent storage
+            saveMotorSettings();
+            
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Motor settings updated");
+        } else {
+            // Return current settings if no parameters provided
+            String json = "{";
+            json += "\"speedX\":" + String(motorSpeedX) + ",";
+            json += "\"accelX\":" + String(motorAccelX) + ",";
+            json += "\"speedY\":" + String(motorSpeedY) + ",";
+            json += "\"accelY\":" + String(motorAccelY) + ",";
+            json += "\"speedFork\":" + String(motorSpeedFork) + ",";
+            json += "\"accelFork\":" + String(motorAccelFork);
+            json += "}";
+            request->send(200, "application/json", json);
         }
     });
 
