@@ -64,6 +64,9 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
         delay(1);
     }
     
+    // Set home offset as position zero
+    motor->resetPosition();
+    
     // Restore full speed for normal operations
     motor->setSpeed(maxSpeed);
 }
@@ -151,6 +154,11 @@ void homeAllAxes() {
         updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
+    
+    // Set home offset as position zero for all axes
+    motorX->resetPosition();
+    motorY->resetPosition();
+    motorFork->resetPosition();
     
     // Restore full speeds for normal operations
     motorX->setSpeed(X_MAX_SPEED);
