@@ -46,6 +46,7 @@ long motorSpeedFork = FORK_MAX_SPEED;
 long motorAccelX = X_MAX_ACCEL;
 long motorAccelY = Y_MAX_ACCEL;
 long motorAccelFork = FORK_MAX_ACCEL;
+long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 
 // Preferences namespace for test sequence persistence
 Preferences preferences;
@@ -83,6 +84,7 @@ void saveMotorSettings() {
     preferences.putLong("accelX", motorAccelX);
     preferences.putLong("accelY", motorAccelY);
     preferences.putLong("accelFork", motorAccelFork);
+    preferences.putLong("storageSteps", storageMotorStepsPerClick);
     preferences.end();
 }
 
@@ -95,6 +97,7 @@ void loadMotorSettings() {
     motorAccelX = preferences.getLong("accelX", X_MAX_ACCEL);
     motorAccelY = preferences.getLong("accelY", Y_MAX_ACCEL);
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
+    storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     preferences.end();
 }
 
@@ -889,7 +892,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
             </div>
           </div>
-                <div style="opacity: 0; pointer-events: none;"></div>
+          <div class="position-inputs">
+            <h3>Storage Motor</h3>
+            <div class="input-row">
+              <label>Steps/Click:</label>
+              <input type="number" id="storageSteps" step="100" min="100" max="1000000" placeholder="120000">
+            </div>
+          </div>
           </div>
               <button class="action-btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);" onclick="saveMotorSettings()">Save Settings</button>
         </div>
@@ -913,7 +922,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'forkHome', name: 'Fork Home' },
       { id: 'testButton', name: 'Test Btn' }
     ];
-    const STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+    let STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -996,6 +1005,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('accelY').value = data.accelY || 5000;
           document.getElementById('speedFork').value = data.speedFork || 2000;
           document.getElementById('accelFork').value = data.accelFork || 5000;
+          if (data.storageSteps !== undefined) {
+            document.getElementById('storageSteps').value = data.storageSteps;
+            STORAGE_MOTOR_STEPS_PER_CLICK = data.storageSteps;
+          }
         })
         .catch(error => {
           console.error('Error loading motor settings:', error);
@@ -1010,15 +1023,18 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelY = parseInt(document.getElementById('accelY').value) || 5000;
       const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
+      const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
       
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
                   '&speedY=' + speedY + '&accelY=' + accelY +
-                  '&speedFork=' + speedFork + '&accelFork=' + accelFork;
+                  '&speedFork=' + speedFork + '&accelFork=' + accelFork +
+                  '&storageSteps=' + storageSteps;
       
       fetch(url)
         .then(response => response.text())
         .then(data => {
           console.log('Motor settings saved:', data);
+          STORAGE_MOTOR_STEPS_PER_CLICK = storageSteps;
         })
         .catch(error => {
           console.error('Error saving motor settings:', error);
@@ -1212,9 +1228,8 @@ void initializeWebServer() {
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         String html = FPSTR(sensors_html);
-        String stepsValue = String(STORAGE_MOTOR_STEPS_PER_CLICK);
+        String stepsValue = String(storageMotorStepsPerClick);
         html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
-        Serial.printf("Storage motor steps per click: %s\n", stepsValue.c_str());
         request->send(200, "text/html", html);
     });
     
@@ -1409,6 +1424,11 @@ void initializeWebServer() {
             motorSpeedFork = request->getParam("speedFork")->value().toInt();
             motorAccelFork = request->getParam("accelFork")->value().toInt();
             
+            // Get storage steps if provided
+            if (request->hasParam("storageSteps")) {
+                storageMotorStepsPerClick = request->getParam("storageSteps")->value().toInt();
+            }
+            
             // Apply settings to motors
             applyMotorSettings();
             
@@ -1425,7 +1445,8 @@ void initializeWebServer() {
             json += "\"speedY\":" + String(motorSpeedY) + ",";
             json += "\"accelY\":" + String(motorAccelY) + ",";
             json += "\"speedFork\":" + String(motorSpeedFork) + ",";
-            json += "\"accelFork\":" + String(motorAccelFork);
+            json += "\"accelFork\":" + String(motorAccelFork) + ",";
+            json += "\"storageSteps\":" + String(storageMotorStepsPerClick);
             json += "}";
             request->send(200, "application/json", json);
         }
