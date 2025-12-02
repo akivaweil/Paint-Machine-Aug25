@@ -7,6 +7,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "StateMachine/STATES/01_HOMING.h"
+#include "StateMachine/STATES/02_TEST.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -27,6 +28,14 @@ StepperMotor* motorFork = nullptr;
 HomeSwitch* homeSwitchX = nullptr;
 HomeSwitch* homeSwitchY = nullptr;
 HomeSwitch* homeSwitchFork = nullptr;
+
+// Test position values
+float testPos1X = 0.0;
+float testPos1Y = 0.0;
+float testPos1Fork = 0.0;
+float testPos2X = 0.0;
+float testPos2Y = 0.0;
+float testPos2Fork = 0.0;
 
 // Sensor Dashboard HTML
 const char sensors_html[] PROGMEM = R"rawliteral(
@@ -355,6 +364,101 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       border-color: var(--accent-green);
     }
     
+    .test-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-top: 30px;
+    }
+    
+    .test-panel h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .position-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .position-inputs {
+      background: var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .position-inputs h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .input-row label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      min-width: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .input-row input {
+      flex: 1;
+      background: var(--bg-color);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+    
+    .input-row input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+    
+    .test-btn {
+      background: var(--accent-green);
+      border: 2px solid var(--accent-green);
+      border-radius: 8px;
+      padding: 14px 30px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    .test-btn:hover {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      transform: scale(1.02);
+    }
+    
+    .test-btn:active {
+      transform: scale(0.98);
+    }
+    
     @media (max-width: 768px) {
       .sensor-grid {
         grid-template-columns: 1fr;
@@ -410,6 +514,43 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <button class="home-btn" onclick="homeAxis('fork')">Home Fork</button>
         <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
       </div>
+    </div>
+    
+    <div class="test-panel">
+      <h2>Test Sequence</h2>
+      <div class="position-group">
+        <div class="position-inputs">
+          <h3>Position 1</h3>
+          <div class="input-row">
+            <label>X:</label>
+            <input type="number" id="pos1X" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Y:</label>
+            <input type="number" id="pos1Y" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Fork:</label>
+            <input type="number" id="pos1Fork" step="0.1" value="0" placeholder="0.0">
+          </div>
+        </div>
+        <div class="position-inputs">
+          <h3>Position 2</h3>
+          <div class="input-row">
+            <label>X:</label>
+            <input type="number" id="pos2X" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Y:</label>
+            <input type="number" id="pos2Y" step="0.1" value="0" placeholder="0.0">
+          </div>
+          <div class="input-row">
+            <label>Fork:</label>
+            <input type="number" id="pos2Fork" step="0.1" value="0" placeholder="0.0">
+          </div>
+        </div>
+      </div>
+      <button class="test-btn" onclick="startTest()">Start Test</button>
     </div>
     
     <div class="last-update" id="lastUpdate">Last update: --</div>
@@ -512,6 +653,25 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           console.log('Home response:', data);
         })
         .catch(error => console.error('Home error:', error));
+    }
+    
+    function startTest() {
+      const pos1X = parseFloat(document.getElementById('pos1X').value) || 0;
+      const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
+      const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
+      const pos2X = parseFloat(document.getElementById('pos2X').value) || 0;
+      const pos2Y = parseFloat(document.getElementById('pos2Y').value) || 0;
+      const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
+      
+      const url = '/api/test?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
+                  '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork;
+      
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          console.log('Test started:', data);
+        })
+        .catch(error => console.error('Test error:', error));
     }
     
     // Keyboard controls
@@ -670,6 +830,30 @@ void initializeWebServer() {
             }
         } else {
             request->send(400, "text/plain", "Missing axis parameter");
+        }
+    });
+    
+    // API endpoint for test sequence
+    server.on("/api/test", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
+            request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
+            
+            // Get position values from request
+            testPos1X = request->getParam("pos1X")->value().toFloat();
+            testPos1Y = request->getParam("pos1Y")->value().toFloat();
+            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            testPos2X = request->getParam("pos2X")->value().toFloat();
+            testPos2Y = request->getParam("pos2Y")->value().toFloat();
+            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            
+            // Start test state (STATE_TEST = 2)
+            extern void setMachineState(int state);
+            setMachineState(2);
+            
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Start test sequence");
+        } else {
+            request->send(400, "text/plain", "Missing position parameters");
         }
     });
 

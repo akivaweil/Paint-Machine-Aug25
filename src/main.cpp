@@ -10,11 +10,13 @@ extern void initializeWebServer();
 // State functions
 extern void homingState();
 extern void idleState();
+extern void testState();
 
 // State machine state
 enum MachineState {
     STATE_HOMING,
-    STATE_IDLE
+    STATE_IDLE,
+    STATE_TEST
 };
 
 MachineState currentState = STATE_HOMING;
@@ -56,6 +58,9 @@ void loop() {
             break;
         case STATE_IDLE:
             idleState();
+            break;
+        case STATE_TEST:
+            testState();
             break;
     }
 
