@@ -53,9 +53,8 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
         delay(1);
     }
     
-    // Stop and reset position
+    // Stop motor
     motor->stopContinuous();
-    motor->resetPosition();
     
     // Move 0.5 inches away from home
     motor->moveInches(-0.5);
@@ -63,9 +62,6 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
         updateOTA(); // Allow OTA updates during homing
         delay(1);
     }
-    
-    // Set home offset as position zero
-    motor->resetPosition();
     
     // Restore full speed for normal operations
     motor->setSpeed(maxSpeed);
@@ -126,17 +122,14 @@ void homeAllAxes() {
         // Check switches and stop motors when triggered
         if (!xHomed && homeSwitchX->readDual()) {
             motorX->stopContinuous();
-            motorX->resetPosition();
             xHomed = true;
         }
         if (!yHomed && homeSwitchY->read()) {
             motorY->stopContinuous();
-            motorY->resetPosition();
             yHomed = true;
         }
         if (!forkHomed && homeSwitchFork->read()) {
             motorFork->stopContinuous();
-            motorFork->resetPosition();
             forkHomed = true;
         }
         
