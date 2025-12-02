@@ -93,9 +93,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     .sensor-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
       margin-bottom: 30px;
     }
     
@@ -103,7 +103,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: var(--border-radius);
-      padding: 24px;
+      padding: 16px;
       box-shadow: var(--shadow);
       transition: all 0.3s ease;
       position: relative;
@@ -187,28 +187,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .sensor-card.active .status-text {
       color: var(--accent-green);
-    }
-    
-    .sensor-info {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--card-border);
-    }
-    
-    .sensor-info-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
-    }
-    
-    .sensor-info-label {
-      color: var(--text-secondary);
-    }
-    
-    .sensor-info-value {
-      color: var(--text-primary);
-      font-weight: 500;
     }
     
     .footer {
@@ -455,16 +433,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <div class="sensor-status">
               <div class="status-indicator"></div>
               <span class="status-text">${isActive ? 'TRIGGERED' : 'IDLE'}</span>
-            </div>
-          </div>
-          <div class="sensor-info">
-            <div class="sensor-info-item">
-              <span class="sensor-info-label">Pin:</span>
-              <span class="sensor-info-value">${sensor.pin}</span>
-            </div>
-            <div class="sensor-info-item">
-              <span class="sensor-info-label">State:</span>
-              <span class="sensor-info-value">${isActive ? 'HIGH' : 'LOW'}</span>
             </div>
           </div>
         </div>
