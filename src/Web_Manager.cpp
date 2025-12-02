@@ -794,6 +794,17 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="moveStorage(1)">&darr;</button>
           </div>
         </div>
+              <div class="control-section">
+                <div class="control-label">Servo (0-180&deg;)</div>
+                <div style="margin-top: 16px;">
+                  <input type="range" id="servoSlider" min="0" max="180" value="90" step="1" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
+                  <div style="display: flex; justify-content: space-between; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);">
+                    <span>0&deg;</span>
+                    <span id="servoAngle" style="color: var(--accent-primary); font-weight: 600;">90&deg;</span>
+                    <span>180&deg;</span>
+                  </div>
+                </div>
+        </div>
       </div>
       <div class="home-buttons">
         <button class="home-btn" onclick="homeAxis('x')">Home X</button>
@@ -1086,6 +1097,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Move error:', error));
     }
     
+    function setServoAngle(angle) {
+      document.getElementById('servoAngle').textContent = Math.round(angle) + '°';
+      fetch('/api/servo?angle=' + angle)
+        .catch(error => console.error('Servo error:', error));
+    }
+    
     function stopMove() {
       // Movement stops when button is released
       // The server handles the movement as a single command
@@ -1154,6 +1171,12 @@ void initializeSensors() {
     // Initialize test button (assuming active LOW with pullup, adjust if needed)
     pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
     
+    // Initialize Servo with LEDC PWM (50Hz, 16-bit resolution)
+    // Channel 0, 50Hz frequency, 16-bit resolution
+    ledcSetup(0, 50, 16);  // channel, frequency, resolution bits
+    ledcAttachPin(SERVO_PIN, 0);  // pin, channel
+    ledcWrite(0, 4915);  // Set to 90 degrees (1.5ms pulse = 90 degrees)
+    
     // Initialize HomeSwitch instances (pins configured in begin())
     if (homeSwitchX == nullptr) {
         homeSwitchX = new HomeSwitch(X_HOME_PIN, X_HOME_PIN2);
@@ -1169,6 +1192,22 @@ void initializeSensors() {
     }
     
     sensorsInitialized = true;
+}
+
+// Set servo angle (0-180 degrees)
+void setServoAngle(float angle) {
+    // Clamp angle to 0-180 range
+    if (angle < 0) angle = 0;
+    if (angle > 180) angle = 180;
+    
+    // Convert angle to pulse width
+    // Standard servo: 1ms (0°) to 2ms (180°)
+    // At 50Hz with 16-bit resolution (65536 steps), 20ms period = 65536
+    // 1ms = 3277, 2ms = 6554
+    // Formula: pulse = 3277 + (angle / 180.0) * (6554 - 3277)
+    uint32_t pulse = 3277 + (uint32_t)((angle / 180.0) * 3277);
+    
+    ledcWrite(0, pulse);
 }
 
 // Initialize motors
@@ -1449,6 +1488,18 @@ void initializeWebServer() {
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick);
             json += "}";
             request->send(200, "application/json", json);
+        }
+    });
+    
+    // API endpoint for servo control
+    server.on("/api/servo", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("angle")) {
+            float angle = request->getParam("angle")->value().toFloat();
+            setServoAngle(angle);
+            request->send(200, "text/plain", "OK");
+            Serial.printf("Web Request: Set servo to %.1f degrees\n", angle);
+        } else {
+            request->send(400, "text/plain", "Missing angle parameter");
         }
     });
 

@@ -41,9 +41,9 @@
 #define FORK_MAX_ACCEL 0            // Set on dashboard - DO NOT use from config
 
 // Storage motor speed and acceleration settings (in steps per second)
-#define STORAGE_MOTOR_SPEED 5000              // Storage motor speed for normal operation
-#define STORAGE_MOTOR_ACCEL 5000              // Storage motor acceleration for normal operation
-#define STORAGE_MOTOR_CONTINUOUS_SPEED 5000   // Storage motor speed for continuous spinning
+#define STORAGE_MOTOR_SPEED 10000              // Storage motor speed for normal operation
+#define STORAGE_MOTOR_ACCEL 10000              // Storage motor acceleration for normal operation
+#define STORAGE_MOTOR_CONTINUOUS_SPEED 10000   // Storage motor speed for continuous spinning
 #define STORAGE_MOTOR_STEPS_PER_CLICK 9000    // Storage motor steps per click in web dashboard
 // Safety settings
 #define MAX_TRAVEL_INCHES 14.0         // Maximum travel distance in inches

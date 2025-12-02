@@ -33,13 +33,11 @@ void setMachineState(int newState) {
 void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
-    delay(1000);
 
-    // Initialize OTA (WiFi connection)
+    // Initialize OTA (WiFi connection - non-blocking)
     initializeOTA();
     
-    // Initialize Web Server (waits for WiFi connection)
-    delay(2000); // Give WiFi time to connect
+    // Initialize Web Server (doesn't need WiFi to be connected)
     initializeWebServer();
     
     // Start in homing state (will home on boot)
