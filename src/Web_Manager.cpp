@@ -97,6 +97,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       flex-direction: column;
       gap: 12px;
       margin-bottom: 30px;
+      width: 20%;
+      min-width: 180px;
+      align-self: flex-start;
     }
     
     .sensor-card {
@@ -108,6 +111,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      width: 100%;
     }
     
     .sensor-card::before {
