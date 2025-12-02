@@ -118,6 +118,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Paint Machine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -735,7 +736,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       <div class="content-area">
         <div class="card">
           <div class="card-header">
-            <div class="card-icon">⎈</div>
+            <div class="card-icon">&oplus;</div>
             <span class="card-title">Manual Controls</span>
           </div>
           <div class="card-body">
@@ -753,12 +754,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   </div>
                 </div>
                 <div class="arrow-controls">
-                  <button class="arrow-btn up" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">↑</button>
-                  <button class="arrow-btn left" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">←</button>
-                  <button class="arrow-btn right" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">→</button>
-                  <button class="arrow-btn down" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">↓</button>
+                  <button class="arrow-btn up" onmousedown="moveY(-1)" onmouseup="stopMove()" ontouchstart="moveY(-1)" ontouchend="stopMove()">&uarr;</button>
+                  <button class="arrow-btn left" onmousedown="moveX(-1)" onmouseup="stopMove()" ontouchstart="moveX(-1)" ontouchend="stopMove()">&larr;</button>
+                  <button class="arrow-btn right" onmousedown="moveX(1)" onmouseup="stopMove()" ontouchstart="moveX(1)" ontouchend="stopMove()">&rarr;</button>
+                  <button class="arrow-btn down" onmousedown="moveY(1)" onmouseup="stopMove()" ontouchstart="moveY(1)" ontouchend="stopMove()">&darr;</button>
                 </div>
                 <div class="distance-selector">
+                  <button class="distance-btn" id="btn01in" onclick="setDistance(0.1)">.1"</button>
                   <button class="distance-btn active" id="btn1in" onclick="setDistance(1)">1"</button>
                   <button class="distance-btn" id="btn3in" onclick="setDistance(3)">3"</button>
                 </div>
@@ -772,10 +774,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   </div>
                 </div>
                 <div class="arrow-controls" style="grid-template-columns: 48px;">
-                  <button class="arrow-btn up" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">↑</button>
-                  <button class="arrow-btn down" style="grid-column: 1;" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">↓</button>
+                  <button class="arrow-btn up" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
+                  <button class="arrow-btn down" style="grid-column: 1;" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
                 </div>
                 <div class="distance-selector">
+                  <button class="distance-btn" id="btnFork01in" onclick="setForkDistance(0.1)">.1"</button>
                   <button class="distance-btn active" id="btnFork1in" onclick="setForkDistance(1)">1"</button>
                   <button class="distance-btn" id="btnFork3in" onclick="setForkDistance(3)">3"</button>
                 </div>
@@ -792,7 +795,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         
         <div class="card">
           <div class="card-header">
-            <div class="card-icon">⚡</div>
+            <div class="card-icon">&raquo;</div>
             <span class="card-title">Test Sequence</span>
           </div>
           <div class="card-body">
@@ -835,10 +838,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <div class="collapsible-header" onclick="toggleMotorSettings()">
             <div class="card-header-content">
-              <div class="card-icon" style="background: linear-gradient(135deg, #666 0%, #888 100%);">⚙</div>
+              <div class="card-icon" style="background: linear-gradient(135deg, #666 0%, #888 100%);">*</div>
               <span class="card-title">Motor Settings</span>
             </div>
-            <span class="chevron">▼</span>
+            <span class="chevron">&darr;</span>
           </div>
           <div class="collapsible-content" id="motorSettingsContent">
             <div class="card-body">
@@ -943,9 +946,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       fetch('/api/positions')
         .then(response => response.json())
         .then(data => {
-          document.getElementById('posX').textContent = data.posX.toFixed(2) + '"';
-          document.getElementById('posY').textContent = data.posY.toFixed(2) + '"';
-          document.getElementById('posFork').textContent = data.posFork.toFixed(2) + '"';
+          document.getElementById('posX').textContent = data.posX.toFixed(1) + '"';
+          document.getElementById('posY').textContent = data.posY.toFixed(1) + '"';
+          document.getElementById('posFork').textContent = data.posFork.toFixed(1) + '"';
         })
         .catch(error => {
           console.error('Error fetching position data:', error);
@@ -1023,12 +1026,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     function setDistance(inches) {
       moveDistance = inches;
+      document.getElementById('btn01in').classList.toggle('active', inches === 0.1);
       document.getElementById('btn1in').classList.toggle('active', inches === 1);
       document.getElementById('btn3in').classList.toggle('active', inches === 3);
     }
     
     function setForkDistance(inches) {
       forkDistance = inches;
+      document.getElementById('btnFork01in').classList.toggle('active', inches === 0.1);
       document.getElementById('btnFork1in').classList.toggle('active', inches === 1);
       document.getElementById('btnFork3in').classList.toggle('active', inches === 3);
     }
