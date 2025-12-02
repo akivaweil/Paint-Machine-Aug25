@@ -42,8 +42,9 @@ void testState() {
     //! ************************************************************************
     if (step == 0) {
         // Move X and Y simultaneously to position 1
-        motorX->moveInches(testPos1X);
-        motorY->moveInches(testPos1Y);
+        // Negate values because positive direction moves toward home switches
+        motorX->moveInches(-testPos1X);
+        motorY->moveInches(-testPos1Y);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -86,8 +87,9 @@ void testState() {
     //! ************************************************************************
     else if (step == 3) {
         // Calculate relative movement to position 2
-        float deltaX = testPos2X - testPos1X;
-        float deltaY = testPos2Y - testPos1Y;
+        // Negate because positive direction moves toward home switches
+        float deltaX = -(testPos2X - testPos1X);
+        float deltaY = -(testPos2Y - testPos1Y);
         
         // Move X and Y simultaneously to position 2
         motorX->moveInches(deltaX);
