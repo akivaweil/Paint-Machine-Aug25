@@ -42,9 +42,9 @@ void testState() {
     //! ************************************************************************
     if (step == 0) {
         // Move X and Y simultaneously to position 1
-        // Negate values because positive direction moves toward home switches
-        motorX->moveInches(-testPos1X);
-        motorY->moveInches(-testPos1Y);
+        // Positive direction moves away from home switches
+        motorX->moveInches(testPos1X);
+        motorY->moveInches(testPos1Y);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -58,7 +58,7 @@ void testState() {
     //! STEP 2: EXTEND FORK AT POSITION 1
     //! ************************************************************************
     else if (step == 1) {
-        motorFork->moveInches(-testPos1Fork);
+        motorFork->moveInches(testPos1Fork);
         
         // Wait for fork to finish extending
         while (motorFork->isMotorRunning()) {
@@ -72,7 +72,7 @@ void testState() {
     //! STEP 3: RETRACT FORK AT POSITION 1
     //! ************************************************************************
     else if (step == 2) {
-        motorFork->moveInches(testPos1Fork);
+        motorFork->moveInches(-testPos1Fork);
         
         // Wait for fork to finish retracting
         while (motorFork->isMotorRunning()) {
@@ -87,9 +87,9 @@ void testState() {
     //! ************************************************************************
     else if (step == 3) {
         // Calculate relative movement to position 2
-        // Negate because positive direction moves toward home switches
-        float deltaX = -(testPos2X - testPos1X);
-        float deltaY = -(testPos2Y - testPos1Y);
+        // Positive direction moves away from home switches
+        float deltaX = testPos2X - testPos1X;
+        float deltaY = testPos2Y - testPos1Y;
         
         // Move X and Y simultaneously to position 2
         motorX->moveInches(deltaX);
@@ -107,7 +107,7 @@ void testState() {
     //! STEP 5: EXTEND FORK AT POSITION 2
     //! ************************************************************************
     else if (step == 4) {
-        motorFork->moveInches(-testPos2Fork);
+        motorFork->moveInches(testPos2Fork);
         
         // Wait for fork to finish extending
         while (motorFork->isMotorRunning()) {
@@ -121,7 +121,7 @@ void testState() {
     //! STEP 6: RETRACT FORK AT POSITION 2
     //! ************************************************************************
     else if (step == 5) {
-        motorFork->moveInches(testPos2Fork);
+        motorFork->moveInches(-testPos2Fork);
         
         // Wait for fork to finish retracting
         while (motorFork->isMotorRunning()) {

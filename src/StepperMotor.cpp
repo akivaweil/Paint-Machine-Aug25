@@ -21,7 +21,7 @@ StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     if (engine) {
         stepper = engine->stepperConnectToPin(step);
         if (stepper) {
-            stepper->setDirectionPin(dir, true);  // true = direction pin is inverted (Positive = Away from Home)
+            stepper->setDirectionPin(dir, true);  // true = direction pin is inverted (positive = away from home)
             stepper->setSpeedInHz(maxSpd);
             stepper->setAcceleration(maxAcc);
             stepper->setCurrentPosition(0);
