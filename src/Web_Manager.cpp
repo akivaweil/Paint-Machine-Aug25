@@ -773,9 +773,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                     <span class="pos-value" id="posFork">0.00"</span>
           </div>
           </div>
-                <div class="arrow-controls" style="grid-template-columns: 48px;">
-                  <button class="arrow-btn up" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
-                  <button class="arrow-btn down" style="grid-column: 1;" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
+                <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
+                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onmousedown="moveFork(-1)" onmouseup="stopMove()" ontouchstart="moveFork(-1)" ontouchend="stopMove()">&uarr;</button>
+                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onmousedown="moveFork(1)" onmouseup="stopMove()" ontouchstart="moveFork(1)" ontouchend="stopMove()">&darr;</button>
                 </div>
                 <div class="distance-selector">
                   <button class="distance-btn" id="btnFork01in" onclick="setForkDistance(0.1)">.1"</button>
