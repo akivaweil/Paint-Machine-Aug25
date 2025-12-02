@@ -40,8 +40,8 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     // Set homing speed to 1/4 of max speed
     motor->setSpeed(maxSpeed / 4);
     
-    // Set direction to move toward home (positive direction)
-    motor->setDirection(true);
+    // Set direction to move toward home (negative direction)
+    motor->setDirection(false);
     
     // Start continuous movement toward home
     motor->startContinuous();
@@ -57,7 +57,7 @@ static void homeSingleAxis(StepperMotor* motor, HomeSwitch* homeSwitch, bool use
     motor->stopContinuous();
     
     // Move 0.5 inches away from home
-    motor->moveInches(-0.5);
+    motor->moveInches(0.5);
     while (motor->isMotorRunning()) {
         updateOTA(); // Allow OTA updates during homing
         delay(1);
@@ -96,10 +96,10 @@ void homeAllAxes() {
     motorY->setSpeed(Y_MAX_SPEED / 4);
     motorFork->setSpeed(FORK_MAX_SPEED / 4);
     
-    // Set all directions to move toward home (positive direction)
-    motorX->setDirection(true);
-    motorY->setDirection(true);
-    motorFork->setDirection(true);
+    // Set all directions to move toward home (negative direction)
+    motorX->setDirection(false);
+    motorY->setDirection(false);
+    motorFork->setDirection(false);
     
     // Start continuous movement for all axes
     motorX->startContinuous();
@@ -138,9 +138,9 @@ void homeAllAxes() {
     }
     
     // Move all axes 0.5 inches away from home simultaneously
-    motorX->moveInches(-0.5);
-    motorY->moveInches(-0.5);
-    motorFork->moveInches(-0.2);
+    motorX->moveInches(0.5);
+    motorY->moveInches(0.5);
+    motorFork->moveInches(0.2);
     
     // Wait for all motors to finish
     while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
