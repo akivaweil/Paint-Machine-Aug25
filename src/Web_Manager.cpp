@@ -789,7 +789,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
                   <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="moveStorage(-1)">&uarr;</button>
                   <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="moveStorage(1)">&darr;</button>
-                </div>
+          </div>
         </div>
       </div>
       <div class="home-buttons">
@@ -913,7 +913,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'forkHome', name: 'Fork Home' },
       { id: 'testButton', name: 'Test Btn' }
     ];
-    const STORAGE_MOTOR_STEPS_PER_CLICK = %STORAGE_MOTOR_STEPS_PER_CLICK_VALUE%;
+    const STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1193,14 +1193,6 @@ String getSensorStatesJSON() {
     return json;
 }
 
-// Processor function to replace placeholder in HTML
-String processor(const String& var) {
-    if (var == "STORAGE_MOTOR_STEPS_PER_CLICK_VALUE") {
-        return String(STORAGE_MOTOR_STEPS_PER_CLICK);
-    }
-    return "";
-}
-
 void initializeWebServer() {
     // Load saved test position values
     loadTestPositions();
@@ -1219,7 +1211,11 @@ void initializeWebServer() {
 
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send_P(200, "text/html", sensors_html, processor);
+        String html = FPSTR(sensors_html);
+        String stepsValue = String(STORAGE_MOTOR_STEPS_PER_CLICK);
+        html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
+        Serial.printf("Storage motor steps per click: %s\n", stepsValue.c_str());
+        request->send(200, "text/html", html);
     });
     
     // API endpoint for sensor states
@@ -1238,8 +1234,8 @@ void initializeWebServer() {
             if (axis == "x") {
                 if (request->hasParam("distance")) {
                     float distance = request->getParam("distance")->value().toFloat();
-                    motor = motorX;
-                    axisName = "X";
+                motor = motorX;
+                axisName = "X";
                     if (motor) {
                         motor->moveInches(distance);
                         request->send(200, "text/plain", "OK");
@@ -1253,8 +1249,8 @@ void initializeWebServer() {
             } else if (axis == "y") {
                 if (request->hasParam("distance")) {
                     float distance = request->getParam("distance")->value().toFloat();
-                    motor = motorY;
-                    axisName = "Y";
+                motor = motorY;
+                axisName = "Y";
                     if (motor) {
                         motor->moveInches(distance);
                         request->send(200, "text/plain", "OK");
@@ -1268,13 +1264,13 @@ void initializeWebServer() {
             } else if (axis == "fork") {
                 if (request->hasParam("distance")) {
                     float distance = request->getParam("distance")->value().toFloat();
-                    motor = motorFork;
-                    axisName = "Fork Motor";
-                    if (motor) {
-                        motor->moveInches(distance);
-                        request->send(200, "text/plain", "OK");
-                        Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
-                    } else {
+                motor = motorFork;
+                axisName = "Fork Motor";
+            if (motor) {
+                motor->moveInches(distance);
+                request->send(200, "text/plain", "OK");
+                Serial.printf("Web Request: Move %s by %.2f inches\n", axisName, distance);
+            } else {
                         request->send(400, "text/plain", "Motor not initialized");
                     }
                 } else {
