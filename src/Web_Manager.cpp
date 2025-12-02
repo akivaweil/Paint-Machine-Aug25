@@ -26,6 +26,7 @@ StepperMotor* motorX = nullptr;
 StepperMotor* motorY = nullptr;
 StepperMotor* motorFork = nullptr;
 StepperMotor* motorStorage = nullptr;
+StepperMotor* motorPaintRotation = nullptr;
 
 // Home switch instances
 HomeSwitch* homeSwitchX = nullptr;
@@ -51,6 +52,7 @@ long motorAccelX = X_MAX_ACCEL;
 long motorAccelY = Y_MAX_ACCEL;
 long motorAccelFork = FORK_MAX_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
+long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 
 // Preferences namespace for test sequence persistence
 Preferences preferences;
@@ -89,6 +91,7 @@ void saveMotorSettings() {
     preferences.putLong("accelY", motorAccelY);
     preferences.putLong("accelFork", motorAccelFork);
     preferences.putLong("storageSteps", storageMotorStepsPerClick);
+    preferences.putLong("paintRotationSteps", paintRotationMotorStepsPerClick);
     preferences.end();
 }
 
@@ -102,6 +105,7 @@ void loadMotorSettings() {
     motorAccelY = preferences.getLong("accelY", Y_MAX_ACCEL);
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
+    paintRotationMotorStepsPerClick = preferences.getLong("paintRotationSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
     preferences.end();
 }
 
@@ -799,6 +803,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
               <div class="control-section">
+                <div class="control-label">Paint Rotation Motor</div>
+                <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
+                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="movePaintRotation(-1)">↺</button>
+                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="movePaintRotation(1)">↻</button>
+          </div>
+        </div>
+              <div class="control-section">
                 <div class="control-label">Servo (0-270&deg;)</div>
                 <div style="margin-top: 16px;">
                   <input type="range" id="servoSlider" min="0" max="270" value="135" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
@@ -938,6 +949,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'testButton', name: 'Test Btn' }
     ];
     let STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+    let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1101,6 +1113,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Move error:', error));
     }
     
+    function movePaintRotation(direction) {
+      fetch('/api/move?axis=paintRotation&steps=' + (direction * PAINT_ROTATION_MOTOR_STEPS_PER_CLICK))
+        .catch(error => console.error('Move error:', error));
+    }
+    
     function setServoAngle(angle) {
       // Snap to nearest 5 degrees
       var snappedAngle = Math.round(angle / 5) * 5;
@@ -1224,6 +1241,9 @@ void initializeMotors() {
     if (motorStorage == nullptr) {
         motorStorage = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, STORAGE_MOTOR_SPEED, STORAGE_MOTOR_ACCEL);
     }
+    if (motorPaintRotation == nullptr) {
+        motorPaintRotation = new StepperMotor(PAINT_ROTATION_STEP_PIN, PAINT_ROTATION_DIR_PIN, STEPS_PER_INCH, PAINT_ROTATION_MOTOR_SPEED, PAINT_ROTATION_MOTOR_ACCEL);
+    }
 }
 
 
@@ -1269,6 +1289,8 @@ void initializeWebServer() {
         String html = FPSTR(sensors_html);
         String stepsValue = String(storageMotorStepsPerClick);
         html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
+        String paintRotationStepsValue = String(paintRotationMotorStepsPerClick);
+        html.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", paintRotationStepsValue);
         request->send(200, "text/html", html);
     });
     
@@ -1335,6 +1357,21 @@ void initializeWebServer() {
                     long steps = request->getParam("steps")->value().toInt();
                     motor = motorStorage;
                     axisName = "Storage Motor";
+                    if (motor) {
+                        motor->moveSteps(steps);
+                        request->send(200, "text/plain", "OK");
+                        Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
+                    } else {
+                        request->send(400, "text/plain", "Motor not initialized");
+                    }
+                } else {
+                    request->send(400, "text/plain", "Missing steps parameter");
+                }
+            } else if (axis == "paintRotation") {
+                if (request->hasParam("steps")) {
+                    long steps = request->getParam("steps")->value().toInt();
+                    motor = motorPaintRotation;
+                    axisName = "Paint Rotation Motor";
                     if (motor) {
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");

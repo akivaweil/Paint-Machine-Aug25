@@ -43,8 +43,12 @@
 // Storage motor speed and acceleration settings (in steps per second)
 #define STORAGE_MOTOR_SPEED 10000              // Storage motor speed for normal operation
 #define STORAGE_MOTOR_ACCEL 10000              // Storage motor acceleration for normal operation
-#define STORAGE_MOTOR_CONTINUOUS_SPEED 10000   // Storage motor speed for continuous spinning
 #define STORAGE_MOTOR_STEPS_PER_CLICK 9000    // Storage motor steps per click in web dashboard
+
+// Paint rotation motor speed and acceleration settings (in steps per second)
+#define PAINT_ROTATION_MOTOR_SPEED 10000              // Paint rotation motor speed for normal operation
+#define PAINT_ROTATION_MOTOR_ACCEL 10000              // Paint rotation motor acceleration for normal operation
+#define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 9000    // Paint rotation motor steps per click in web dashboard
 // Safety settings
 #define MAX_TRAVEL_INCHES 14.0         // Maximum travel distance in inches
 #define MIN_TRAVEL_INCHES 0.0          // Minimum travel distance in inches
