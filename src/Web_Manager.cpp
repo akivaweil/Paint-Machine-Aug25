@@ -913,6 +913,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'forkHome', name: 'Fork Home' },
       { id: 'testButton', name: 'Test Btn' }
     ];
+    const STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1065,7 +1066,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     function moveStorage(direction) {
-      fetch('/api/move?axis=storage&steps=' + (direction * 200))
+      fetch('/api/move?axis=storage&steps=' + (direction * STORAGE_MOTOR_STEPS_PER_CLICK))
         .catch(error => console.error('Move error:', error));
     }
     
@@ -1210,7 +1211,9 @@ void initializeWebServer() {
 
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send_P(200, "text/html", sensors_html);
+        String html = String(sensors_html);
+        html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", String(STORAGE_MOTOR_STEPS_PER_CLICK));
+        request->send(200, "text/html", html);
     });
     
     // API endpoint for sensor states
