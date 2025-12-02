@@ -250,13 +250,13 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: MOVE FORK UP 0.5 INCHES AT POSITION 3
+    //! STEP 11: MOVE Y UP 0.5 INCHES AT POSITION 3
     //! ************************************************************************
     else if (step == 10) {
-        motorFork->moveInches(-0.5);  // Negative moves away from home (up)
+        motorY->moveInches(-0.5);  // Negative moves away from home (up)
         
-        // Wait for fork to finish moving
-        while (motorFork->isMotorRunning()) {
+        // Wait for Y to finish moving
+        while (motorY->isMotorRunning()) {
             updateOTA();
             delay(1);
         }
