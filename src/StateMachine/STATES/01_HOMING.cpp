@@ -76,7 +76,36 @@ void homeYAxis() {
 
 // Home Fork Motor axis
 void homeForkAxis() {
-    homeSingleAxis(motorFork, homeSwitchFork, false, FORK_MAX_SPEED);
+    if (!motorFork || !homeSwitchFork) return;
+    
+    // Set homing speed to 700
+    motorFork->setSpeed(700);
+    
+    // Start continuous movement toward home (positive direction)
+    motorFork->startContinuous(true);
+    
+    // Keep moving until home switch is triggered
+    while (!homeSwitchFork->read()) {
+        motorFork->runContinuous();
+        updateOTA(); // Allow OTA updates during homing
+        delay(1);
+    }
+    
+    // Stop motor
+    motorFork->stopContinuous();
+    
+    // Move 0.1 inches away from home
+    motorFork->moveInches(-0.1);
+    while (motorFork->isMotorRunning()) {
+        updateOTA(); // Allow OTA updates during homing
+        delay(1);
+    }
+    
+    // Set home offset as position zero
+    motorFork->resetPosition();
+    
+    // Restore full speed for normal operations
+    motorFork->setSpeed(FORK_MAX_SPEED);
 }
 
 // Home all axes
