@@ -60,6 +60,7 @@ long motorSpeedPaintRotation = PAINT_ROTATION_MOTOR_SPEED;
 long motorAccelPaintRotation = PAINT_ROTATION_MOTOR_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
+long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
 float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
 
 // Preferences namespace for test sequence persistence
@@ -102,6 +103,7 @@ void saveMotorSettings() {
     preferences.putLong("accPaintRot", motorAccelPaintRotation);
     preferences.putLong("storageSteps", storageMotorStepsPerClick);
     preferences.putLong("paintRotSteps", paintRotationMotorStepsPerClick);
+    preferences.putLong("paintRotRevOut", paintRotationMotorStepsPerRevOutput);
     preferences.putFloat("servoSpeed", servoSpeed);
     preferences.end();
 }
@@ -122,6 +124,7 @@ void loadMotorSettings() {
     
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     paintRotationMotorStepsPerClick = preferences.getLong("paintRotSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
+    paintRotationMotorStepsPerRevOutput = preferences.getLong("paintRotRevOut", PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
     servoSpeed = preferences.getFloat("servoSpeed", 30.0);
     preferences.end();
 }
@@ -974,6 +977,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <label>Steps/Click:</label>
               <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000">
             </div>
+            <div class="input-row">
+              <label>Steps/Rev Output:</label>
+              <input type="number" id="paintRotationRevOutput" step="100" min="100" max="1000000" placeholder="38400">
+            </div>
           </div>
           <div class="position-inputs">
             <h3>Servo</h3>
@@ -1109,6 +1116,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
             currentPaintRotationSteps = data.paintRotationSteps;
           }
+          if (data.paintRotationRevOutput !== undefined) {
+            document.getElementById('paintRotationRevOutput').value = data.paintRotationRevOutput;
+          }
           if (data.servoSpeed !== undefined) {
             document.getElementById('servoSpeed').value = data.servoSpeed;
           }
@@ -1129,17 +1139,20 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const speedPaintRotationInput = document.getElementById('speedPaintRotation').value;
       const accelPaintRotationInput = document.getElementById('accelPaintRotation').value;
       const paintRotationStepsInput = document.getElementById('paintRotationSteps').value;
+      const paintRotationRevOutputInput = document.getElementById('paintRotationRevOutput').value;
       const speedPaintRotation = speedPaintRotationInput ? parseInt(speedPaintRotationInput) : currentSpeedPaintRotation;
       const accelPaintRotation = accelPaintRotationInput ? parseInt(accelPaintRotationInput) : currentAccelPaintRotation;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
       const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
+      const paintRotationRevOutput = paintRotationRevOutputInput ? parseInt(paintRotationRevOutputInput) : 38400;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
       
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
                   '&speedY=' + speedY + '&accelY=' + accelY +
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
                   '&speedPaintRotation=' + speedPaintRotation + '&accelPaintRotation=' + accelPaintRotation +
-                  '&storageSteps=' + storageSteps + '&paintRotationSteps=' + paintRotationSteps + '&servoSpeed=' + servoSpeed;
+                  '&storageSteps=' + storageSteps + '&paintRotationSteps=' + paintRotationSteps + 
+                  '&paintRotationRevOutput=' + paintRotationRevOutput + '&servoSpeed=' + servoSpeed;
       
       fetch(url)
         .then(response => response.text())
@@ -1714,6 +1727,11 @@ void initializeWebServer() {
             // Get paint rotation steps (always sent from frontend)
             paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
             
+            // Get paint rotation steps per rev output if provided
+            if (request->hasParam("paintRotationRevOutput")) {
+                paintRotationMotorStepsPerRevOutput = request->getParam("paintRotationRevOutput")->value().toInt();
+            }
+            
             // Get servo speed if provided
             if (request->hasParam("servoSpeed")) {
                 servoSpeed = request->getParam("servoSpeed")->value().toFloat();
@@ -1742,6 +1760,7 @@ void initializeWebServer() {
             json += "\"accelPaintRotation\":" + String(motorAccelPaintRotation) + ",";
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
             json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick) + ",";
+            json += "\"paintRotationRevOutput\":" + String(paintRotationMotorStepsPerRevOutput) + ",";
             json += "\"servoSpeed\":" + String(servoSpeed);
             json += "}";
             request->send(200, "application/json", json);
