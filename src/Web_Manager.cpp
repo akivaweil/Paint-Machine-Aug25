@@ -1294,13 +1294,14 @@ void setServoAngle(float angle) {
     }
 }
 
-// Enable/disable paint rotation motor (enable pin is active LOW)
+// Enable/disable paint rotation motor (enable pin is active HIGH)
+// If motor doesn't stop, try inverting: swap HIGH/LOW in these functions
 void enablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);  // LOW = enabled
+    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = enabled
 }
 
 void disablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = disabled
+    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);   // LOW = disabled
 }
 
 // Initialize motors
@@ -1458,6 +1459,9 @@ void initializeWebServer() {
                         // Stop any continuous movement and ensure motor is stopped
                         motor->stopContinuous();
                         motor->forceStop();
+                        // Disable motor first to ensure clean state
+                        disablePaintRotationMotor();
+                        delay(10);  // Small delay to ensure motor stops
                         // Enable motor before moving
                         enablePaintRotationMotor();
                         motor->moveSteps(steps);
@@ -1677,12 +1681,34 @@ void updateWebServer() {
     // Web server handles requests asynchronously, no update needed
     // Check if paint rotation motor has stopped and disable it
     static bool paintRotationMotorWasRunning = false;
+    static unsigned long paintRotationMotorStartTime = 0;
+    static const unsigned long PAINT_ROTATION_MOTOR_TIMEOUT_MS = 5000;  // 5 second timeout
+    
     if (motorPaintRotation) {
         bool isRunning = motorPaintRotation->isMotorRunning();
-        if (paintRotationMotorWasRunning && !isRunning) {
-            // Motor was running but now stopped, disable it
-            disablePaintRotationMotor();
+        
+        // Track when motor starts running
+        if (isRunning && !paintRotationMotorWasRunning) {
+            paintRotationMotorStartTime = millis();
         }
+        
+        // Disable motor if it has stopped naturally
+        if (paintRotationMotorWasRunning && !isRunning) {
+            disablePaintRotationMotor();
+            paintRotationMotorStartTime = 0;
+        }
+        
+        // Safety timeout - disable motor if it's been running too long
+        if (isRunning && paintRotationMotorStartTime > 0) {
+            unsigned long elapsed = millis() - paintRotationMotorStartTime;
+            if (elapsed > PAINT_ROTATION_MOTOR_TIMEOUT_MS) {
+                motorPaintRotation->forceStop();
+                disablePaintRotationMotor();
+                paintRotationMotorStartTime = 0;
+                Serial.println("Paint rotation motor timeout - disabled");
+            }
+        }
+        
         paintRotationMotorWasRunning = isRunning;
     }
 }
