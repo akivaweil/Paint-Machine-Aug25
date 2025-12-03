@@ -66,50 +66,37 @@ void updateServoNonBlocking(float targetAngle) {
 }
 
 // Parallel sequence handler (called during wait loops)
-// Paint motor does a single 360 turn, servo returns to 135 at the 180-degree mark
+// Paint motor 360 turn starts immediately after pos2, servo returns to 135 at 180-degree mark
 static long paintMotorStartPosition = 0;
-static bool paintMotor360Started = false;
 
 void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
     if (!parallelSequenceStarted) return;
     
     if (parallelStep == 0) {
-        // Turn on paint gun only (motor starts when servo reaches 220)
+        // Turn on paint gun and move servo to 220 (paint motor already running from pos2)
         digitalWrite(PAINT_GUN_PIN, HIGH);
-        paintMotor360Started = false;
         parallelStep = 1;
     }
     else if (parallelStep == 1) {
-        // Rotate servo to 220 degrees (non-blocking)
+        // Rotate servo to 220 degrees (non-blocking) while paint motor runs
         updateServoNonBlocking(220.0);
-        if (abs(currentServoAngle - 220.0) < 0.5) {
-            // Servo reached 220 - start the 360 turn
-            enablePaintRotationMotor();
-            if (motorPaintRotation) {
-                paintMotorStartPosition = motorPaintRotation->getCurrentPosition();
-                motorPaintRotation->moveSteps(PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);  // 360 degrees
-                paintMotor360Started = true;
-            }
-            parallelStep = 2;
-        }
-    }
-    else if (parallelStep == 2) {
-        // Wait for paint motor to reach 180 degrees (half of 360), then start servo return
-        if (motorPaintRotation && paintMotor360Started) {
+        
+        // Check if paint motor reached 180 degrees (half of 360)
+        if (motorPaintRotation) {
             long currentPos = motorPaintRotation->getCurrentPosition();
             long stepsCompleted = abs(currentPos - paintMotorStartPosition);
             long halfTurnSteps = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT / 2;  // 19200 steps = 180 degrees
             
             if (stepsCompleted >= halfTurnSteps) {
                 // Paint motor reached 180 degrees - start servo return to 135
-                parallelStep = 3;
+                parallelStep = 2;
             }
         } else {
             // Motor not initialized, skip to next step
-            parallelStep = 3;
+            parallelStep = 2;
         }
     }
-    else if (parallelStep == 3) {
+    else if (parallelStep == 2) {
         // Rotate servo back to 135 degrees while paint motor finishes 360
         updateServoNonBlocking(135.0);
         
@@ -117,10 +104,10 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
         
         if (servoComplete && motorComplete) {
-            parallelStep = 4;
+            parallelStep = 3;
         }
     }
-    else if (parallelStep == 4) {
+    else if (parallelStep == 3) {
         // Paint motor finished - disable it
         if (motorPaintRotation) {
             motorPaintRotation->forceStop();
@@ -130,9 +117,6 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         
         // Turn off paint gun
         digitalWrite(PAINT_GUN_PIN, LOW);
-        
-        // Reset state
-        paintMotor360Started = false;
         
         // Parallel sequence complete
         parallelSequenceStarted = false;
@@ -328,7 +312,7 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 8: RETRACT FORK MOTOR AT POSITION 2
+    //! STEP 8: RETRACT FORK MOTOR AT POSITION 2, START PAINT MOTOR 360 TURN
     //! ************************************************************************
     else if (step == 7) {
         motorFork->moveInches(testPos2Fork);
@@ -338,6 +322,14 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        
+        // Start paint motor 360 turn immediately after pos2
+        enablePaintRotationMotor();
+        if (motorPaintRotation) {
+            paintMotorStartPosition = motorPaintRotation->getCurrentPosition();
+            motorPaintRotation->moveSteps(PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);  // 360 degrees
+        }
+        
         step = 8;
     }
     
