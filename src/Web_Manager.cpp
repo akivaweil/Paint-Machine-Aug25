@@ -35,6 +35,7 @@ HomeSwitch* homeSwitchFork = nullptr;
 
 // Servo instance
 ServoControl* servo = nullptr;
+float currentServoAngle = 135.0;  // Track current servo position
 
 // Suction and Paint Gun state
 bool suctionState = false;
@@ -1265,6 +1266,7 @@ void initializeSensors() {
         servo = new ServoControl();
         servo->init(SERVO_PIN, 0, 50, 16);  // pin, channel, frequency, resolution
         servo->setAngleRange(0, 270);  // Set to 270 degree range
+        currentServoAngle = 135.0;  // Initialize current position
         servo->write(135);  // Set to 135 degrees (center of 270)
     }
     
@@ -1293,10 +1295,38 @@ void initializeSensors() {
     sensorsInitialized = true;
 }
 
-// Set servo angle (0-180 degrees)
+// Set servo angle (0-270 degrees) - moves gradually at 50% speed
 void setServoAngle(float angle) {
     if (servo) {
-        servo->write(angle);
+        // Constrain angle to valid range
+        if (angle < 0) angle = 0;
+        if (angle > 270) angle = 270;
+        
+        // Calculate step size and delay for 50% speed
+        // Typical servo speed: ~60 deg/sec, so 50% = ~30 deg/sec
+        // Step size: 0.5 degrees, delay: 16ms per step = ~31 deg/sec
+        const float stepSize = 0.5;
+        const int stepDelay = 16;  // milliseconds
+        
+        // Move gradually from current to target
+        float targetAngle = angle;
+        float diff = targetAngle - currentServoAngle;
+        
+        if (abs(diff) > stepSize) {
+            // Move in steps
+            int steps = abs(diff) / stepSize;
+            float increment = diff / steps;
+            
+            for (int i = 0; i < steps; i++) {
+                currentServoAngle += increment;
+                servo->write(currentServoAngle);
+                delay(stepDelay);
+            }
+        }
+        
+        // Final position to ensure accuracy
+        currentServoAngle = targetAngle;
+        servo->write(currentServoAngle);
     }
 }
 
