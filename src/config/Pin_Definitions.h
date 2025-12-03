@@ -41,7 +41,7 @@
 #define ERROR_LED_PIN 2   // Using same pin for now
 
 // Test button
-#define TEST_BUTTON_PIN 16
+#define TEST_BUTTON_PIN 17
 
 // Servo Motor (24V 160kg 180 degree)
 #define SERVO_PIN 40

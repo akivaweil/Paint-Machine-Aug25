@@ -456,12 +456,6 @@ void testState() {
     //! STEP 15: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
     //! ************************************************************************
     else if (step == 14) {
-        // Start parallel sequence when beginning to move to position 4
-        if (!parallelSequenceStarted) {
-            parallelSequenceStarted = true;
-            parallelStep = 0;
-        }
-        
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -478,9 +472,8 @@ void testState() {
         motorX->moveInches(moveX);
         motorY->moveInches(moveY);
         
-        // Wait for both motors to finish (parallel sequence continues running)
+        // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
@@ -502,9 +495,8 @@ void testState() {
         
         motorFork->moveInches(moveFork);
         
-        // Wait for fork motor to finish extending (parallel sequence continues)
+        // Wait for fork motor to finish extending
         while (motorFork->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
@@ -517,9 +509,8 @@ void testState() {
     else if (step == 16) {
         motorY->moveInches(0.5);
         
-        // Wait for Y to finish lowering (parallel sequence continues)
+        // Wait for Y to finish lowering
         while (motorY->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
@@ -532,9 +523,8 @@ void testState() {
     else if (step == 17) {
         motorFork->moveInches(testPos1Fork);
         
-        // Wait for fork motor to finish retracting (parallel sequence continues)
+        // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
@@ -551,9 +541,8 @@ void testState() {
         // Move X back to home (0)
         motorX->moveInches(-currentX);
         
-        // Wait for X motor to finish (parallel sequence continues)
+        // Wait for X motor to finish
         while (motorX->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
@@ -572,16 +561,8 @@ void testState() {
         motorY->moveInches(-currentY);
         motorFork->moveInches(-currentFork);
         
-        // Wait for Y and fork motors to finish (parallel sequence continues)
+        // Wait for Y and fork motors to finish
         while (motorY->isMotorRunning() || motorFork->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
-            updateOTA();
-            delay(1);
-        }
-        
-        // Ensure parallel sequence is complete and motor is stopped/disabled
-        while (parallelSequenceStarted) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
