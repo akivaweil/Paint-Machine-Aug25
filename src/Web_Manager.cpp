@@ -56,6 +56,8 @@ long motorSpeedFork = FORK_MAX_SPEED;
 long motorAccelX = X_MAX_ACCEL;
 long motorAccelY = Y_MAX_ACCEL;
 long motorAccelFork = FORK_MAX_ACCEL;
+long motorSpeedPaintRotation = PAINT_ROTATION_MOTOR_SPEED;
+long motorAccelPaintRotation = PAINT_ROTATION_MOTOR_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
@@ -96,6 +98,8 @@ void saveMotorSettings() {
     preferences.putLong("accelX", motorAccelX);
     preferences.putLong("accelY", motorAccelY);
     preferences.putLong("accelFork", motorAccelFork);
+    preferences.putLong("speedPaintRotation", motorSpeedPaintRotation);
+    preferences.putLong("accelPaintRotation", motorAccelPaintRotation);
     preferences.putLong("storageSteps", storageMotorStepsPerClick);
     preferences.putLong("paintRotationSteps", paintRotationMotorStepsPerClick);
     preferences.putFloat("servoSpeed", servoSpeed);
@@ -111,6 +115,8 @@ void loadMotorSettings() {
     motorAccelX = preferences.getLong("accelX", X_MAX_ACCEL);
     motorAccelY = preferences.getLong("accelY", Y_MAX_ACCEL);
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
+    motorSpeedPaintRotation = preferences.getLong("speedPaintRotation", PAINT_ROTATION_MOTOR_SPEED);
+    motorAccelPaintRotation = preferences.getLong("accelPaintRotation", PAINT_ROTATION_MOTOR_ACCEL);
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     paintRotationMotorStepsPerClick = preferences.getLong("paintRotationSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
     servoSpeed = preferences.getFloat("servoSpeed", 30.0);
@@ -130,6 +136,10 @@ void applyMotorSettings() {
     if (motorFork) {
         motorFork->setSpeed(motorSpeedFork);
         motorFork->setAcceleration(motorAccelFork);
+    }
+    if (motorPaintRotation) {
+        motorPaintRotation->setSpeed(motorSpeedPaintRotation);
+        motorPaintRotation->setAcceleration(motorAccelPaintRotation);
     }
 }
 
@@ -950,6 +960,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           <div class="position-inputs">
             <h3>Paint Rotation Motor</h3>
             <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedPaintRotation" step="100" min="100" max="10000" placeholder="1000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelPaintRotation" step="100" min="100" max="10000" placeholder="1000">
+            </div>
+            <div class="input-row">
               <label>Steps/Click:</label>
               <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000">
             </div>
@@ -1068,6 +1086,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('accelY').value = data.accelY || 5000;
           document.getElementById('speedFork').value = data.speedFork || 2000;
           document.getElementById('accelFork').value = data.accelFork || 5000;
+          if (data.speedPaintRotation !== undefined) {
+            document.getElementById('speedPaintRotation').value = data.speedPaintRotation;
+          }
+          if (data.accelPaintRotation !== undefined) {
+            document.getElementById('accelPaintRotation').value = data.accelPaintRotation;
+          }
           if (data.storageSteps !== undefined) {
             document.getElementById('storageSteps').value = data.storageSteps;
             STORAGE_MOTOR_STEPS_PER_CLICK = data.storageSteps;
@@ -1093,6 +1117,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelY = parseInt(document.getElementById('accelY').value) || 5000;
       const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
+      const speedPaintRotation = parseInt(document.getElementById('speedPaintRotation').value) || 1000;
+      const accelPaintRotation = parseInt(document.getElementById('accelPaintRotation').value) || 1000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
       const paintRotationSteps = parseInt(document.getElementById('paintRotationSteps').value) || PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
@@ -1100,6 +1126,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
                   '&speedY=' + speedY + '&accelY=' + accelY +
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
+                  '&speedPaintRotation=' + speedPaintRotation + '&accelPaintRotation=' + accelPaintRotation +
                   '&storageSteps=' + storageSteps + '&paintRotationSteps=' + paintRotationSteps + '&servoSpeed=' + servoSpeed;
       
       fetch(url)
@@ -1660,6 +1687,14 @@ void initializeWebServer() {
             motorSpeedFork = request->getParam("speedFork")->value().toInt();
             motorAccelFork = request->getParam("accelFork")->value().toInt();
             
+            // Get paint rotation speed and accel if provided
+            if (request->hasParam("speedPaintRotation")) {
+                motorSpeedPaintRotation = request->getParam("speedPaintRotation")->value().toInt();
+            }
+            if (request->hasParam("accelPaintRotation")) {
+                motorAccelPaintRotation = request->getParam("accelPaintRotation")->value().toInt();
+            }
+            
             // Get storage steps if provided
             if (request->hasParam("storageSteps")) {
                 storageMotorStepsPerClick = request->getParam("storageSteps")->value().toInt();
@@ -1694,6 +1729,8 @@ void initializeWebServer() {
             json += "\"accelY\":" + String(motorAccelY) + ",";
             json += "\"speedFork\":" + String(motorSpeedFork) + ",";
             json += "\"accelFork\":" + String(motorAccelFork) + ",";
+            json += "\"speedPaintRotation\":" + String(motorSpeedPaintRotation) + ",";
+            json += "\"accelPaintRotation\":" + String(motorAccelPaintRotation) + ",";
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
             json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick) + ",";
             json += "\"servoSpeed\":" + String(servoSpeed);
