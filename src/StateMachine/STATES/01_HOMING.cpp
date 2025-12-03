@@ -78,6 +78,19 @@ void homeYAxis() {
 void homeForkAxis() {
     if (!motorFork || !homeSwitchFork) return;
     
+    // If already homed, move 0.3 inches away from home first
+    if (homeSwitchFork->read()) {
+        // Set homing speed to 700
+        motorFork->setSpeed(700);
+        
+        // Move 0.3 inches away from home (negative direction)
+        motorFork->moveInches(-0.3);
+        while (motorFork->isMotorRunning()) {
+            updateOTA(); // Allow OTA updates during homing
+            delay(1);
+        }
+    }
+    
     // Set homing speed to 700
     motorFork->setSpeed(700);
     
