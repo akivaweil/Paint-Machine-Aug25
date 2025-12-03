@@ -58,6 +58,7 @@ long motorAccelY = Y_MAX_ACCEL;
 long motorAccelFork = FORK_MAX_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
+float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
 
 // Preferences namespace for test sequence persistence
 Preferences preferences;
@@ -97,6 +98,7 @@ void saveMotorSettings() {
     preferences.putLong("accelFork", motorAccelFork);
     preferences.putLong("storageSteps", storageMotorStepsPerClick);
     preferences.putLong("paintRotationSteps", paintRotationMotorStepsPerClick);
+    preferences.putFloat("servoSpeed", servoSpeed);
     preferences.end();
 }
 
@@ -111,6 +113,7 @@ void loadMotorSettings() {
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     paintRotationMotorStepsPerClick = preferences.getLong("paintRotationSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
+    servoSpeed = preferences.getFloat("servoSpeed", 30.0);
     preferences.end();
 }
 
@@ -944,6 +947,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <input type="number" id="storageSteps" step="100" min="100" max="1000000" placeholder="120000">
             </div>
           </div>
+          <div class="position-inputs">
+            <h3>Servo</h3>
+            <div class="input-row">
+              <label>Speed (deg/sec):</label>
+              <input type="number" id="servoSpeed" step="1" min="1" max="120" placeholder="30">
+            </div>
+          </div>
           </div>
               <button class="action-btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);" onclick="saveMotorSettings()">Save Settings</button>
         </div>
@@ -1058,6 +1068,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           if (data.paintRotationSteps !== undefined) {
             PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
           }
+          if (data.servoSpeed !== undefined) {
+            document.getElementById('servoSpeed').value = data.servoSpeed;
+          }
         })
         .catch(error => {
           console.error('Error loading motor settings:', error);
@@ -1073,11 +1086,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+      const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
       
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
                   '&speedY=' + speedY + '&accelY=' + accelY +
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
-                  '&storageSteps=' + storageSteps;
+                  '&storageSteps=' + storageSteps + '&servoSpeed=' + servoSpeed;
       
       fetch(url)
         .then(response => response.text())
@@ -1295,18 +1309,17 @@ void initializeSensors() {
     sensorsInitialized = true;
 }
 
-// Set servo angle (0-270 degrees) - moves gradually at 50% speed
+// Set servo angle (0-270 degrees) - moves gradually at configurable speed
 void setServoAngle(float angle) {
     if (servo) {
         // Constrain angle to valid range
         if (angle < 0) angle = 0;
         if (angle > 270) angle = 270;
         
-        // Calculate step size and delay for 50% speed
-        // Typical servo speed: ~60 deg/sec, so 50% = ~30 deg/sec
-        // Step size: 0.5 degrees, delay: 16ms per step = ~31 deg/sec
-        const float stepSize = 0.5;
-        const int stepDelay = 16;  // milliseconds
+        // Calculate step size and delay based on configured speed
+        // servoSpeed is in degrees per second
+        const float stepSize = 0.5;  // Step size in degrees
+        const float stepDelayMs = (stepSize / servoSpeed) * 1000.0;  // Delay in milliseconds
         
         // Move gradually from current to target
         float targetAngle = angle;
@@ -1320,7 +1333,7 @@ void setServoAngle(float angle) {
             for (int i = 0; i < steps; i++) {
                 currentServoAngle += increment;
                 servo->write(currentServoAngle);
-                delay(stepDelay);
+                delay((int)stepDelayMs);
             }
         }
         
@@ -1642,6 +1655,13 @@ void initializeWebServer() {
                 storageMotorStepsPerClick = request->getParam("storageSteps")->value().toInt();
             }
             
+            // Get servo speed if provided
+            if (request->hasParam("servoSpeed")) {
+                servoSpeed = request->getParam("servoSpeed")->value().toFloat();
+                if (servoSpeed < 1.0) servoSpeed = 1.0;
+                if (servoSpeed > 120.0) servoSpeed = 120.0;
+            }
+            
             // Apply settings to motors
             applyMotorSettings();
             
@@ -1660,7 +1680,8 @@ void initializeWebServer() {
             json += "\"speedFork\":" + String(motorSpeedFork) + ",";
             json += "\"accelFork\":" + String(motorAccelFork) + ",";
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
-            json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick);
+            json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick) + ",";
+            json += "\"servoSpeed\":" + String(servoSpeed);
             json += "}";
             request->send(200, "application/json", json);
         }
