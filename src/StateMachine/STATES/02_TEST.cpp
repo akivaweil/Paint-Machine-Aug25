@@ -203,6 +203,10 @@ void testState() {
     //! STEP 3: RAISE Y BY 0.5 INCHES AT POSITION 1
     //! ************************************************************************
     else if (step == 2) {
+        // Set speed and acceleration for 0.5 inch movement
+        motorY->setSpeed(5000);
+        motorY->setAcceleration(3000);
+        
         motorY->moveInches(-0.5);
         
         // Wait for X to finish raising
@@ -210,6 +214,10 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        
+        // Restore motor settings
+        applyMotorSettings();
+        
         step = 3;
     }
     
@@ -282,6 +290,10 @@ void testState() {
     //! STEP 7: LOWER Y BY 0.5 INCHES AT POSITION 2
     //! ************************************************************************
     else if (step == 6) {
+        // Set speed and acceleration for 0.5 inch movement
+        motorY->setSpeed(5000);
+        motorY->setAcceleration(3000);
+        
         motorY->moveInches(0.5);
         
         // Wait for X to finish lowering
@@ -289,6 +301,10 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        
+        // Restore motor settings
+        applyMotorSettings();
+        
         step = 7;
     }
     
@@ -425,6 +441,10 @@ void testState() {
     //! STEP 13: MOVE Y UP 0.5 INCHES AT POSITION 3
     //! ************************************************************************
     else if (step == 12) {
+        // Set speed and acceleration for 0.5 inch movement
+        motorY->setSpeed(5000);
+        motorY->setAcceleration(3000);
+        
         motorY->moveInches(-0.5);  // Negative moves away from home (up)
         
         // Wait for Y to finish moving
@@ -432,6 +452,10 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        
+        // Restore motor settings
+        applyMotorSettings();
+        
         step = 13;
     }
     
@@ -507,6 +531,10 @@ void testState() {
     //! STEP 17: LOWER Y BY 0.5 INCHES AT POSITION 4
     //! ************************************************************************
     else if (step == 16) {
+        // Set speed and acceleration for 0.5 inch movement
+        motorY->setSpeed(5000);
+        motorY->setAcceleration(3000);
+        
         motorY->moveInches(0.5);
         
         // Wait for Y to finish lowering
@@ -514,6 +542,10 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        
+        // Restore motor settings
+        applyMotorSettings();
+        
         step = 17;
     }
     

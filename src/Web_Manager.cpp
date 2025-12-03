@@ -115,8 +115,11 @@ void loadMotorSettings() {
     motorAccelX = preferences.getLong("accelX", X_MAX_ACCEL);
     motorAccelY = preferences.getLong("accelY", Y_MAX_ACCEL);
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
+    
+    // Load paint rotation motor settings
     motorSpeedPaintRotation = preferences.getLong("speedPaintRotation", PAINT_ROTATION_MOTOR_SPEED);
     motorAccelPaintRotation = preferences.getLong("accelPaintRotation", PAINT_ROTATION_MOTOR_ACCEL);
+    
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     paintRotationMotorStepsPerClick = preferences.getLong("paintRotationSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
     servoSpeed = preferences.getFloat("servoSpeed", 30.0);
