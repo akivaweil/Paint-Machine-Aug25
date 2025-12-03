@@ -32,14 +32,14 @@ StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
 // Direction is now set only in startContinuous() - no separate setDirection() needed
 
 void StepperMotor::setSpeed(long speed) {
-    if (stepper && speed > 0 && speed <= 10000) {
+    if (stepper && speed > 0 && speed <= 30000) {
         stepper->setSpeedInHz(speed);
         maxSpeed = speed; // Update max speed to allow future changes
     }
 }
 
 void StepperMotor::setAcceleration(long acceleration) {
-    if (stepper && acceleration > 0 && acceleration <= 10000) {
+    if (stepper && acceleration > 0 && acceleration <= 30000) {
         stepper->setAcceleration(acceleration);
         maxAccel = acceleration; // Update max accel to allow future changes
     }

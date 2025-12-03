@@ -919,22 +919,22 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <h3>X Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedX" step="100" min="100" max="10000" placeholder="2000">
+              <input type="number" id="speedX" step="100" min="100" max="30000" placeholder="2000">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelX" step="100" min="100" max="10000" placeholder="5000">
+              <input type="number" id="accelX" step="100" min="100" max="30000" placeholder="5000">
             </div>
           </div>
           <div class="position-inputs">
             <h3>Y Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedY" step="100" min="100" max="10000" placeholder="2000">
+              <input type="number" id="speedY" step="100" min="100" max="30000" placeholder="2000">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelY" step="100" min="100" max="10000" placeholder="5000">
+              <input type="number" id="accelY" step="100" min="100" max="30000" placeholder="5000">
             </div>
           </div>
         </div>
@@ -943,11 +943,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <h3>Fork Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedFork" step="100" min="100" max="10000" placeholder="2000">
+              <input type="number" id="speedFork" step="100" min="100" max="30000" placeholder="2000">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelFork" step="100" min="100" max="10000" placeholder="5000">
+              <input type="number" id="accelFork" step="100" min="100" max="30000" placeholder="5000">
             </div>
           </div>
           <div class="position-inputs">
@@ -961,11 +961,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <h3>Paint Rotation Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedPaintRotation" step="100" min="100" max="10000" placeholder="1000">
+              <input type="number" id="speedPaintRotation" step="100" min="100" max="30000" placeholder="1000">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelPaintRotation" step="100" min="100" max="10000" placeholder="1000">
+              <input type="number" id="accelPaintRotation" step="100" min="100" max="30000" placeholder="1000">
             </div>
             <div class="input-row">
               <label>Steps/Click:</label>
