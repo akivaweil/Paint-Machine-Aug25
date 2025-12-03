@@ -824,13 +824,18 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   </div>
                 </div>
         </div>
-              <div class="control-section">
-                <div class="control-label">Suction</div>
-                <button class="distance-btn" id="suctionBtn" onclick="toggleSuction()" style="margin-top: 16px; width: 100px;">OFF</button>
-        </div>
-              <div class="control-section">
-                <div class="control-label">Paint Gun</div>
-                <button class="distance-btn" id="paintGunBtn" onclick="togglePaintGun()" style="margin-top: 16px; width: 100px;">OFF</button>
+      </div>
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+        <div class="panel-label" style="margin-bottom: 16px;">Actuators</div>
+        <div style="display: flex; gap: 40px; justify-content: center; align-items: center;">
+          <div class="control-section" style="align-items: center;">
+            <div class="control-label">Suction</div>
+            <button class="distance-btn" id="suctionBtn" onclick="toggleSuction()" style="margin-top: 16px; width: 100px;">OFF</button>
+          </div>
+          <div class="control-section" style="align-items: center;">
+            <div class="control-label">Paint Gun</div>
+            <button class="distance-btn" id="paintGunBtn" onclick="togglePaintGun()" style="margin-top: 16px; width: 100px;">OFF</button>
+          </div>
         </div>
       </div>
       <div class="home-buttons">
