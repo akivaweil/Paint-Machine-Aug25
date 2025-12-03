@@ -48,7 +48,7 @@
 // Paint rotation motor speed and acceleration settings (in steps per second)
 #define PAINT_ROTATION_MOTOR_SPEED 300              // Paint rotation motor speed for normal operation
 #define PAINT_ROTATION_MOTOR_ACCEL 300              // Paint rotation motor acceleration for normal operation
-#define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 2000    // Paint rotation motor steps per click in web dashboard
+#define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 400    // Paint rotation motor steps per click in web dashboard
 
 // Safety settings
 #define MAX_TRAVEL_INCHES 14.0         // Maximum travel distance in inches
