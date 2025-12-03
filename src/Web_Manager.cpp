@@ -1455,15 +1455,16 @@ void initializeWebServer() {
                     motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
                     if (motor) {
-                        // Stop any continuous movement and ensure motor is stopped
-                        motor->stopContinuous();
-                        motor->forceStop();
-                        // Disable motor first to ensure clean state
-                        disablePaintRotationMotor();
-                        delay(10);  // Small delay to ensure motor stops
-                        // Enable motor before moving
+                        // Enable motor
                         enablePaintRotationMotor();
+                        // Move the set amount (blocking)
                         motor->moveSteps(steps);
+                        // Block until motor finishes
+                        while (motor->isMotorRunning()) {
+                            delay(10);
+                        }
+                        // Disable motor
+                        disablePaintRotationMotor();
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
                     } else {
@@ -1678,36 +1679,4 @@ void initializeWebServer() {
 
 void updateWebServer() {
     // Web server handles requests asynchronously, no update needed
-    // Check if paint rotation motor has stopped and disable it
-    static bool paintRotationMotorWasRunning = false;
-    static unsigned long paintRotationMotorStartTime = 0;
-    static const unsigned long PAINT_ROTATION_MOTOR_TIMEOUT_MS = 5000;  // 5 second timeout
-    
-    if (motorPaintRotation) {
-        bool isRunning = motorPaintRotation->isMotorRunning();
-        
-        // Track when motor starts running
-        if (isRunning && !paintRotationMotorWasRunning) {
-            paintRotationMotorStartTime = millis();
-        }
-        
-        // Disable motor if it has stopped naturally
-        if (paintRotationMotorWasRunning && !isRunning) {
-            disablePaintRotationMotor();
-            paintRotationMotorStartTime = 0;
-        }
-        
-        // Safety timeout - disable motor if it's been running too long
-        if (isRunning && paintRotationMotorStartTime > 0) {
-            unsigned long elapsed = millis() - paintRotationMotorStartTime;
-            if (elapsed > PAINT_ROTATION_MOTOR_TIMEOUT_MS) {
-                motorPaintRotation->forceStop();
-                disablePaintRotationMotor();
-                paintRotationMotorStartTime = 0;
-                Serial.println("Paint rotation motor timeout - disabled");
-            }
-        }
-        
-        paintRotationMotorWasRunning = isRunning;
-    }
 }
