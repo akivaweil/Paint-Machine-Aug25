@@ -113,10 +113,10 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
             digitalWrite(SUCTION_PIN, HIGH);
         }
         
-        // Rotate servo back to 125 degrees
-        updateServoNonBlocking(125.0);
+        // Rotate servo back to servo home angle
+        updateServoNonBlocking(SERVO_HOME_ANGLE);
         
-        bool servoComplete = abs(currentServoAngle - 125.0) < 0.5;
+        bool servoComplete = abs(currentServoAngle - SERVO_HOME_ANGLE) < 0.5;
         bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
         
         if (servoComplete && motorComplete) {
@@ -148,10 +148,10 @@ void testState() {
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
         
-        // Move servo to 125 degrees at the beginning
+        // Move servo to servo home angle at the beginning
         if (servo) {
-            currentServoAngle = 125.0;
-            servo->write(125.0);
+            currentServoAngle = SERVO_HOME_ANGLE;
+            servo->write(SERVO_HOME_ANGLE);
         }
     }
     
@@ -632,12 +632,12 @@ void testState() {
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
         
-        // Ensure servo is at 125 degrees (final position)
+        // Ensure servo is at servo home angle (final position)
         if (servo) {
-            updateServoNonBlocking(125.0);
+            updateServoNonBlocking(SERVO_HOME_ANGLE);
             // Wait for servo to reach final position
-            while (abs(currentServoAngle - 125.0) > 0.5) {
-                updateServoNonBlocking(125.0);
+            while (abs(currentServoAngle - SERVO_HOME_ANGLE) > 0.5) {
+                updateServoNonBlocking(SERVO_HOME_ANGLE);
                 delay(10);
             }
         }
@@ -649,13 +649,13 @@ void testState() {
             selectedPosition1Height = currentTestAllHeight;
             
             // Reset test state to restart from step 0
-            // Setting testStarted = false will cause initialization to run on next call
             testStarted = false;
             step = 0;
             parallelSequenceStarted = false;
             parallelStep = 0;
             
-            // Continue in test state (don't return to idle, don't home yet)
+            // Return immediately - next loop iteration will restart from step 0
+            return;
         } else {
             // All tests complete - now do cleanup (homing only happens at the end)
             // Home all axes (X, Y, and Fork)

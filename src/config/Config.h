@@ -66,5 +66,8 @@
 #define POSITION_HEIGHT_SPACING_MM 49.0
 #define POSITION_HEIGHT_SPACING_INCHES (POSITION_HEIGHT_SPACING_MM / 25.4)
 
+// Servo configuration
+#define SERVO_HOME_ANGLE 125.0  // Servo home angle in degrees
+
 
 #endif // CONFIG_H 

@@ -1,8 +1,13 @@
 #include <Arduino.h>
+#include "config/Config.h"
 
 //* ************************************************************************
 //* ************************ HTML CONTENT **********************************
 //* ************************************************************************
+
+// Helper macro to convert SERVO_HOME_ANGLE to string for HTML
+#define STRINGIFY(x) #x
+#define SERVO_HOME_ANGLE_STR STRINGIFY(SERVO_HOME_ANGLE)
 
 // Sensor Dashboard HTML
 const char sensors_html[] PROGMEM = R"rawliteral(

@@ -183,43 +183,8 @@ void setupAPIRoutes() {
         request->send(200, "application/json", json);
     });
     
-    // API endpoint for test sequence
-    server.on("/api/test", HTTP_GET, [](AsyncWebServerRequest *request){
-        if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
-            request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
-            
-            // Get position values from request
-            testPos1X = request->getParam("pos1X")->value().toFloat();
-            testPos1Y = request->getParam("pos1Y")->value().toFloat();
-            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
-            testPos2X = request->getParam("pos2X")->value().toFloat();
-            testPos2Y = request->getParam("pos2Y")->value().toFloat();
-            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
-            
-            // Get position 1 height selection (default to 8 if not provided)
-            if (request->hasParam("pos1Height")) {
-                selectedPosition1Height = request->getParam("pos1Height")->value().toInt();
-                // Validate range (1-8)
-                if (selectedPosition1Height < 1 || selectedPosition1Height > 8) {
-                    selectedPosition1Height = 8;
-                }
-            }
-            
-            // Save values to persistent storage
-            saveTestPositions();
-            
-            // Start test state (STATE_TEST = 2)
-            extern void setMachineState(int state);
-            setMachineState(2);
-            
-            request->send(200, "text/plain", "OK");
-            Serial.println("Web Request: Start test sequence");
-        } else {
-            request->send(400, "text/plain", "Missing position parameters");
-        }
-    });
-    
     // API endpoint for test all sequence (runs all 8 heights a1-a8)
+    // NOTE: Must be registered BEFORE /api/test to avoid prefix matching issues
     server.on("/api/test/all", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
             request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
@@ -248,6 +213,45 @@ void setupAPIRoutes() {
             
             request->send(200, "text/plain", "OK");
             Serial.println("Web Request: Start test all sequence (a1-a8)");
+        } else {
+            request->send(400, "text/plain", "Missing position parameters");
+        }
+    });
+    
+    // API endpoint for single test sequence
+    server.on("/api/test", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
+            request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
+            
+            // Ensure test all mode is OFF for single test
+            testAllMode = false;
+            
+            // Get position values from request
+            testPos1X = request->getParam("pos1X")->value().toFloat();
+            testPos1Y = request->getParam("pos1Y")->value().toFloat();
+            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            testPos2X = request->getParam("pos2X")->value().toFloat();
+            testPos2Y = request->getParam("pos2Y")->value().toFloat();
+            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            
+            // Get position 1 height selection (default to 8 if not provided)
+            if (request->hasParam("pos1Height")) {
+                selectedPosition1Height = request->getParam("pos1Height")->value().toInt();
+                // Validate range (1-8)
+                if (selectedPosition1Height < 1 || selectedPosition1Height > 8) {
+                    selectedPosition1Height = 8;
+                }
+            }
+            
+            // Save values to persistent storage
+            saveTestPositions();
+            
+            // Start test state (STATE_TEST = 2)
+            extern void setMachineState(int state);
+            setMachineState(2);
+            
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Start test sequence");
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }

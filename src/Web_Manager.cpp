@@ -32,7 +32,7 @@ HomeSwitch* homeSwitchFork = nullptr;
 
 // Servo instance
 ServoControl* servo = nullptr;
-float currentServoAngle = 125.0;  // Track current servo position
+float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
 
 // Suction and Paint Gun state
 bool suctionState = false;
