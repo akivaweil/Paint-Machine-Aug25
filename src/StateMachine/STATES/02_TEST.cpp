@@ -487,8 +487,9 @@ void testState() {
         // Move X back to home (0)
         motorX->moveInches(-currentX);
         
-        // Wait for X motor to finish
+        // Wait for X motor to finish (parallel sequence continues)
         while (motorX->isMotorRunning()) {
+            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
         }
@@ -507,10 +508,41 @@ void testState() {
         motorY->moveInches(-currentY);
         motorFork->moveInches(-currentFork);
         
-        // Wait for Y and fork motors to finish
+        // Wait for Y and fork motors to finish (parallel sequence continues)
         while (motorY->isMotorRunning() || motorFork->isMotorRunning()) {
+            updateParallelSequence(parallelSequenceStarted, parallelStep);
             updateOTA();
             delay(1);
+        }
+        
+        // Ensure parallel sequence is complete and motor is stopped/disabled
+        while (parallelSequenceStarted) {
+            updateParallelSequence(parallelSequenceStarted, parallelStep);
+            updateOTA();
+            delay(1);
+        }
+        
+        // Safety: Ensure paint rotation motor is stopped and disabled
+        if (motorPaintRotation) {
+            motorPaintRotation->stopContinuous();
+            while (motorPaintRotation->isMotorRunning()) {
+                delay(10);
+            }
+            delay(50);
+        }
+        disablePaintRotationMotor();
+        
+        // Ensure paint gun is off
+        digitalWrite(PAINT_GUN_PIN, LOW);
+        
+        // Ensure servo is at 135 degrees (final position)
+        if (servo) {
+            updateServoNonBlocking(135.0);
+            // Wait for servo to reach final position
+            while (abs(currentServoAngle - 135.0) > 0.5) {
+                updateServoNonBlocking(135.0);
+                delay(10);
+            }
         }
         
         // Test complete - return to idle
