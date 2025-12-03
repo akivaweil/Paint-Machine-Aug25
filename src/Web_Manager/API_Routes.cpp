@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 #include "Web_Manager.h"
+#include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
@@ -22,6 +23,8 @@ void setupAPIRoutes() {
         html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
         String paintRotationStepsValue = String(paintRotationMotorStepsPerClick);
         html.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", paintRotationStepsValue);
+        String servoHomeAngleValue = String(SERVO_HOME_ANGLE);
+        html.replace("SERVO_HOME_ANGLE_VALUE", servoHomeAngleValue);
         request->send(200, "text/html", html);
     });
     

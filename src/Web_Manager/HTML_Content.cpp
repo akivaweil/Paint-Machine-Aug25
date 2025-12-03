@@ -1,13 +1,8 @@
 #include <Arduino.h>
-#include "config/Config.h"
 
 //* ************************************************************************
 //* ************************ HTML CONTENT **********************************
 //* ************************************************************************
-
-// Helper macro to convert SERVO_HOME_ANGLE to string for HTML
-#define STRINGIFY(x) #x
-#define SERVO_HOME_ANGLE_STR STRINGIFY(SERVO_HOME_ANGLE)
 
 // Sensor Dashboard HTML
 const char sensors_html[] PROGMEM = R"rawliteral(
@@ -746,10 +741,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <div class="control-section">
                 <div class="control-label">Servo (0-270&deg;)</div>
                 <div style="margin-top: 16px; width: 125%;">
-                  <input type="range" id="servoSlider" min="0" max="270" value="125" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
+                  <input type="range" id="servoSlider" min="0" max="270" value="SERVO_HOME_ANGLE_VALUE" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
                   <div style="display: flex; justify-content: space-between; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);">
                     <span>0&deg;</span>
-                    <span id="servoAngle" style="color: var(--accent-primary); font-weight: 600;">125&deg;</span>
+                    <span id="servoAngle" style="color: var(--accent-primary); font-weight: 600;">SERVO_HOME_ANGLE_VALUE&deg;</span>
                     <span>270&deg;</span>
                   </div>
                 </div>

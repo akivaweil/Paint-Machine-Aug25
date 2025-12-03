@@ -593,25 +593,30 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: MOVE X, Y, AND FORK TO POSITION 0
+    //! STEP 19: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
     //! ************************************************************************
     else if (step == 18) {
-        // Get current positions
-        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
-        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
-        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
-        
-        // Move X, Y, and Fork to position 0 simultaneously
-        motorX->moveInches(-currentX);
-        motorY->moveInches(-currentY);
-        motorFork->moveInches(-currentFork);
-        
-        // Wait for all motors to finish
-        while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
-            updateOTA();
-            delay(1);
+        // Skip return to 0 if we're in test all mode and have more heights to test
+        if (testAllMode && currentTestAllHeight < 8) {
+            step = 19;
+        } else {
+            // Get current positions
+            float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+            float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
+            float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
+            
+            // Move X, Y, and Fork to position 0 simultaneously
+            motorX->moveInches(-currentX);
+            motorY->moveInches(-currentY);
+            motorFork->moveInches(-currentFork);
+            
+            // Wait for all motors to finish
+            while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
+                updateOTA();
+                delay(1);
+            }
+            step = 19;
         }
-        step = 19;
     }
     
     //! ************************************************************************
