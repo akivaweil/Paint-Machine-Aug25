@@ -66,56 +66,73 @@ void updateServoNonBlocking(float targetAngle) {
 }
 
 // Parallel sequence handler (called during wait loops)
+// Paint motor does a single 360 turn, servo returns to 135 at the 180-degree mark
+static long paintMotorStartPosition = 0;
+static bool paintMotor360Started = false;
+
 void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
     if (!parallelSequenceStarted) return;
     
     if (parallelStep == 0) {
-        // Enable and start rotating paint motor (endlessly)
-        enablePaintRotationMotor();
-        if (motorPaintRotation) {
-            motorPaintRotation->startContinuous(true);
-        }
-        // Turn on paint gun
+        // Turn on paint gun only (motor starts when servo reaches 220)
         digitalWrite(PAINT_GUN_PIN, HIGH);
+        paintMotor360Started = false;
         parallelStep = 1;
     }
     else if (parallelStep == 1) {
         // Rotate servo to 220 degrees (non-blocking)
         updateServoNonBlocking(220.0);
         if (abs(currentServoAngle - 220.0) < 0.5) {
+            // Servo reached 220 - start the 360 turn
+            enablePaintRotationMotor();
+            if (motorPaintRotation) {
+                paintMotorStartPosition = motorPaintRotation->getCurrentPosition();
+                motorPaintRotation->moveSteps(PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);  // 360 degrees
+                paintMotor360Started = true;
+            }
             parallelStep = 2;
         }
     }
     else if (parallelStep == 2) {
-        // Rotate servo back to 135 degrees (non-blocking)
-        updateServoNonBlocking(135.0);
-        if (abs(currentServoAngle - 135.0) < 0.5) {
+        // Wait for paint motor to reach 180 degrees (half of 360), then start servo return
+        if (motorPaintRotation && paintMotor360Started) {
+            long currentPos = motorPaintRotation->getCurrentPosition();
+            long stepsCompleted = abs(currentPos - paintMotorStartPosition);
+            long halfTurnSteps = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT / 2;  // 19200 steps = 180 degrees
+            
+            if (stepsCompleted >= halfTurnSteps) {
+                // Paint motor reached 180 degrees - start servo return to 135
+                parallelStep = 3;
+            }
+        } else {
+            // Motor not initialized, skip to next step
             parallelStep = 3;
         }
     }
     else if (parallelStep == 3) {
-        // Stop rotation motor and disable it
-        if (motorPaintRotation) {
-            // Keep calling stopContinuous until motor actually stops
-            motorPaintRotation->stopContinuous();
-            
-            // Check if motor is still running
-            if (motorPaintRotation->isMotorRunning()) {
-                // Motor still running, keep trying to stop it
-                return;  // Exit and check again next iteration
-            }
-            
-            // Motor has stopped, now disable it
-            // Small delay to ensure motor is fully stopped
-            delay(50);
-            disablePaintRotationMotor();
-        } else {
-            // Motor not initialized, just disable the pin
-            disablePaintRotationMotor();
+        // Rotate servo back to 135 degrees while paint motor finishes 360
+        updateServoNonBlocking(135.0);
+        
+        bool servoComplete = abs(currentServoAngle - 135.0) < 0.5;
+        bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
+        
+        if (servoComplete && motorComplete) {
+            parallelStep = 4;
         }
+    }
+    else if (parallelStep == 4) {
+        // Paint motor finished - disable it
+        if (motorPaintRotation) {
+            motorPaintRotation->forceStop();
+            delay(50);
+        }
+        disablePaintRotationMotor();
         
         // Turn off paint gun
         digitalWrite(PAINT_GUN_PIN, LOW);
+        
+        // Reset state
+        paintMotor360Started = false;
         
         // Parallel sequence complete
         parallelSequenceStarted = false;
@@ -127,6 +144,7 @@ void testState() {
     static bool testStarted = false;
     static bool parallelSequenceStarted = false;
     static int parallelStep = 0;
+    static bool paintRotationCompletedBeforePos3 = false;
     
     // Initialize on first entry
     if (!testStarted) {
@@ -134,6 +152,7 @@ void testState() {
         testStarted = true;
         parallelSequenceStarted = false;
         parallelStep = 0;
+        paintRotationCompletedBeforePos3 = false;
         
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
@@ -387,9 +406,41 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: MOVE TO POSITION 3 (POS2 BUT Y IS 0.5 LOWER)
+    //! STEP 11: ROTATE PAINT MOTOR ONE FULL TURN BEFORE POSITION 3
     //! ************************************************************************
     else if (step == 10) {
+        // Ensure the paint motor performs one full 360-degree output rotation (before moving to pos3)
+        if (!paintRotationCompletedBeforePos3) {
+            // Enable paint rotation motor driver
+            enablePaintRotationMotor();
+
+            if (motorPaintRotation) {
+                // 1 full output revolution = 38400 steps (12800 steps/rev motor, 5:15 gear ratio)
+                motorPaintRotation->moveSteps(PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
+
+                // Wait for the paint rotation motor to complete the move
+                while (motorPaintRotation->isMotorRunning()) {
+                    updateOTA();
+                    delay(1);
+                }
+
+                // Ensure motor is fully stopped
+                motorPaintRotation->forceStop();
+                delay(50);
+            } else {
+                // If motor is not initialized, just ensure driver is disabled
+                disablePaintRotationMotor();
+            }
+
+            // Disable paint rotation motor driver after rotation
+            disablePaintRotationMotor();
+
+            // Mark rotation as completed so this block runs only once
+            paintRotationCompletedBeforePos3 = true;
+        }
+
+        // After rotation is complete, proceed to the move to position 3
+
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());

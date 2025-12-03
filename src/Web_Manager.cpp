@@ -98,10 +98,10 @@ void saveMotorSettings() {
     preferences.putLong("accelX", motorAccelX);
     preferences.putLong("accelY", motorAccelY);
     preferences.putLong("accelFork", motorAccelFork);
-    preferences.putLong("speedPaintRotation", motorSpeedPaintRotation);
-    preferences.putLong("accelPaintRotation", motorAccelPaintRotation);
+    preferences.putLong("spdPaintRot", motorSpeedPaintRotation);
+    preferences.putLong("accPaintRot", motorAccelPaintRotation);
     preferences.putLong("storageSteps", storageMotorStepsPerClick);
-    preferences.putLong("paintRotationSteps", paintRotationMotorStepsPerClick);
+    preferences.putLong("paintRotSteps", paintRotationMotorStepsPerClick);
     preferences.putFloat("servoSpeed", servoSpeed);
     preferences.end();
 }
@@ -117,11 +117,11 @@ void loadMotorSettings() {
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
     
     // Load paint rotation motor settings
-    motorSpeedPaintRotation = preferences.getLong("speedPaintRotation", PAINT_ROTATION_MOTOR_SPEED);
-    motorAccelPaintRotation = preferences.getLong("accelPaintRotation", PAINT_ROTATION_MOTOR_ACCEL);
+    motorSpeedPaintRotation = preferences.getLong("spdPaintRot", PAINT_ROTATION_MOTOR_SPEED);
+    motorAccelPaintRotation = preferences.getLong("accPaintRot", PAINT_ROTATION_MOTOR_ACCEL);
     
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
-    paintRotationMotorStepsPerClick = preferences.getLong("paintRotationSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
+    paintRotationMotorStepsPerClick = preferences.getLong("paintRotSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
     servoSpeed = preferences.getFloat("servoSpeed", 30.0);
     preferences.end();
 }
@@ -1702,23 +1702,17 @@ void initializeWebServer() {
             motorSpeedFork = request->getParam("speedFork")->value().toInt();
             motorAccelFork = request->getParam("accelFork")->value().toInt();
             
-            // Get paint rotation speed and accel if provided
-            if (request->hasParam("speedPaintRotation")) {
-                motorSpeedPaintRotation = request->getParam("speedPaintRotation")->value().toInt();
-            }
-            if (request->hasParam("accelPaintRotation")) {
-                motorAccelPaintRotation = request->getParam("accelPaintRotation")->value().toInt();
-            }
+            // Get paint rotation speed and accel (always sent from frontend)
+            motorSpeedPaintRotation = request->getParam("speedPaintRotation")->value().toInt();
+            motorAccelPaintRotation = request->getParam("accelPaintRotation")->value().toInt();
             
             // Get storage steps if provided
             if (request->hasParam("storageSteps")) {
                 storageMotorStepsPerClick = request->getParam("storageSteps")->value().toInt();
             }
             
-            // Get paint rotation steps if provided
-            if (request->hasParam("paintRotationSteps")) {
-                paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
-            }
+            // Get paint rotation steps (always sent from frontend)
+            paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
             
             // Get servo speed if provided
             if (request->hasParam("servoSpeed")) {

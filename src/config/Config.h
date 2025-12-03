@@ -51,6 +51,9 @@
 #define PAINT_ROTATION_MOTOR_SPEED 1000              // Paint rotation motor speed for normal operation
 #define PAINT_ROTATION_MOTOR_ACCEL 1000              // Paint rotation motor acceleration for normal operation
 #define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 2000    // Paint rotation motor steps per click in web dashboard
+// Paint rotation motor: 12800 steps/rev with 5:15 gear ratio (3:1 reduction)
+// 1 full 360-degree output rotation = 3 motor revs = 38400 steps
+#define PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT 38400
 
 // Safety settings
 #define MAX_TRAVEL_INCHES 14.0         // Maximum travel distance in inches
