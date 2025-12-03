@@ -815,7 +815,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         </div>
               <div class="control-section">
                 <div class="control-label">Servo (0-270&deg;)</div>
-                <div style="margin-top: 16px;">
+                <div style="margin-top: 16px; width: 125%;">
                   <input type="range" id="servoSlider" min="0" max="270" value="135" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
                   <div style="display: flex; justify-content: space-between; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);">
                     <span>0&deg;</span>
