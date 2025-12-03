@@ -62,5 +62,9 @@
 // Timing settings
 #define MOTOR_TIMEOUT_MS 30000     // Motor operation timeout in milliseconds
 
+// Test sequence position height spacing
+#define POSITION_HEIGHT_SPACING_MM 49.0
+#define POSITION_HEIGHT_SPACING_INCHES (POSITION_HEIGHT_SPACING_MM / 25.4)
+
 
 #endif // CONFIG_H 

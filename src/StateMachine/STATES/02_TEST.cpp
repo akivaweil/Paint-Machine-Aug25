@@ -33,6 +33,9 @@ extern float testPos1Fork;
 extern float testPos2X;
 extern float testPos2Y;
 extern float testPos2Fork;
+extern int selectedPosition1Height;  // Position 1 height selection (1-8, where 8 = a8/lowest)
+extern bool testAllMode;  // Flag to track if we're in "test all" mode
+extern int currentTestAllHeight;  // Track which height we're currently testing (1-8)
 
 // Paint gun pin
 #include "../../config/Pin_Definitions.h"
@@ -81,6 +84,11 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         parallelStep = 1;
     }
     else if (parallelStep == 1) {
+        // Ensure suction is on while painting motor is rotating
+        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+            digitalWrite(SUCTION_PIN, HIGH);
+        }
+        
         // Rotate servo to 220 degrees (non-blocking)
         updateServoNonBlocking(220.0);
         
@@ -100,10 +108,15 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         }
     }
     else if (parallelStep == 2) {
-        // Rotate servo back to 135 degrees
-        updateServoNonBlocking(135.0);
+        // Ensure suction is on while painting motor is rotating
+        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+            digitalWrite(SUCTION_PIN, HIGH);
+        }
         
-        bool servoComplete = abs(currentServoAngle - 135.0) < 0.5;
+        // Rotate servo back to 125 degrees
+        updateServoNonBlocking(125.0);
+        
+        bool servoComplete = abs(currentServoAngle - 125.0) < 0.5;
         bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
         
         if (servoComplete && motorComplete) {
@@ -111,9 +124,10 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         }
     }
     else if (parallelStep == 3) {
-        // Cleanup: disable motor and turn off paint gun
+        // Cleanup: disable motor and turn off paint gun and suction
         disablePaintRotationMotor();
         digitalWrite(PAINT_GUN_PIN, LOW);
+        digitalWrite(SUCTION_PIN, LOW);
         parallelSequenceStarted = false;
     }
 }
@@ -134,10 +148,10 @@ void testState() {
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
         
-        // Move servo to 135 degrees at the beginning
+        // Move servo to 125 degrees at the beginning
         if (servo) {
-            currentServoAngle = 135.0;
-            servo->write(135.0);
+            currentServoAngle = 125.0;
+            servo->write(125.0);
         }
     }
     
@@ -152,9 +166,14 @@ void testState() {
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
+        // Calculate actual Y position based on selected height (a1-a8)
+        // a8 (selectedPosition1Height = 8) = testPos1Y (lowest, no offset)
+        // a1 (selectedPosition1Height = 1) = testPos1Y + 7 * spacing (highest)
+        float actualPos1Y = testPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
+        
         // Calculate target absolute positions (negate because positive direction moves toward home switches)
         float targetX = -testPos1X;
-        float targetY = -testPos1Y;
+        float targetY = -actualPos1Y;
         
         // Calculate relative movement needed to reach absolute position
         float moveX = targetX - currentX;
@@ -322,6 +341,8 @@ void testState() {
             paintMotor360StepsStart = motorPaintRotation->getCurrentPosition();
             paintMotor360StepsTarget = paintRotationMotorStepsPerRevOutput;
             motorPaintRotation->moveSteps(paintMotor360StepsTarget);
+            // Turn on suction when painting motor starts rotating
+            digitalWrite(SUCTION_PIN, HIGH);
         }
         
         step = 8;
@@ -382,8 +403,9 @@ void testState() {
         }
         disablePaintRotationMotor();
         
-        // Ensure paint gun is off
+        // Ensure paint gun and suction are off
         digitalWrite(PAINT_GUN_PIN, LOW);
+        digitalWrite(SUCTION_PIN, LOW);
         
         step = 10;
     }
@@ -486,9 +508,14 @@ void testState() {
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
+        // Calculate actual Y position based on selected height (a1-a8)
+        // a8 (selectedPosition1Height = 8) = testPos1Y (lowest, no offset)
+        // a1 (selectedPosition1Height = 1) = testPos1Y + 7 * spacing (highest)
+        float actualPos1Y = testPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
+        
         // Calculate target absolute positions (pos1 but Y is 0.5 higher)
         float targetX = -testPos1X;
-        float targetY = -testPos1Y - 0.5;  // 0.5 higher means more negative (subtract 0.5)
+        float targetY = -actualPos1Y - 0.5;  // 0.5 higher means more negative (subtract 0.5)
         
         // Calculate relative movement needed to reach absolute position
         float moveX = targetX - currentX;
@@ -566,17 +593,21 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: RETURN X TO HOME POSITION
+    //! STEP 19: MOVE X, Y, AND FORK TO POSITION 0
     //! ************************************************************************
     else if (step == 18) {
-        // Get current X position
+        // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
+        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
-        // Move X back to home (0)
+        // Move X, Y, and Fork to position 0 simultaneously
         motorX->moveInches(-currentX);
+        motorY->moveInches(-currentY);
+        motorFork->moveInches(-currentFork);
         
-        // Wait for X motor to finish
-        while (motorX->isMotorRunning()) {
+        // Wait for all motors to finish
+        while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
             updateOTA();
             delay(1);
         }
@@ -597,15 +628,16 @@ void testState() {
         }
         disablePaintRotationMotor();
         
-        // Ensure paint gun is off
+        // Ensure paint gun and suction are off
         digitalWrite(PAINT_GUN_PIN, LOW);
+        digitalWrite(SUCTION_PIN, LOW);
         
-        // Ensure servo is at 135 degrees (final position)
+        // Ensure servo is at 125 degrees (final position)
         if (servo) {
-            updateServoNonBlocking(135.0);
+            updateServoNonBlocking(125.0);
             // Wait for servo to reach final position
-            while (abs(currentServoAngle - 135.0) > 0.5) {
-                updateServoNonBlocking(135.0);
+            while (abs(currentServoAngle - 125.0) > 0.5) {
+                updateServoNonBlocking(125.0);
                 delay(10);
             }
         }
@@ -613,9 +645,28 @@ void testState() {
         // Home all axes (X, Y, and Fork)
         homeAllAxes();
         
-        // Test complete - return to idle
-        testStarted = false;
-        setMachineState(STATE_IDLE);
+        // Check if we're in test all mode and need to continue
+        if (testAllMode && currentTestAllHeight < 8) {
+            // Increment to next height
+            currentTestAllHeight++;
+            selectedPosition1Height = currentTestAllHeight;
+            
+            // Reset test state to restart from step 0
+            // Setting testStarted = false will cause initialization to run on next call
+            testStarted = false;
+            
+            // Continue in test state (don't return to idle)
+        } else {
+            // Test complete - reset test all mode if it was active
+            if (testAllMode) {
+                testAllMode = false;
+                currentTestAllHeight = 1;
+            }
+            
+            // Return to idle
+            testStarted = false;
+            setMachineState(STATE_IDLE);
+        }
     }
 }
 
