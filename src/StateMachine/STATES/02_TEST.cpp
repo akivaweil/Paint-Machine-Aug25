@@ -307,9 +307,73 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 9: MOVE TO POSITION 3 (POS2 BUT Y IS 0.5 LOWER)
+    //! STEP 9: MOVE TO WAITING POSITION (5 INCHES RIGHT OF POSITION 3)
     //! ************************************************************************
     else if (step == 8) {
+        // Start parallel sequence when beginning to move to waiting position
+        if (!parallelSequenceStarted) {
+            parallelSequenceStarted = true;
+            parallelStep = 0;
+        }
+        
+        // Get current positions
+        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
+        
+        // Calculate target absolute positions (5 inches right of pos3, same Y as pos3)
+        // Position 3 is: X = -testPos2X, Y = -testPos2Y + 0.5
+        // Waiting position is: X = -testPos2X + 5, Y = -testPos2Y + 0.5
+        float targetX = -testPos2X + 5.0;  // 5 inches right (more positive)
+        float targetY = -testPos2Y + 0.5;   // Same Y as pos3
+        
+        // Calculate relative movement needed to reach absolute position
+        float moveX = targetX - currentX;
+        float moveY = targetY - currentY;
+        
+        // Move X and Y simultaneously to waiting position
+        motorX->moveInches(moveX);
+        motorY->moveInches(moveY);
+        
+        // Wait for both motors to finish (parallel sequence continues running)
+        while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
+            updateParallelSequence(parallelSequenceStarted, parallelStep);
+            updateOTA();
+            delay(1);
+        }
+        step = 9;
+    }
+    
+    //! ************************************************************************
+    //! STEP 10: WAIT FOR PARALLEL SEQUENCE (SERVO AND PAINTING MOTOR) TO COMPLETE
+    //! ************************************************************************
+    else if (step == 9) {
+        // Wait for parallel sequence to complete
+        while (parallelSequenceStarted) {
+            updateParallelSequence(parallelSequenceStarted, parallelStep);
+            updateOTA();
+            delay(1);
+        }
+        
+        // Safety: Ensure paint rotation motor is stopped and disabled
+        if (motorPaintRotation) {
+            motorPaintRotation->stopContinuous();
+            while (motorPaintRotation->isMotorRunning()) {
+                delay(10);
+            }
+            delay(50);
+        }
+        disablePaintRotationMotor();
+        
+        // Ensure paint gun is off
+        digitalWrite(PAINT_GUN_PIN, LOW);
+        
+        step = 10;
+    }
+    
+    //! ************************************************************************
+    //! STEP 11: MOVE TO POSITION 3 (POS2 BUT Y IS 0.5 LOWER)
+    //! ************************************************************************
+    else if (step == 10) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -331,13 +395,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 9;
+        step = 11;
     }
     
     //! ************************************************************************
-    //! STEP 10: EXTEND FORK MOTOR AT POSITION 3
+    //! STEP 12: EXTEND FORK MOTOR AT POSITION 3
     //! ************************************************************************
-    else if (step == 9) {
+    else if (step == 11) {
         // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -358,9 +422,9 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: MOVE Y UP 0.5 INCHES AT POSITION 3
+    //! STEP 13: MOVE Y UP 0.5 INCHES AT POSITION 3
     //! ************************************************************************
-    else if (step == 10) {
+    else if (step == 12) {
         motorY->moveInches(-0.5);  // Negative moves away from home (up)
         
         // Wait for Y to finish moving
@@ -368,13 +432,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 11;
+        step = 13;
     }
     
     //! ************************************************************************
-    //! STEP 12: RETRACT FORK MOTOR AT POSITION 3
+    //! STEP 14: RETRACT FORK MOTOR AT POSITION 3
     //! ************************************************************************
-    else if (step == 11) {
+    else if (step == 13) {
         // Get current fork motor position and retract to home
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -385,13 +449,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 12;
+        step = 14;
     }
     
     //! ************************************************************************
-    //! STEP 13: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
+    //! STEP 15: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
     //! ************************************************************************
-    else if (step == 12) {
+    else if (step == 14) {
         // Start parallel sequence when beginning to move to position 4
         if (!parallelSequenceStarted) {
             parallelSequenceStarted = true;
@@ -420,13 +484,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 13;
+        step = 15;
     }
     
     //! ************************************************************************
-    //! STEP 14: EXTEND FORK MOTOR AT POSITION 4
+    //! STEP 16: EXTEND FORK MOTOR AT POSITION 4
     //! ************************************************************************
-    else if (step == 13) {
+    else if (step == 15) {
         // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -444,13 +508,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 14;
+        step = 16;
     }
     
     //! ************************************************************************
-    //! STEP 15: LOWER Y BY 0.5 INCHES AT POSITION 4
+    //! STEP 17: LOWER Y BY 0.5 INCHES AT POSITION 4
     //! ************************************************************************
-    else if (step == 14) {
+    else if (step == 16) {
         motorY->moveInches(0.5);
         
         // Wait for Y to finish lowering (parallel sequence continues)
@@ -459,13 +523,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 15;
+        step = 17;
     }
     
     //! ************************************************************************
-    //! STEP 16: RETRACT FORK MOTOR AT POSITION 4
+    //! STEP 18: RETRACT FORK MOTOR AT POSITION 4
     //! ************************************************************************
-    else if (step == 15) {
+    else if (step == 17) {
         motorFork->moveInches(testPos1Fork);
         
         // Wait for fork motor to finish retracting (parallel sequence continues)
@@ -474,13 +538,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 16;
+        step = 18;
     }
     
     //! ************************************************************************
-    //! STEP 17: RETURN X TO HOME POSITION
+    //! STEP 19: RETURN X TO HOME POSITION
     //! ************************************************************************
-    else if (step == 16) {
+    else if (step == 18) {
         // Get current X position
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         
@@ -493,13 +557,13 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 17;
+        step = 19;
     }
     
     //! ************************************************************************
-    //! STEP 18: RETURN Y AND FORK MOTOR TO HOME POSITION
+    //! STEP 20: RETURN Y AND FORK MOTOR TO HOME POSITION
     //! ************************************************************************
-    else if (step == 17) {
+    else if (step == 19) {
         // Get current positions
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
