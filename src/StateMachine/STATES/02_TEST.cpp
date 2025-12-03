@@ -17,6 +17,7 @@ extern float currentServoAngle;
 extern float servoSpeed;
 extern void enablePaintRotationMotor();
 extern void disablePaintRotationMotor();
+extern long paintRotationMotorStepsPerRevOutput;
 
 // OTA Manager function
 extern void updateOTA();
@@ -86,7 +87,7 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         // Check if paint motor reached 180 degrees (halfway through 360)
         if (motorPaintRotation) {
             long stepsCompleted = motorPaintRotation->getCurrentPosition() - paintMotor360StepsStart;
-            long halfwaySteps = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT / 2;
+            long halfwaySteps = paintRotationMotorStepsPerRevOutput / 2;
             
             if (stepsCompleted >= halfwaySteps) {
                 parallelStep = 2;  // Start returning servo
@@ -319,7 +320,7 @@ void testState() {
         enablePaintRotationMotor();
         if (motorPaintRotation) {
             paintMotor360StepsStart = motorPaintRotation->getCurrentPosition();
-            paintMotor360StepsTarget = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;  // 38400 steps
+            paintMotor360StepsTarget = paintRotationMotorStepsPerRevOutput;
             motorPaintRotation->moveSteps(paintMotor360StepsTarget);
         }
         
