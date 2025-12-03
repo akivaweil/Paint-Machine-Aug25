@@ -18,11 +18,6 @@ void idleState() {
     static unsigned long lastButtonCheck = 0;
     static bool lastButtonState = HIGH;
     
-    // Only disable paint rotation motor if it's not running (to avoid interfering with web controls)
-    if (!isPaintRotationMotorRunning()) {
-        disablePaintRotationMotor();
-    }
-    
     // Check start button (debounced)
     unsigned long currentTime = millis();
     if (currentTime - lastButtonCheck >= 50) {  // Check every 50ms
