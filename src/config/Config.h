@@ -41,9 +41,11 @@
 #define FORK_MAX_ACCEL 0            // Set on dashboard - DO NOT use from config
 
 // Storage motor speed and acceleration settings (in steps per second)
+// Storage motor: 12800 steps/rev with 8:24 gear ratio (3:1 reduction)
+// 1/6 rev output per click = 1/2 rev motor = 6400 steps
 #define STORAGE_MOTOR_SPEED 10000              // Storage motor speed for normal operation
 #define STORAGE_MOTOR_ACCEL 10000              // Storage motor acceleration for normal operation
-#define STORAGE_MOTOR_STEPS_PER_CLICK 9000    // Storage motor steps per click in web dashboard
+#define STORAGE_MOTOR_STEPS_PER_CLICK 6400    // Storage motor steps per click (1/6 rev output = 6400 steps)
 
 // Paint rotation motor speed and acceleration settings (in steps per second)
 #define PAINT_ROTATION_MOTOR_SPEED 1000              // Paint rotation motor speed for normal operation
