@@ -94,11 +94,14 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         }
     }
     else if (parallelStep == 3) {
-        // Stop rotation motor and turn off paint gun
+        // Stop rotation motor and disable it
         if (motorPaintRotation) {
             motorPaintRotation->stopContinuous();
+            // Small delay to ensure motor stops before disabling
+            delay(50);
         }
         disablePaintRotationMotor();
+        // Turn off paint gun
         digitalWrite(PAINT_GUN_PIN, LOW);
         parallelSequenceStarted = false;  // Parallel sequence complete
     }
