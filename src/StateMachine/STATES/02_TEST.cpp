@@ -67,7 +67,9 @@ void updateServoNonBlocking(float targetAngle) {
 
 // Parallel sequence handler (called during wait loops)
 // Paint motor 360 turn starts immediately after pos2, servo returns to 135 at 180-degree mark
-static long paintMotorStartPosition = 0;
+static long paintMotorTargetPosition = 0;
+static long paintMotorHalfwayPosition = 0;
+static bool servoReturnStarted = false;
 
 void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
     if (!parallelSequenceStarted) return;
@@ -75,24 +77,27 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
     if (parallelStep == 0) {
         // Turn on paint gun and move servo to 220 (paint motor already running from pos2)
         digitalWrite(PAINT_GUN_PIN, HIGH);
+        servoReturnStarted = false;
         parallelStep = 1;
     }
     else if (parallelStep == 1) {
         // Rotate servo to 220 degrees (non-blocking) while paint motor runs
         updateServoNonBlocking(220.0);
         
-        // Check if paint motor reached 180 degrees (half of 360)
-        if (motorPaintRotation) {
+        // Check if paint motor reached 180 degrees (halfway) - trigger servo return
+        if (!servoReturnStarted && motorPaintRotation) {
             long currentPos = motorPaintRotation->getCurrentPosition();
-            long stepsCompleted = abs(currentPos - paintMotorStartPosition);
-            long halfTurnSteps = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT / 2;  // 19200 steps = 180 degrees
-            
-            if (stepsCompleted >= halfTurnSteps) {
-                // Paint motor reached 180 degrees - start servo return to 135
+            // Check if we've passed the halfway point
+            if ((paintMotorTargetPosition > paintMotorHalfwayPosition && currentPos >= paintMotorHalfwayPosition) ||
+                (paintMotorTargetPosition < paintMotorHalfwayPosition && currentPos <= paintMotorHalfwayPosition)) {
+                servoReturnStarted = true;
                 parallelStep = 2;
             }
-        } else {
-            // Motor not initialized, skip to next step
+        }
+        
+        // Also check if motor already finished (in case it's fast)
+        if (!servoReturnStarted && motorPaintRotation && !motorPaintRotation->isMotorRunning()) {
+            servoReturnStarted = true;
             parallelStep = 2;
         }
     }
@@ -101,16 +106,7 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         updateServoNonBlocking(135.0);
         
         bool servoComplete = abs(currentServoAngle - 135.0) < 0.5;
-        
-        // Check motor completion by steps completed OR motor not running
-        bool motorComplete = false;
-        if (motorPaintRotation) {
-            long currentPos = motorPaintRotation->getCurrentPosition();
-            long stepsCompleted = abs(currentPos - paintMotorStartPosition);
-            motorComplete = (stepsCompleted >= PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT) || !motorPaintRotation->isMotorRunning();
-        } else {
-            motorComplete = true;
-        }
+        bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
         
         if (servoComplete && motorComplete) {
             parallelStep = 3;
@@ -333,8 +329,11 @@ void testState() {
         // Start paint motor 360 turn immediately after pos2
         enablePaintRotationMotor();
         if (motorPaintRotation) {
-            paintMotorStartPosition = motorPaintRotation->getCurrentPosition();
-            motorPaintRotation->moveSteps(PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);  // 360 degrees
+            long startPos = motorPaintRotation->getCurrentPosition();
+            long stepsToMove = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;  // 38400 steps = 360 degrees
+            paintMotorHalfwayPosition = startPos + (stepsToMove / 2);  // 180 degree mark
+            paintMotorTargetPosition = startPos + stepsToMove;          // 360 degree mark
+            motorPaintRotation->moveSteps(stepsToMove);
         }
         
         step = 8;
