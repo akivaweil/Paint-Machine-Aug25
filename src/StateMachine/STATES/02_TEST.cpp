@@ -2,6 +2,7 @@
 #include "StateMachine/STATES/02_TEST.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/STATES/01_HOMING.h"
 #include "Web_Manager.h"
 #include "ServoControl.h"
 
@@ -583,23 +584,9 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 20: RETURN Y AND FORK MOTOR TO HOME POSITION
+    //! STEP 20: HOME X, Y, AND FORK MOTORS
     //! ************************************************************************
     else if (step == 19) {
-        // Get current positions
-        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
-        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
-        
-        // Move Y and fork motor back to home (0, 0)
-        motorY->moveInches(-currentY);
-        motorFork->moveInches(-currentFork);
-        
-        // Wait for Y and fork motors to finish
-        while (motorY->isMotorRunning() || motorFork->isMotorRunning()) {
-            updateOTA();
-            delay(1);
-        }
-        
         // Safety: Ensure paint rotation motor is stopped and disabled
         if (motorPaintRotation) {
             motorPaintRotation->stopContinuous();
@@ -622,6 +609,9 @@ void testState() {
                 delay(10);
             }
         }
+        
+        // Home all axes (X, Y, and Fork)
+        homeAllAxes();
         
         // Test complete - return to idle
         testStarted = false;
