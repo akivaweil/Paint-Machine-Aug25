@@ -128,7 +128,6 @@ void testState() {
     static bool testStarted = false;
     static bool parallelSequenceStarted = false;
     static int parallelStep = 0;
-    static bool paintRotationCompletedBeforePos3 = false;
     
     // Initialize on first entry
     if (!testStarted) {
@@ -136,7 +135,6 @@ void testState() {
         testStarted = true;
         parallelSequenceStarted = false;
         parallelStep = 0;
-        paintRotationCompletedBeforePos3 = false;
         
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
@@ -398,41 +396,9 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: ROTATE PAINT MOTOR ONE FULL TURN BEFORE POSITION 3
+    //! STEP 11: MOVE TO POSITION 3
     //! ************************************************************************
     else if (step == 10) {
-        // Ensure the paint motor performs one full 360-degree output rotation (before moving to pos3)
-        if (!paintRotationCompletedBeforePos3) {
-            // Enable paint rotation motor driver
-            enablePaintRotationMotor();
-
-            if (motorPaintRotation) {
-                // 1 full output revolution = 38400 steps (12800 steps/rev motor, 5:15 gear ratio)
-                motorPaintRotation->moveSteps(PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
-
-                // Wait for the paint rotation motor to complete the move
-                while (motorPaintRotation->isMotorRunning()) {
-                    updateOTA();
-                    delay(1);
-                }
-
-                // Ensure motor is fully stopped
-                motorPaintRotation->forceStop();
-                delay(50);
-            } else {
-                // If motor is not initialized, just ensure driver is disabled
-                disablePaintRotationMotor();
-            }
-
-            // Disable paint rotation motor driver after rotation
-            disablePaintRotationMotor();
-
-            // Mark rotation as completed so this block runs only once
-            paintRotationCompletedBeforePos3 = true;
-        }
-
-        // After rotation is complete, proceed to the move to position 3
-
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
