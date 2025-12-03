@@ -651,6 +651,9 @@ void testState() {
             // Reset test state to restart from step 0
             // Setting testStarted = false will cause initialization to run on next call
             testStarted = false;
+            step = 0;
+            parallelSequenceStarted = false;
+            parallelStep = 0;
             
             // Continue in test state (don't return to idle, don't home yet)
         } else {
