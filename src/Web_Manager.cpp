@@ -1007,6 +1007,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     ];
     let STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
     let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
+    let currentSpeedPaintRotation = 1000;
+    let currentAccelPaintRotation = 1000;
+    let currentPaintRotationSteps = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1091,9 +1094,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('accelFork').value = data.accelFork || 5000;
           if (data.speedPaintRotation !== undefined) {
             document.getElementById('speedPaintRotation').value = data.speedPaintRotation;
+            currentSpeedPaintRotation = data.speedPaintRotation;
           }
           if (data.accelPaintRotation !== undefined) {
             document.getElementById('accelPaintRotation').value = data.accelPaintRotation;
+            currentAccelPaintRotation = data.accelPaintRotation;
           }
           if (data.storageSteps !== undefined) {
             document.getElementById('storageSteps').value = data.storageSteps;
@@ -1102,6 +1107,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           if (data.paintRotationSteps !== undefined) {
             document.getElementById('paintRotationSteps').value = data.paintRotationSteps;
             PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
+            currentPaintRotationSteps = data.paintRotationSteps;
           }
           if (data.servoSpeed !== undefined) {
             document.getElementById('servoSpeed').value = data.servoSpeed;
@@ -1120,10 +1126,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelY = parseInt(document.getElementById('accelY').value) || 5000;
       const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
-      const speedPaintRotation = parseInt(document.getElementById('speedPaintRotation').value) || 1000;
-      const accelPaintRotation = parseInt(document.getElementById('accelPaintRotation').value) || 1000;
+      const speedPaintRotationInput = document.getElementById('speedPaintRotation').value;
+      const accelPaintRotationInput = document.getElementById('accelPaintRotation').value;
+      const paintRotationStepsInput = document.getElementById('paintRotationSteps').value;
+      const speedPaintRotation = speedPaintRotationInput ? parseInt(speedPaintRotationInput) : currentSpeedPaintRotation;
+      const accelPaintRotation = accelPaintRotationInput ? parseInt(accelPaintRotationInput) : currentAccelPaintRotation;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
-      const paintRotationSteps = parseInt(document.getElementById('paintRotationSteps').value) || PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
+      const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
       
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
@@ -1138,6 +1147,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           console.log('Motor settings saved:', data);
           STORAGE_MOTOR_STEPS_PER_CLICK = storageSteps;
           PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = paintRotationSteps;
+          currentSpeedPaintRotation = speedPaintRotation;
+          currentAccelPaintRotation = accelPaintRotation;
+          currentPaintRotationSteps = paintRotationSteps;
         })
         .catch(error => {
           console.error('Error saving motor settings:', error);
