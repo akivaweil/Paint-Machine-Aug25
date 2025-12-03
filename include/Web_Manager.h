@@ -7,6 +7,7 @@
 extern void initializeWebServer();
 extern void updateWebServer();
 extern void applyMotorSettings();
+extern void disablePaintRotationMotor();
 
 #endif // WEB_MANAGER_H
 

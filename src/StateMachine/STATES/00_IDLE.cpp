@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "StateMachine/STATES/00_IDLE.h"
 #include "../../config/Pin_Definitions.h"
+#include "../../../include/Web_Manager.h"
 
 // OTA Manager function
 extern void updateOTA();
@@ -16,6 +17,9 @@ extern void setMachineState(int state);
 void idleState() {
     static unsigned long lastButtonCheck = 0;
     static bool lastButtonState = HIGH;
+    
+    // Ensure paint rotation motor is disabled during idle state
+    disablePaintRotationMotor();
     
     // Check start button (debounced)
     unsigned long currentTime = millis();

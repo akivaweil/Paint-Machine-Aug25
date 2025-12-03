@@ -1294,14 +1294,13 @@ void setServoAngle(float angle) {
     }
 }
 
-// Enable/disable paint rotation motor (enable pin is active HIGH)
-// If motor doesn't stop, try inverting: swap HIGH/LOW in these functions
+// Enable/disable paint rotation motor (enable pin is active LOW)
 void enablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = enabled
+    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);  // LOW = enabled
 }
 
 void disablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);   // LOW = disabled
+    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = disabled
 }
 
 // Initialize motors
