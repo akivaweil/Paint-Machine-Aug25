@@ -16,15 +16,15 @@ extern void setMachineState(int state);
 
 void idleState() {
     static unsigned long lastButtonCheck = 0;
-    static bool lastButtonState = HIGH;
+    static bool lastButtonState = LOW;
     
     // Check start button (debounced)
     unsigned long currentTime = millis();
     if (currentTime - lastButtonCheck >= 50) {  // Check every 50ms
         bool buttonState = digitalRead(TEST_BUTTON_PIN);
         
-        // Button is active LOW (pullup), so check for falling edge
-        if (lastButtonState == HIGH && buttonState == LOW) {
+        // Button is active HIGH (pulldown), so check for rising edge
+        if (lastButtonState == LOW && buttonState == HIGH) {
             // Button pressed - start test cycle
             setMachineState(STATE_TEST);
         }

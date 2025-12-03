@@ -1272,8 +1272,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
 void initializeSensors() {
     if (sensorsInitialized) return;
     
-    // Initialize test button (assuming active LOW with pullup, adjust if needed)
-    pinMode(TEST_BUTTON_PIN, INPUT_PULLUP);
+    // Initialize test button (active HIGH with pulldown)
+    pinMode(TEST_BUTTON_PIN, INPUT_PULLDOWN);
     
     // Initialize Servo
     if (servo == nullptr) {
@@ -1390,7 +1390,7 @@ String getSensorStatesJSON() {
     // Read Y and Fork using HomeSwitch instances
     bool yHome = homeSwitchY ? homeSwitchY->read() : false;
     bool forkHome = homeSwitchFork ? homeSwitchFork->read() : false;
-    bool testButton = !digitalRead(TEST_BUTTON_PIN); // Inverted for pullup
+    bool testButton = digitalRead(TEST_BUTTON_PIN); // Active HIGH
     
     String json = "{";
     json += "\"xHome1\":" + String(xHome1 ? "true" : "false") + ",";
