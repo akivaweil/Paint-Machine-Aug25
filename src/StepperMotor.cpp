@@ -59,18 +59,18 @@ void StepperMotor::step() {
 
 void StepperMotor::moveSteps(long steps) {
     if (stepper && steps != 0) {
-        // Clear continuous mode flag
-        continuousMode = false;
-        // Stop any existing movement first
-        stepper->forceStop();
-        // Small delay to let the stop take effect
-        delayMicroseconds(100);
-        // Calculate target position and use absolute move
-        long targetPos = stepper->getCurrentPosition() + steps;
-        stepper->moveTo(targetPos);
+        // Ensure we're not in continuous mode and motor is fully stopped
+        if (continuousMode) {
+            stopContinuous();
+        }
+        // Force stop any existing movement before starting new move
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
+        continuousMode = false;  // Ensure continuous mode is cleared
+        // Start the move - FastAccelStepper should automatically stop after move completes
+        stepper->move(steps);
     } else if (stepper && steps == 0) {
-        // If steps is 0, stop the motor
-        stepper->forceStop();
+        // If steps is 0, ensure motor is stopped
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
         continuousMode = false;
     }
 }
@@ -99,7 +99,7 @@ void StepperMotor::resetPosition() {
 
 void StepperMotor::forceStop() {
     if (stepper) {
-        stepper->forceStop();
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
     }
     continuousMode = false;
 }
@@ -134,7 +134,7 @@ void StepperMotor::startContinuous(bool positive) {
 void StepperMotor::stopContinuous() {
     continuousMode = false;
     if (stepper) {
-        stepper->forceStop();
+        stepper->forceStopAndNewPosition(stepper->getCurrentPosition());
     }
 }
 

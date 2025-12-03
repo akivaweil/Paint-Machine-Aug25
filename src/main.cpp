@@ -6,6 +6,7 @@ extern void updateOTA();
 
 // Web Manager functions (declared in Web_Manager.cpp)
 extern void initializeWebServer();
+extern void updateWebServer();
 
 // State functions
 extern void homingState();
@@ -48,6 +49,9 @@ void setup() {
 void loop() {
     // Handle OTA updates (WiFi and firmware updates) - always allow during any state
     updateOTA();
+    
+    // Update web server (handles motor enable/disable checks)
+    updateWebServer();
 
     // Run current state
     switch (currentState) {

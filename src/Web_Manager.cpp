@@ -1294,6 +1294,15 @@ void setServoAngle(float angle) {
     }
 }
 
+// Enable/disable paint rotation motor (enable pin is active LOW)
+void enablePaintRotationMotor() {
+    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);  // LOW = enabled
+}
+
+void disablePaintRotationMotor() {
+    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = disabled
+}
+
 // Initialize motors
 void initializeMotors() {
     if (motorX == nullptr) {
@@ -1310,6 +1319,9 @@ void initializeMotors() {
     }
     if (motorPaintRotation == nullptr) {
         motorPaintRotation = new StepperMotor(PAINT_ROTATION_STEP_PIN, PAINT_ROTATION_DIR_PIN, STEPS_PER_INCH, PAINT_ROTATION_MOTOR_SPEED, PAINT_ROTATION_MOTOR_ACCEL);
+        // Initialize enable pin for paint rotation motor
+        pinMode(PAINT_ROTATION_ENABLE_PIN, OUTPUT);
+        disablePaintRotationMotor();  // Start with motor disabled
     }
 }
 
@@ -1425,6 +1437,9 @@ void initializeWebServer() {
                     motor = motorStorage;
                     axisName = "Storage Motor";
                     if (motor) {
+                        // Stop any continuous movement and ensure motor is stopped
+                        motor->stopContinuous();
+                        motor->forceStop();
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
@@ -1440,6 +1455,11 @@ void initializeWebServer() {
                     motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
                     if (motor) {
+                        // Stop any continuous movement and ensure motor is stopped
+                        motor->stopContinuous();
+                        motor->forceStop();
+                        // Enable motor before moving
+                        enablePaintRotationMotor();
                         motor->moveSteps(steps);
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
@@ -1655,4 +1675,14 @@ void initializeWebServer() {
 
 void updateWebServer() {
     // Web server handles requests asynchronously, no update needed
+    // Check if paint rotation motor has stopped and disable it
+    static bool paintRotationMotorWasRunning = false;
+    if (motorPaintRotation) {
+        bool isRunning = motorPaintRotation->isMotorRunning();
+        if (paintRotationMotorWasRunning && !isRunning) {
+            // Motor was running but now stopped, disable it
+            disablePaintRotationMotor();
+        }
+        paintRotationMotorWasRunning = isRunning;
+    }
 }
