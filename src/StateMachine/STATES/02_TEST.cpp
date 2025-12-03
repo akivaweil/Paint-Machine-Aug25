@@ -17,7 +17,6 @@ extern float currentServoAngle;
 extern float servoSpeed;
 extern void enablePaintRotationMotor();
 extern void disablePaintRotationMotor();
-extern long paintRotationMotorStepsPerRevOutput;
 
 // OTA Manager function
 extern void updateOTA();

@@ -20,6 +20,7 @@ extern ServoControl* servo;
 extern float currentServoAngle;
 extern float servoSpeed;
 extern StepperMotor* motorPaintRotation;
+extern long paintRotationMotorStepsPerRevOutput;
 
 #endif // WEB_MANAGER_H
 
