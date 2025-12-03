@@ -948,6 +948,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             </div>
           </div>
           <div class="position-inputs">
+            <h3>Paint Rotation Motor</h3>
+            <div class="input-row">
+              <label>Steps/Click:</label>
+              <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000">
+            </div>
+          </div>
+          <div class="position-inputs">
             <h3>Servo</h3>
             <div class="input-row">
               <label>Speed (deg/sec):</label>
@@ -1066,6 +1073,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             STORAGE_MOTOR_STEPS_PER_CLICK = data.storageSteps;
           }
           if (data.paintRotationSteps !== undefined) {
+            document.getElementById('paintRotationSteps').value = data.paintRotationSteps;
             PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
           }
           if (data.servoSpeed !== undefined) {
@@ -1086,18 +1094,20 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+      const paintRotationSteps = parseInt(document.getElementById('paintRotationSteps').value) || PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
       
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
                   '&speedY=' + speedY + '&accelY=' + accelY +
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
-                  '&storageSteps=' + storageSteps + '&servoSpeed=' + servoSpeed;
+                  '&storageSteps=' + storageSteps + '&paintRotationSteps=' + paintRotationSteps + '&servoSpeed=' + servoSpeed;
       
       fetch(url)
         .then(response => response.text())
         .then(data => {
           console.log('Motor settings saved:', data);
           STORAGE_MOTOR_STEPS_PER_CLICK = storageSteps;
+          PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = paintRotationSteps;
         })
         .catch(error => {
           console.error('Error saving motor settings:', error);
@@ -1653,6 +1663,11 @@ void initializeWebServer() {
             // Get storage steps if provided
             if (request->hasParam("storageSteps")) {
                 storageMotorStepsPerClick = request->getParam("storageSteps")->value().toInt();
+            }
+            
+            // Get paint rotation steps if provided
+            if (request->hasParam("paintRotationSteps")) {
+                paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
             }
             
             // Get servo speed if provided
