@@ -101,7 +101,16 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         updateServoNonBlocking(135.0);
         
         bool servoComplete = abs(currentServoAngle - 135.0) < 0.5;
-        bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
+        
+        // Check motor completion by steps completed OR motor not running
+        bool motorComplete = false;
+        if (motorPaintRotation) {
+            long currentPos = motorPaintRotation->getCurrentPosition();
+            long stepsCompleted = abs(currentPos - paintMotorStartPosition);
+            motorComplete = (stepsCompleted >= PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT) || !motorPaintRotation->isMotorRunning();
+        } else {
+            motorComplete = true;
+        }
         
         if (servoComplete && motorComplete) {
             parallelStep = 3;
@@ -381,10 +390,7 @@ void testState() {
         
         // Safety: Ensure paint rotation motor is stopped and disabled
         if (motorPaintRotation) {
-            motorPaintRotation->stopContinuous();
-            while (motorPaintRotation->isMotorRunning()) {
-                delay(10);
-            }
+            motorPaintRotation->forceStop();
             delay(50);
         }
         disablePaintRotationMotor();
