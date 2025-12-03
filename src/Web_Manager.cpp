@@ -1411,7 +1411,7 @@ void initializeMotors() {
         motorStorage = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, STORAGE_MOTOR_SPEED, STORAGE_MOTOR_ACCEL);
     }
     if (motorPaintRotation == nullptr) {
-        motorPaintRotation = new StepperMotor(PAINT_ROTATION_STEP_PIN, PAINT_ROTATION_DIR_PIN, STEPS_PER_INCH, PAINT_ROTATION_MOTOR_SPEED, PAINT_ROTATION_MOTOR_ACCEL);
+        motorPaintRotation = new StepperMotor(PAINT_ROTATION_STEP_PIN, PAINT_ROTATION_DIR_PIN, STEPS_PER_INCH, motorSpeedPaintRotation, motorAccelPaintRotation);
         // Initialize enable pin for paint rotation motor
         pinMode(PAINT_ROTATION_ENABLE_PIN, OUTPUT);
         disablePaintRotationMotor();  // Start with motor disabled
