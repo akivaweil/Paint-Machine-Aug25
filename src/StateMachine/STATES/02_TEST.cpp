@@ -642,9 +642,6 @@ void testState() {
             }
         }
         
-        // Home all axes (X, Y, and Fork)
-        homeAllAxes();
-        
         // Check if we're in test all mode and need to continue
         if (testAllMode && currentTestAllHeight < 8) {
             // Increment to next height
@@ -655,9 +652,13 @@ void testState() {
             // Setting testStarted = false will cause initialization to run on next call
             testStarted = false;
             
-            // Continue in test state (don't return to idle)
+            // Continue in test state (don't return to idle, don't home yet)
         } else {
-            // Test complete - reset test all mode if it was active
+            // All tests complete - now do cleanup (homing only happens at the end)
+            // Home all axes (X, Y, and Fork)
+            homeAllAxes();
+            
+            // Reset test all mode if it was active
             if (testAllMode) {
                 testAllMode = false;
                 currentTestAllHeight = 1;

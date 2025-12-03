@@ -998,6 +998,42 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     updatePositions();
     setInterval(updatePositions, 200);
     
+    // Connection monitoring for ESP reset detection
+    let consecutiveFailures = 0;
+    let espOffline = false;
+    const MAX_FAILURES = 5; // Consider ESP offline after 5 failed requests (1 second)
+    
+    function checkConnection() {
+      fetch('/api/sensors')
+        .then(response => {
+          if (response.ok) {
+            consecutiveFailures = 0;
+            // If ESP was offline and now it's back, refresh the page
+            if (espOffline) {
+              espOffline = false;
+              console.log('ESP back online - refreshing page');
+              window.location.reload();
+            }
+          } else {
+            consecutiveFailures++;
+            if (consecutiveFailures >= MAX_FAILURES && !espOffline) {
+              espOffline = true;
+              console.log('ESP appears to be offline');
+            }
+          }
+        })
+        .catch(error => {
+          consecutiveFailures++;
+          if (consecutiveFailures >= MAX_FAILURES && !espOffline) {
+            espOffline = true;
+            console.log('ESP appears to be offline');
+          }
+        });
+    }
+    
+    // Check connection every 200ms
+    setInterval(checkConnection, 200);
+    
     // Load saved test positions on page load
     function loadTestPositions() {
       fetch('/api/test/positions')
