@@ -8,6 +8,7 @@ extern void initializeWebServer();
 extern void updateWebServer();
 extern void applyMotorSettings();
 extern void disablePaintRotationMotor();
+extern bool isPaintRotationMotorRunning();
 
 #endif // WEB_MANAGER_H
 

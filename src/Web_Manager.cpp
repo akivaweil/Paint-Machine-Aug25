@@ -1303,6 +1303,13 @@ void disablePaintRotationMotor() {
     digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = disabled
 }
 
+bool isPaintRotationMotorRunning() {
+    if (motorPaintRotation) {
+        return motorPaintRotation->isMotorRunning();
+    }
+    return false;
+}
+
 // Initialize motors
 void initializeMotors() {
     if (motorX == nullptr) {
@@ -1455,14 +1462,17 @@ void initializeWebServer() {
                     motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
                     if (motor) {
-                        // Enable motor
+                        // Enable motor and wait for driver to stabilize
                         enablePaintRotationMotor();
+                        delay(50);
                         // Move the set amount (blocking)
                         motor->moveSteps(steps);
                         // Block until motor finishes
                         while (motor->isMotorRunning()) {
                             delay(10);
                         }
+                        // Small delay before disabling to ensure movement is complete
+                        delay(50);
                         // Disable motor
                         disablePaintRotationMotor();
                         request->send(200, "text/plain", "OK");
