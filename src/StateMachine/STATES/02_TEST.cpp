@@ -686,8 +686,8 @@ void testState() {
             return;
         } else {
             // All tests complete - now do cleanup (homing only happens at the end)
-            // Home all axes (X, Y, and Fork)
-            homeAllAxes();
+            // Home all axes (X, Y, and Fork) but preserve column position
+            homeAllAxes(false);  // false = don't reset column position
             
             // Reset test all mode if it was active
             if (testAllMode) {

@@ -129,7 +129,7 @@ void homeForkAxis() {
 }
 
 // Home all axes
-void homeAllAxes() {
+void homeAllAxes(bool resetColumn) {
     if (!motorX || !homeSwitchX || !motorY || !homeSwitchY || !motorFork || !homeSwitchFork) return;
     
     Serial.println("[HOMING] ========== Starting homing sequence ==========");
@@ -153,6 +153,12 @@ void homeAllAxes() {
     storagePositionSensor.update();
     bool storageSwitchTriggered = (motorStorage && storagePositionSensor.read());
     
+    // If storage switch is already triggered, consider it already homed (stay at current column)
+    if (storageSwitchTriggered) {
+        storageHomed = true;
+        Serial.println("[HOMING] Storage switch already triggered - staying at current column position");
+    }
+    
     // Set homing speeds to 700
     motorX->setSpeed(700);
     motorY->setSpeed(700);
@@ -160,31 +166,11 @@ void homeAllAxes() {
         motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
     }
     
-    //! ************************************************************************
-    //! STORAGE MOTOR: MOVE AWAY FROM SWITCH IF ALREADY TRIGGERED
-    //! ************************************************************************
-    if (motorStorage && storageSwitchTriggered) {
-        Serial.println("[HOMING] Storage switch already triggered, moving away...");
-        // Move clockwise away from switch until it's released (short period to clear switch)
-        motorStorage->startContinuous(true);  // Clockwise
-        while (storageSwitchTriggered) {
-            storagePositionSensor.update();
-            storageSwitchTriggered = storagePositionSensor.read();
-            motorStorage->runContinuous();
-            updateOTA();
-            delay(1);
-        }
-        motorStorage->stopContinuous();
-        // Small delay to ensure switch is fully released
-        delay(100);
-        Serial.println("[HOMING] Storage switch cleared");
-    }
-    
     // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
     motorY->startContinuous(true);
-    // Start storage motor clockwise to find nearest column
-    if (motorStorage) {
+    // Start storage motor clockwise to find nearest column (only if not already at a column)
+    if (motorStorage && !storageHomed) {
         motorStorage->startContinuous(true);
     }
     
@@ -253,10 +239,14 @@ void homeAllAxes() {
         motorStorage->resetPosition();
     }
     
-    // Set current column to A (0) - this is the column we just homed to
-    extern int currentColumn;  // Declared in Web_Manager.cpp
-    currentColumn = 0;
-    Serial.println("[HOMING] Storage motor set to column A");
+    // Set current column to A (0) - only if this is initial startup homing
+    if (resetColumn) {
+        extern int currentColumn;  // Declared in Web_Manager.cpp
+        currentColumn = 0;
+        Serial.println("[HOMING] Storage motor set to column A");
+    } else {
+        Serial.println("[HOMING] Column position preserved");
+    }
     
     // Restore full speeds for normal operations
     motorX->setSpeed(X_MAX_SPEED);
