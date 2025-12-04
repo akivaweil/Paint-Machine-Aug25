@@ -49,6 +49,7 @@
 #define STORAGE_MOTOR_HOMING_TRIM 300            // Storage motor homing trim amount in steps (extra distance after reaching home switch)
 #define STORAGE_MOTOR_STEPS_PER_CLICK 6400    // Storage motor steps per click (1/6 rev output = 6400 steps)
 #define STORAGE_COLUMN_SPACING_STEPS 6125      // Distance between storage columns in steps
+#define STORAGE_MOTOR_SENSOR_IGNORE_STEPS 500  // Steps to ignore sensor at start to clear current column
 
 // Paint rotation motor speed and acceleration settings (in steps per second)
 #define PAINT_ROTATION_MOTOR_SPEED 1000              // Paint rotation motor speed for normal operation

@@ -309,17 +309,24 @@ void moveToColumn(int targetColumn) {
     motorStorage->setAcceleration(motorAccelStorage);
     
     // Move column spacing distance at normal speed
-    // Constantly check if sensor triggers early to prevent overshooting
+    // Ignore sensor for initial period to clear current column, then check for early trigger
     motorStorage->moveSteps(mainSteps);
+    long startPosition = motorStorage->getCurrentPosition();
     bool sensorTriggeredEarly = false;
     while (motorStorage->isMotorRunning()) {
-        storagePositionSensor.update();
-        if (storagePositionSensor.read()) {
-            // Sensor triggered early - immediately stop to prevent overshooting
-            motorStorage->forceStop();
-            sensorTriggeredEarly = true;
-            Serial.println("[COLUMN] Storage sensor triggered early - force stopped");
-            break;
+        long currentPosition = motorStorage->getCurrentPosition();
+        long stepsMoved = abs(currentPosition - startPosition);
+        
+        // Only check sensor after ignoring initial period to clear current column
+        if (stepsMoved > STORAGE_MOTOR_SENSOR_IGNORE_STEPS) {
+            storagePositionSensor.update();
+            if (storagePositionSensor.read()) {
+                // Sensor triggered early - immediately stop to prevent overshooting
+                motorStorage->forceStop();
+                sensorTriggeredEarly = true;
+                Serial.println("[COLUMN] Storage sensor triggered early - force stopped");
+                break;
+            }
         }
         updateOTA();
         delay(1);
@@ -383,17 +390,24 @@ void moveStorageClockwise() {
     motorStorage->setAcceleration(motorAccelStorage);
     
     // Move column spacing distance at normal speed
-    // Constantly check if sensor triggers early to prevent overshooting
+    // Ignore sensor for initial period to clear current column, then check for early trigger
     motorStorage->moveSteps(mainSteps);
+    long startPosition = motorStorage->getCurrentPosition();
     bool sensorTriggeredEarly = false;
     while (motorStorage->isMotorRunning()) {
-        storagePositionSensor.update();
-        if (storagePositionSensor.read()) {
-            // Sensor triggered early - immediately stop to prevent overshooting
-            motorStorage->forceStop();
-            sensorTriggeredEarly = true;
-            Serial.println("[STORAGE] Storage sensor triggered early - force stopped");
-            break;
+        long currentPosition = motorStorage->getCurrentPosition();
+        long stepsMoved = abs(currentPosition - startPosition);
+        
+        // Only check sensor after ignoring initial period to clear current column
+        if (stepsMoved > STORAGE_MOTOR_SENSOR_IGNORE_STEPS) {
+            storagePositionSensor.update();
+            if (storagePositionSensor.read()) {
+                // Sensor triggered early - immediately stop to prevent overshooting
+                motorStorage->forceStop();
+                sensorTriggeredEarly = true;
+                Serial.println("[STORAGE] Storage sensor triggered early - force stopped");
+                break;
+            }
         }
         updateOTA();
         delay(1);
