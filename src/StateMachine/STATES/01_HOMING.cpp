@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Bounce2.h>
 #include "StateMachine/STATES/01_HOMING.h"
 #include "../../config/Config.h"
 
@@ -6,9 +7,11 @@
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
+extern StepperMotor* motorStorage;
 extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;
+extern Bounce2::Button storagePositionSensor;
 
 // OTA Manager function
 extern void updateOTA();
@@ -131,28 +134,42 @@ void homeAllAxes() {
     homeForkAxis();
     
     //! ************************************************************************
-    //! STEP 2: HOME X AND Y AXES SIMULTANEOUSLY
+    //! STEP 2: HOME X, Y, AND STORAGE MOTORS SIMULTANEOUSLY
     //! ************************************************************************
     // Track which axes are still homing
     bool xHomed = false;
     bool yHomed = false;
+    bool storageHomed = false;
     
     // Set homing speeds to 700
     motorX->setSpeed(700);
     motorY->setSpeed(700);
+    if (motorStorage) {
+        motorStorage->setSpeed(700);
+    }
     
     // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
     motorY->startContinuous(true);
+    // Start storage motor counter clockwise (false = backward = counter clockwise)
+    if (motorStorage) {
+        motorStorage->startContinuous(false);
+    }
     
-    // Keep moving until both home switches are triggered
-    while (!xHomed || !yHomed) {
-        // Run both motors continuously
+    // Keep moving until all home switches/sensors are triggered
+    while (!xHomed || !yHomed || !storageHomed) {
+        // Update storage position sensor
+        storagePositionSensor.update();
+        
+        // Run all motors continuously
         if (!xHomed) {
             motorX->runContinuous();
         }
         if (!yHomed) {
             motorY->runContinuous();
+        }
+        if (!storageHomed && motorStorage) {
+            motorStorage->runContinuous();
         }
         
         // Check switches and stop motors when triggered
@@ -163,6 +180,10 @@ void homeAllAxes() {
         if (!yHomed && homeSwitchY->read()) {
             motorY->stopContinuous();
             yHomed = true;
+        }
+        if (!storageHomed && motorStorage && storagePositionSensor.read()) {
+            motorStorage->stopContinuous();
+            storageHomed = true;
         }
         
         updateOTA(); // Allow OTA updates during homing
@@ -179,12 +200,18 @@ void homeAllAxes() {
         delay(1);
     }
     
-    // Set home offset as position zero for X and Y axes
+    // Set home offset as position zero for X, Y, and Storage axes
     motorX->resetPosition();
     motorY->resetPosition();
+    if (motorStorage) {
+        motorStorage->resetPosition();
+    }
     
     // Restore full speeds for normal operations
     motorX->setSpeed(X_MAX_SPEED);
     motorY->setSpeed(Y_MAX_SPEED);
+    if (motorStorage) {
+        motorStorage->setSpeed(STORAGE_MOTOR_SPEED);
+    }
 }
 
