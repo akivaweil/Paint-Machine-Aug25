@@ -274,6 +274,7 @@ void homeAllAxes(bool resetColumn) {
 void moveToColumn(int targetColumn) {
     extern int currentColumn;  // Declared in Web_Manager.cpp
     extern StepperMotor* motorStorage;  // Declared in Web_Manager.cpp
+    extern Bounce2::Button storagePositionSensor;  // Declared in Web_Manager.cpp
     
     if (!motorStorage) {
         Serial.println("[COLUMN] Storage motor not initialized");
@@ -302,12 +303,11 @@ void moveToColumn(int targetColumn) {
     Serial.printf("[COLUMN] Moving from column %c to column %c (%d columns clockwise)\n", 
                   'A' + currentColumn, 'A' + targetColumn, columnsToMove);
     
-    // Calculate distances
+    // Calculate column spacing distance
     long mainSteps = columnsToMove * STORAGE_COLUMN_SPACING_STEPS;
-    long totalSteps = mainSteps + STORAGE_MOTOR_HOMING_TRIM;
     
-    Serial.printf("[COLUMN] Moving %ld steps (%d columns × %ld steps/column) + %d trim steps\n", 
-                  mainSteps, columnsToMove, STORAGE_COLUMN_SPACING_STEPS, STORAGE_MOTOR_HOMING_TRIM);
+    Serial.printf("[COLUMN] Moving %ld steps (%d columns × %ld steps/column)\n", 
+                  mainSteps, columnsToMove, STORAGE_COLUMN_SPACING_STEPS);
     
     // Use storage motor speed and acceleration from dashboard settings
     extern long motorSpeedStorage;  // Declared in Web_Manager.cpp
@@ -315,30 +315,35 @@ void moveToColumn(int targetColumn) {
     motorStorage->setSpeed(motorSpeedStorage);
     motorStorage->setAcceleration(motorAccelStorage);
     
-    // Get starting position
-    long startPosition = motorStorage->getCurrentPosition();
-    
-    // Move total distance (main + trim) at normal speed
-    motorStorage->moveSteps(totalSteps);
-    
-    // Monitor position and change speed to homing speed when we reach main distance
-    // This allows smooth deceleration to homing speed instead of stopping
-    bool speedChanged = false;
+    // Move column spacing distance at normal speed
+    motorStorage->moveSteps(mainSteps);
     while (motorStorage->isMotorRunning()) {
-        long currentPosition = motorStorage->getCurrentPosition();
-        long distanceTraveled = currentPosition - startPosition;
-        
-        // When we've traveled the main distance, change speed to homing speed
-        // Motor will decelerate smoothly to homing speed and continue
-        if (!speedChanged && distanceTraveled >= mainSteps) {
-            motorStorage->overrideSpeed(STORAGE_MOTOR_HOMING_SPEED);
-            speedChanged = true;
-            Serial.printf("[COLUMN] Decelerating to homing speed for final %d steps\n", 
-                          STORAGE_MOTOR_HOMING_TRIM);
-        }
-        
         updateOTA();
         delay(1);
+    }
+    
+    // Now move at homing speed until switch is detected
+    Serial.println("[COLUMN] Finding switch at homing speed...");
+    motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+    motorStorage->startContinuous(true);  // Clockwise
+    
+    storagePositionSensor.update();
+    while (!storagePositionSensor.read()) {
+        storagePositionSensor.update();
+        motorStorage->runContinuous();
+        updateOTA();
+        delay(1);
+    }
+    
+    // Transition smoothly to trim movement
+    if (STORAGE_MOTOR_HOMING_TRIM > 0) {
+        motorStorage->moveStepsSmooth(STORAGE_MOTOR_HOMING_TRIM);
+        while (motorStorage->isMotorRunning()) {
+            updateOTA();
+            delay(1);
+        }
+    } else {
+        motorStorage->stopContinuous();
     }
     
     // Update current column to target
@@ -348,9 +353,10 @@ void moveToColumn(int targetColumn) {
 }
 
 // Move storage motor clockwise one column
-// Moves STORAGE_COLUMN_SPACING_STEPS steps plus trim
+// Moves STORAGE_COLUMN_SPACING_STEPS, finds switch, then trims
 void moveStorageClockwise() {
     extern StepperMotor* motorStorage;  // Declared in Web_Manager.cpp
+    extern Bounce2::Button storagePositionSensor;  // Declared in Web_Manager.cpp
     
     if (!motorStorage) {
         Serial.println("[STORAGE] Storage motor not initialized");
@@ -359,12 +365,11 @@ void moveStorageClockwise() {
     
     Serial.println("[STORAGE] Moving storage motor clockwise one column...");
     
-    // Calculate distances
+    // Calculate column spacing distance
     long mainSteps = STORAGE_COLUMN_SPACING_STEPS;
-    long totalSteps = mainSteps + STORAGE_MOTOR_HOMING_TRIM;
     
-    Serial.printf("[STORAGE] Moving %ld steps (1 column × %ld steps/column) + %d trim steps\n", 
-                  mainSteps, STORAGE_COLUMN_SPACING_STEPS, STORAGE_MOTOR_HOMING_TRIM);
+    Serial.printf("[STORAGE] Moving %ld steps (1 column × %ld steps/column)\n", 
+                  mainSteps, STORAGE_COLUMN_SPACING_STEPS);
     
     // Use storage motor speed and acceleration from dashboard settings
     extern long motorSpeedStorage;  // Declared in Web_Manager.cpp
@@ -372,30 +377,35 @@ void moveStorageClockwise() {
     motorStorage->setSpeed(motorSpeedStorage);
     motorStorage->setAcceleration(motorAccelStorage);
     
-    // Get starting position
-    long startPosition = motorStorage->getCurrentPosition();
-    
-    // Move total distance (main + trim) at normal speed
-    motorStorage->moveSteps(totalSteps);
-    
-    // Monitor position and change speed to homing speed when we reach main distance
-    // This allows smooth deceleration to homing speed instead of stopping
-    bool speedChanged = false;
+    // Move column spacing distance at normal speed
+    motorStorage->moveSteps(mainSteps);
     while (motorStorage->isMotorRunning()) {
-        long currentPosition = motorStorage->getCurrentPosition();
-        long distanceTraveled = currentPosition - startPosition;
-        
-        // When we've traveled the main distance, change speed to homing speed
-        // Motor will decelerate smoothly to homing speed and continue
-        if (!speedChanged && distanceTraveled >= mainSteps) {
-            motorStorage->overrideSpeed(STORAGE_MOTOR_HOMING_SPEED);
-            speedChanged = true;
-            Serial.printf("[STORAGE] Decelerating to homing speed for final %d steps\n", 
-                          STORAGE_MOTOR_HOMING_TRIM);
-        }
-        
         updateOTA();
         delay(1);
+    }
+    
+    // Now move at homing speed until switch is detected
+    Serial.println("[STORAGE] Finding switch at homing speed...");
+    motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+    motorStorage->startContinuous(true);  // Clockwise
+    
+    storagePositionSensor.update();
+    while (!storagePositionSensor.read()) {
+        storagePositionSensor.update();
+        motorStorage->runContinuous();
+        updateOTA();
+        delay(1);
+    }
+    
+    // Transition smoothly to trim movement
+    if (STORAGE_MOTOR_HOMING_TRIM > 0) {
+        motorStorage->moveStepsSmooth(STORAGE_MOTOR_HOMING_TRIM);
+        while (motorStorage->isMotorRunning()) {
+            updateOTA();
+            delay(1);
+        }
+    } else {
+        motorStorage->stopContinuous();
     }
     
     Serial.println("[STORAGE] Successfully moved one column clockwise");
