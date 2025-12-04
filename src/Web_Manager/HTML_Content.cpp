@@ -946,7 +946,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'yHome', name: 'Y Home' },
       { id: 'forkHome', name: 'Fork Home' },
       { id: 'testButton', name: 'Test Btn' },
-      { id: 'storagePosition', name: 'Storage Position' }
+      { id: 'storagePosition', name: 'Storage Position' },
+      { id: 'squarePresence', name: 'Square Presence' }
     ];
     let STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
     let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;

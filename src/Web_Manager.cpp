@@ -34,6 +34,9 @@ HomeSwitch* homeSwitchFork = nullptr;
 // Storage Position Sensor (Bounce2 instance)
 Bounce2::Button storagePositionSensor;
 
+// Square Presence Sensor (Bounce2 instance)
+Bounce2::Button squarePresenceSensor;
+
 // Servo instance
 ServoControl* servo = nullptr;
 float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
@@ -124,4 +127,5 @@ void initializeWebServer() {
 void updateWebServer() {
     // Update Bounce2 sensors
     storagePositionSensor.update();
+    squarePresenceSensor.update();
 }

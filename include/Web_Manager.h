@@ -24,6 +24,7 @@ extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;
 extern Bounce2::Button storagePositionSensor;
+extern Bounce2::Button squarePresenceSensor;
 extern ServoControl* servo;
 extern float currentServoAngle;
 extern bool suctionState;
