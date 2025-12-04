@@ -215,17 +215,10 @@ void homeAllAxes(bool resetColumn) {
             Serial.println("[HOMING] Y axis homed");
         }
         if (!storageHomed && motorStorage && resetColumn && storagePositionSensor.read()) {
-            // Transition smoothly from continuous mode to trim movement
-            // Will decelerate to homing speed instead of stopping abruptly
-            if (STORAGE_MOTOR_HOMING_TRIM > 0) {
-                motorStorage->moveStepsSmooth(STORAGE_MOTOR_HOMING_TRIM);
-                // Change speed to homing speed for smooth deceleration
-                motorStorage->overrideSpeed(STORAGE_MOTOR_HOMING_SPEED);
-            } else {
-                motorStorage->stopContinuous();
-            }
+            // Force stop immediately to prevent overshooting
+            motorStorage->forceStop();
             storageHomed = true;
-            Serial.println("[HOMING] Storage axis homed to column position, decelerating to homing speed for trim");
+            Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
         }
         
         updateOTA(); // Allow OTA updates during homing
@@ -236,7 +229,7 @@ void homeAllAxes(bool resetColumn) {
     motorX->moveInches(-0.5);
     motorY->moveInches(-0.5);
     
-    // Wait for all motors to finish (including storage motor trim movement if homing)
+    // Wait for all motors to finish
     while (motorX->isMotorRunning() || motorY->isMotorRunning() || 
            (motorStorage && resetColumn && motorStorage->isMotorRunning())) {
         updateOTA(); // Allow OTA updates during homing
