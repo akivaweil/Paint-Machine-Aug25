@@ -219,8 +219,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 2) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(5000);
-        motorY->setAcceleration(3000);
+        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);
         
@@ -306,8 +306,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 6) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(5000);
-        motorY->setAcceleration(3000);
+        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(0.5);
         
@@ -466,8 +466,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 12) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(5000);
-        motorY->setAcceleration(3000);
+        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);  // Negative moves away from home (up)
         
@@ -561,8 +561,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 16) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(5000);
-        motorY->setAcceleration(3000);
+        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(0.5);
         

@@ -21,7 +21,7 @@
 #define X_HOME_PIN 7
 #define X_HOME_PIN2 6    // Second X home switch
 #define Y_HOME_PIN 4
-#define FORK_HOME_PIN 18
+#define FORK_HOME_PIN 14
 
 // Storage Stepper Motor
 #define STORAGE_STEP_PIN 21
@@ -48,5 +48,7 @@
 
 // Servo Motor (24V 160kg 180 degree)
 #define SERVO_PIN 40
+
+// PIN 18 IS BROKEN SEEMINGLY
 
 #endif // PIN_DEFINITIONS_H 
