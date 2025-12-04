@@ -46,9 +46,10 @@
 // Storage Position Sensor (Active HIGH with pulldown)
 #define STORAGE_POSITION_SENSOR_PIN 2
 
+// Square Present Sensor (Active LOW with pullup)
+#define SQUARE_PRESENT_SENSOR_PIN 16
+
 // Servo Motor (24V 160kg 180 degree)
 #define SERVO_PIN 40
-
-// PIN 18 IS BROKEN SEEMINGLY
 
 #endif // PIN_DEFINITIONS_H 
