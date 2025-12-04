@@ -81,3 +81,17 @@ void loadMotorSettings() {
     preferences.end();
 }
 
+// Save square sensing toggle state to non-volatile storage
+void saveSquareSensingState() {
+    preferences.begin("testSeq", false);
+    preferences.putBool("squareSensing", squareSensingEnabled);
+    preferences.end();
+}
+
+// Load square sensing toggle state from non-volatile storage
+void loadSquareSensingState() {
+    preferences.begin("testSeq", true);
+    squareSensingEnabled = preferences.getBool("squareSensing", true);  // Default to enabled
+    preferences.end();
+}
+

@@ -57,6 +57,9 @@ int selectedPosition1Height = 8;  // Default to a8 (lowest position)
 bool testAllMode = false;  // Flag to track if we're in "test all" mode
 int currentTestAllHeight = 1;  // Track which height we're currently testing (1-8)
 
+// Square sensing toggle (enables/disables wood_present_sensor check during test cycle)
+bool squareSensingEnabled = true;  // Default to enabled
+
 // Motor speed and acceleration settings
 long motorSpeedX = X_MAX_SPEED;
 long motorSpeedY = Y_MAX_SPEED;
@@ -103,6 +106,9 @@ void initializeWebServer() {
     
     // Load saved motor settings
     loadMotorSettings();
+    
+    // Load saved square sensing state
+    loadSquareSensingState();
     
     // Initialize sensor pins
     initializeSensors();

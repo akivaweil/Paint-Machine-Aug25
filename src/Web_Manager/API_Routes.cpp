@@ -411,5 +411,21 @@ void setupAPIRoutes() {
         json += "}";
         request->send(200, "application/json", json);
     });
+    
+    // API endpoint for square sensing toggle
+    server.on("/api/squareSensing", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("enabled")) {
+            int enabled = request->getParam("enabled")->value().toInt();
+            squareSensingEnabled = (enabled == 1);
+            saveSquareSensingState();
+            String json = "{\"enabled\":" + String(squareSensingEnabled ? "true" : "false") + "}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Square sensing %s\n", squareSensingEnabled ? "ENABLED" : "DISABLED");
+        } else {
+            // Return current state if no parameter provided
+            String json = "{\"enabled\":" + String(squareSensingEnabled ? "true" : "false") + "}";
+            request->send(200, "application/json", json);
+        }
+    });
 }
 

@@ -369,6 +369,54 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       color: var(--accent-secondary);
     }
     
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-secondary);
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+    }
+    
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+      background-color: var(--bg-deep);
+    }
+    
     .home-buttons {
       display: flex;
       gap: 10px;
@@ -789,6 +837,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <button class="distance-btn" id="heightA7" onclick="setHeight(7)">a7</button>
               <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">a8</button>
             </div>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+              <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Square Sensing:</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="squareSensingToggle" onchange="toggleSquareSensing()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
             <div class="button-container">
               <button class="action-btn" onclick="startTest()" style="width: 75%;">Run Test</button>
               <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;">Test All</button>
@@ -1157,6 +1214,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     loadTestPositions();
     loadMotorSettings();
     loadDeviceStates();
+    loadSquareSensingState();
     
     // Movement control
     let moveDistance = 1; // Default 1 inch
@@ -1324,6 +1382,30 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           console.log('Test All started:', data);
         })
         .catch(error => console.error('Test All error:', error));
+    }
+    
+    function toggleSquareSensing() {
+      const toggle = document.getElementById('squareSensingToggle');
+      const enabled = toggle.checked;
+      fetch('/api/squareSensing?enabled=' + (enabled ? '1' : '0'))
+        .then(response => response.json())
+        .then(data => {
+          console.log('Square sensing:', data.enabled ? 'ON' : 'OFF');
+        })
+        .catch(error => console.error('Square sensing toggle error:', error));
+    }
+    
+    // Load square sensing toggle state on page load
+    function loadSquareSensingState() {
+      fetch('/api/squareSensing')
+        .then(response => response.json())
+        .then(data => {
+          const toggle = document.getElementById('squareSensingToggle');
+          if (toggle) {
+            toggle.checked = data.enabled;
+          }
+        })
+        .catch(error => console.error('Error loading square sensing state:', error));
     }
     
     // Keyboard controls

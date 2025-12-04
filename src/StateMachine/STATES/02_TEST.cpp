@@ -212,9 +212,10 @@ void testState() {
             delay(1);
         }
         
-        // Check if square is present (sensor is active LOW)
+        // Check if square is present (sensor is active LOW) - only if square sensing is enabled
         // If no square present, retract fork and skip to end of position 4 (step 18)
-        if (digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
+        extern bool squareSensingEnabled;
+        if (squareSensingEnabled && digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
             // Retract fork before skipping
             motorFork->moveInches(testPos1Fork);
             

@@ -37,6 +37,7 @@ extern float testPos2Fork;
 extern int selectedPosition1Height;
 extern bool testAllMode;
 extern int currentTestAllHeight;
+extern bool squareSensingEnabled;
 extern long motorSpeedX;
 extern long motorSpeedY;
 extern long motorSpeedFork;
@@ -65,6 +66,8 @@ extern void saveTestPositions();
 extern void loadTestPositions();
 extern void saveMotorSettings();
 extern void loadMotorSettings();
+extern void saveSquareSensingState();
+extern void loadSquareSensingState();
 
 // Hardware functions
 extern void initializeSensors();
