@@ -141,6 +141,13 @@ void homeAllAxes() {
     bool yHomed = false;
     bool storageHomed = false;
     
+    // Check if storage position sensor is already triggered at startup
+    storagePositionSensor.update();
+    bool storageAlreadyAtHome = (motorStorage && storagePositionSensor.read());
+    if (storageAlreadyAtHome) {
+        storageHomed = true;
+    }
+    
     // Set homing speeds to 700
     motorX->setSpeed(700);
     motorY->setSpeed(700);
@@ -151,8 +158,8 @@ void homeAllAxes() {
     // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
     motorY->startContinuous(true);
-    // Start storage motor clockwise (true = forward = clockwise)
-    if (motorStorage) {
+    // Start storage motor clockwise (true = forward = clockwise) only if not already at home
+    if (motorStorage && !storageAlreadyAtHome) {
         motorStorage->startContinuous(true);
     }
     
@@ -202,7 +209,8 @@ void homeAllAxes() {
     
     // Move storage motor trim amount past home switch (positive direction = clockwise)
     // This allows for mechanical adjustment before setting position to zero
-    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0) {
+    // Only move trim if storage motor actually moved to reach home (not already at home on startup)
+    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0 && !storageAlreadyAtHome) {
         motorStorage->moveSteps(STORAGE_MOTOR_HOMING_TRIM);
         while (motorStorage->isMotorRunning()) {
             updateOTA(); // Allow OTA updates during homing
