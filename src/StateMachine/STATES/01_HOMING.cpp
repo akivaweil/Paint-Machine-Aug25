@@ -309,10 +309,14 @@ void moveToColumn(int targetColumn) {
     motorStorage->setAcceleration(motorAccelStorage);
     
     // Move column spacing distance at normal speed
-    // Ignore sensor for initial period to clear current column, then check for early trigger
+    // Ignore sensor for initial period to clear current column, then count switch activations
     motorStorage->moveSteps(mainSteps);
     long startPosition = motorStorage->getCurrentPosition();
     bool sensorTriggeredEarly = false;
+    int switchActivationCount = 0;
+    bool previousSensorState = false;
+    bool sensorCheckStarted = false;
+    
     while (motorStorage->isMotorRunning()) {
         long currentPosition = motorStorage->getCurrentPosition();
         long stepsMoved = abs(currentPosition - startPosition);
@@ -320,11 +324,27 @@ void moveToColumn(int targetColumn) {
         // Only check sensor after ignoring initial period to clear current column
         if (stepsMoved > STORAGE_MOTOR_SENSOR_IGNORE_STEPS) {
             storagePositionSensor.update();
-            if (storagePositionSensor.read()) {
-                // Sensor triggered early - immediately stop to prevent overshooting
+            bool currentSensorState = storagePositionSensor.read();
+            
+            // Initialize previous state on first check
+            if (!sensorCheckStarted) {
+                previousSensorState = currentSensorState;
+                sensorCheckStarted = true;
+            }
+            
+            // Detect rising edge (switch activation)
+            if (currentSensorState && !previousSensorState) {
+                switchActivationCount++;
+                Serial.printf("[COLUMN] Switch activation detected (%d/%d)\n", switchActivationCount, columnsToMove);
+            }
+            previousSensorState = currentSensorState;
+            
+            // Only stop if we've detected the correct number of switch activations
+            if (switchActivationCount >= columnsToMove) {
+                // Correct number of switches activated early - immediately stop to prevent overshooting
                 motorStorage->forceStop();
                 sensorTriggeredEarly = true;
-                Serial.println("[COLUMN] Storage sensor triggered early - force stopped");
+                Serial.printf("[COLUMN] %d switch activations detected early - force stopped\n", switchActivationCount);
                 break;
             }
         }
@@ -390,10 +410,14 @@ void moveStorageClockwise() {
     motorStorage->setAcceleration(motorAccelStorage);
     
     // Move column spacing distance at normal speed
-    // Ignore sensor for initial period to clear current column, then check for early trigger
+    // Ignore sensor for initial period to clear current column, then count switch activations
     motorStorage->moveSteps(mainSteps);
     long startPosition = motorStorage->getCurrentPosition();
     bool sensorTriggeredEarly = false;
+    int switchActivationCount = 0;
+    bool previousSensorState = false;
+    bool sensorCheckStarted = false;
+    
     while (motorStorage->isMotorRunning()) {
         long currentPosition = motorStorage->getCurrentPosition();
         long stepsMoved = abs(currentPosition - startPosition);
@@ -401,11 +425,27 @@ void moveStorageClockwise() {
         // Only check sensor after ignoring initial period to clear current column
         if (stepsMoved > STORAGE_MOTOR_SENSOR_IGNORE_STEPS) {
             storagePositionSensor.update();
-            if (storagePositionSensor.read()) {
-                // Sensor triggered early - immediately stop to prevent overshooting
+            bool currentSensorState = storagePositionSensor.read();
+            
+            // Initialize previous state on first check
+            if (!sensorCheckStarted) {
+                previousSensorState = currentSensorState;
+                sensorCheckStarted = true;
+            }
+            
+            // Detect rising edge (switch activation)
+            if (currentSensorState && !previousSensorState) {
+                switchActivationCount++;
+                Serial.printf("[STORAGE] Switch activation detected (%d/1)\n", switchActivationCount);
+            }
+            previousSensorState = currentSensorState;
+            
+            // Only stop if we've detected 1 switch activation (moving one column)
+            if (switchActivationCount >= 1) {
+                // Switch activated early - immediately stop to prevent overshooting
                 motorStorage->forceStop();
                 sensorTriggeredEarly = true;
-                Serial.println("[STORAGE] Storage sensor triggered early - force stopped");
+                Serial.println("[STORAGE] Switch activation detected early - force stopped");
                 break;
             }
         }
