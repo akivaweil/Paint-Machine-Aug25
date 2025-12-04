@@ -296,8 +296,9 @@ void moveToColumn(int targetColumn) {
     Serial.printf("[COLUMN] Moving from column %c to column %c (%d columns clockwise)\n", 
                   'A' + currentColumn, 'A' + targetColumn, columnsToMove);
     
-    // Set storage motor to homing speed for column detection
-    motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+    // Use storage motor speed from dashboard settings
+    extern long motorSpeedStorage;  // Declared in Web_Manager.cpp
+    motorStorage->setSpeed(motorSpeedStorage);
     
     // Move to each column by detecting switch triggers
     for (int i = 0; i < columnsToMove; i++) {
@@ -346,9 +347,7 @@ void moveToColumn(int targetColumn) {
         Serial.printf("[COLUMN] Reached column %c\n", 'A' + currentColumn);
     }
     
-    // Restore storage motor speed
-    extern long motorSpeedStorage;  // Declared in Web_Manager.cpp
-    motorStorage->setSpeed(motorSpeedStorage);
+    // Speed is already set to motorSpeedStorage, no need to restore
     
     Serial.printf("[COLUMN] Successfully moved to column %c\n", 'A' + currentColumn);
 }
