@@ -200,6 +200,16 @@ void homeAllAxes() {
         delay(1);
     }
     
+    // Move storage motor trim amount past home switch (positive direction = clockwise)
+    // This allows for mechanical adjustment before setting position to zero
+    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0.0) {
+        motorStorage->moveInches(STORAGE_MOTOR_HOMING_TRIM);
+        while (motorStorage->isMotorRunning()) {
+            updateOTA(); // Allow OTA updates during homing
+            delay(1);
+        }
+    }
+    
     // Set home offset as position zero for X, Y, and Storage axes
     motorX->resetPosition();
     motorY->resetPosition();
