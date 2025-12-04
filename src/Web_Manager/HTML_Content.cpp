@@ -424,6 +424,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       padding-top: 24px;
       border-top: 1px solid var(--border-subtle);
       margin-top: 24px;
+      margin-bottom: 40px;
     }
     
     .home-btn {
@@ -773,6 +774,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <span class="card-title">Manual Controls</span>
           </div>
           <div class="card-body">
+            <div class="home-buttons">
+              <button class="home-btn" onclick="homeAxis('x')">Home X</button>
+              <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
+              <button class="home-btn" onclick="homeAxis('fork')">Home Fork Motor</button>
+              <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
+            </div>
             <div class="controls-grid">
               <div class="control-section">
                 <div class="control-label">Gantry X/Y</div>
@@ -818,9 +825,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         </div>
               <div class="control-section">
                 <div class="control-label">Storage Motor</div>
-                <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
-                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="moveStorage(-1)">↺</button>
-                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="moveStorage(1)">↻</button>
+                <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: 48px;">
+                  <button class="arrow-btn" style="grid-column: 1; grid-row: 1;" onclick="moveStorageClockwise()">↻</button>
           </div>
         </div>
               <div class="control-section">
@@ -855,12 +861,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
       </div>
-      <div class="home-buttons">
-        <button class="home-btn" onclick="homeAxis('x')">Home X</button>
-        <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
-        <button class="home-btn" onclick="homeAxis('fork')">Home Fork Motor</button>
-        <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
-            </div>
       </div>
     </div>
     
@@ -1283,9 +1283,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Move error:', error));
     }
     
-    function moveStorage(direction) {
-      fetch('/api/move?axis=storage&steps=' + (direction * STORAGE_MOTOR_STEPS_PER_CLICK))
-        .catch(error => console.error('Move error:', error));
+    function moveStorageClockwise() {
+      fetch('/api/storage/clockwise')
+        .catch(error => console.error('Storage move error:', error));
     }
     
     function movePaintRotation(direction) {
