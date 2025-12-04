@@ -20,6 +20,7 @@ void saveTestPositions() {
     preferences.putFloat("pos2Y", testPos2Y);
     preferences.putFloat("pos2Fork", testPos2Fork);
     preferences.putInt("pos1Height", selectedPosition1Height);
+    preferences.putInt("selectedColumn", selectedColumn);
     preferences.end();
 }
 
@@ -33,6 +34,7 @@ void loadTestPositions() {
     testPos2Y = preferences.getFloat("pos2Y", 0.0);
     testPos2Fork = preferences.getFloat("pos2Fork", 0.0);
     selectedPosition1Height = preferences.getInt("pos1Height", 8);
+    selectedColumn = preferences.getInt("selectedColumn", 0);  // Default to column A
     preferences.end();
 }
 

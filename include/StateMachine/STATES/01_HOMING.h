@@ -17,5 +17,8 @@ void homeYAxis();
 void homeForkAxis();
 void homeAllAxes();
 
+// Column movement function
+void moveToColumn(int targetColumn);  // targetColumn: 0-5 (0=A, 5=F)
+
 #endif // HOMING_STATE_H
 

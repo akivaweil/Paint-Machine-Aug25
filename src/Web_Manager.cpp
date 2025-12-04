@@ -53,6 +53,10 @@ float testPos2Fork = 0.0;
 // Position 1 height selection (1-8, where 8 = a8/lowest, 1 = a1/highest)
 int selectedPosition1Height = 8;  // Default to a8 (lowest position)
 
+// Column tracking (0-5, where 0 = column A, 5 = column F)
+int currentColumn = 0;  // Current column position (set during homing)
+int selectedColumn = 0;  // Selected column for test cycle (default: column A)
+
 // Test All mode tracking
 bool testAllMode = false;  // Flag to track if we're in "test all" mode
 int currentTestAllHeight = 1;  // Track which height we're currently testing (1-8)

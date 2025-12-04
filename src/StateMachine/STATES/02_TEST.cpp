@@ -34,6 +34,7 @@ extern float testPos2X;
 extern float testPos2Y;
 extern float testPos2Fork;
 extern int selectedPosition1Height;  // Position 1 height selection (1-8, where 8 = a8/lowest)
+extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
 extern bool testAllMode;  // Flag to track if we're in "test all" mode
 extern int currentTestAllHeight;  // Track which height we're currently testing (1-8)
 
@@ -147,6 +148,11 @@ void testState() {
         
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
+        
+        //! ************************************************************************
+        //! STEP 0: MOVE STORAGE MOTOR TO SELECTED COLUMN
+        //! ************************************************************************
+        moveToColumn(selectedColumn);
         
         // Move servo to servo home angle at the beginning
         if (servo) {

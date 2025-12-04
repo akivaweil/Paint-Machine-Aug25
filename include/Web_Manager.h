@@ -35,6 +35,8 @@ extern float testPos2X;
 extern float testPos2Y;
 extern float testPos2Fork;
 extern int selectedPosition1Height;
+extern int currentColumn;  // Current column position (0-5, where 0=A, 5=F)
+extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
 extern bool testAllMode;
 extern int currentTestAllHeight;
 extern bool squareSensingEnabled;

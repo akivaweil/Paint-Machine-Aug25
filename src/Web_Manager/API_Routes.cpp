@@ -179,6 +179,7 @@ void setupAPIRoutes() {
         json += "\"pos1Y\":" + String(testPos1Y) + ",";
         json += "\"pos1Fork\":" + String(testPos1Fork) + ",";
         json += "\"pos1Height\":" + String(selectedPosition1Height) + ",";
+        json += "\"column\":" + String(selectedColumn) + ",";
         json += "\"pos2X\":" + String(testPos2X) + ",";
         json += "\"pos2Y\":" + String(testPos2Y) + ",";
         json += "\"pos2Fork\":" + String(testPos2Fork);
@@ -186,7 +187,7 @@ void setupAPIRoutes() {
         request->send(200, "application/json", json);
     });
     
-    // API endpoint for test all sequence (runs all 8 heights a1-a8)
+    // API endpoint for test all sequence (runs all 8 heights a1-a8 for selected column)
     // NOTE: Must be registered BEFORE /api/test to avoid prefix matching issues
     server.on("/api/test/all", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
@@ -204,6 +205,25 @@ void setupAPIRoutes() {
             testPos2Y = request->getParam("pos2Y")->value().toFloat();
             testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
             
+            // Get column selection (a-f, convert to 0-5)
+            if (request->hasParam("column")) {
+                String columnStr = request->getParam("column")->value();
+                if (columnStr.length() == 1) {
+                    char colChar = columnStr.charAt(0);
+                    if (colChar >= 'a' && colChar <= 'f') {
+                        selectedColumn = colChar - 'a';
+                    } else if (colChar >= 'A' && colChar <= 'F') {
+                        selectedColumn = colChar - 'A';
+                    } else {
+                        selectedColumn = 0;  // Default to column A
+                    }
+                } else {
+                    selectedColumn = 0;  // Default to column A
+                }
+            } else {
+                selectedColumn = 0;  // Default to column A
+            }
+            
             // Set position 1 height to 1 (a1, highest)
             selectedPosition1Height = 1;
             
@@ -215,7 +235,7 @@ void setupAPIRoutes() {
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.println("Web Request: Start test all sequence (a1-a8)");
+            Serial.printf("Web Request: Start test all sequence (a1-a8) for column %c\n", 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
@@ -246,6 +266,25 @@ void setupAPIRoutes() {
                 }
             }
             
+            // Get column selection (a-f, convert to 0-5)
+            if (request->hasParam("column")) {
+                String columnStr = request->getParam("column")->value();
+                if (columnStr.length() == 1) {
+                    char colChar = columnStr.charAt(0);
+                    if (colChar >= 'a' && colChar <= 'f') {
+                        selectedColumn = colChar - 'a';
+                    } else if (colChar >= 'A' && colChar <= 'F') {
+                        selectedColumn = colChar - 'A';
+                    } else {
+                        selectedColumn = 0;  // Default to column A
+                    }
+                } else {
+                    selectedColumn = 0;  // Default to column A
+                }
+            } else {
+                selectedColumn = 0;  // Default to column A
+            }
+            
             // Save values to persistent storage
             saveTestPositions();
             
@@ -254,7 +293,7 @@ void setupAPIRoutes() {
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.println("Web Request: Start test sequence");
+            Serial.printf("Web Request: Start test sequence for column %c\n", 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }

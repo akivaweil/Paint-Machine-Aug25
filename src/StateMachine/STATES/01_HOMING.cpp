@@ -151,10 +151,7 @@ void homeAllAxes() {
     
     // Check if storage position sensor is already triggered at startup
     storagePositionSensor.update();
-    bool storageAlreadyAtHome = (motorStorage && storagePositionSensor.read());
-    if (storageAlreadyAtHome) {
-        storageHomed = true;
-    }
+    bool storageSwitchTriggered = (motorStorage && storagePositionSensor.read());
     
     // Set homing speeds to 700
     motorX->setSpeed(700);
@@ -163,11 +160,31 @@ void homeAllAxes() {
         motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
     }
     
+    //! ************************************************************************
+    //! STORAGE MOTOR: MOVE AWAY FROM SWITCH IF ALREADY TRIGGERED
+    //! ************************************************************************
+    if (motorStorage && storageSwitchTriggered) {
+        Serial.println("[HOMING] Storage switch already triggered, moving away...");
+        // Move clockwise away from switch until it's released (short period to clear switch)
+        motorStorage->startContinuous(true);  // Clockwise
+        while (storageSwitchTriggered) {
+            storagePositionSensor.update();
+            storageSwitchTriggered = storagePositionSensor.read();
+            motorStorage->runContinuous();
+            updateOTA();
+            delay(1);
+        }
+        motorStorage->stopContinuous();
+        // Small delay to ensure switch is fully released
+        delay(100);
+        Serial.println("[HOMING] Storage switch cleared");
+    }
+    
     // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
     motorY->startContinuous(true);
-    // Start storage motor clockwise (true = forward = clockwise) only if not already at home
-    if (motorStorage && !storageAlreadyAtHome) {
+    // Start storage motor clockwise to find nearest column
+    if (motorStorage) {
         motorStorage->startContinuous(true);
     }
     
@@ -201,7 +218,7 @@ void homeAllAxes() {
         if (!storageHomed && motorStorage && storagePositionSensor.read()) {
             motorStorage->stopContinuous();
             storageHomed = true;
-            Serial.println("[HOMING] Storage axis homed");
+            Serial.println("[HOMING] Storage axis homed to column position");
         }
         
         updateOTA(); // Allow OTA updates during homing
@@ -218,10 +235,10 @@ void homeAllAxes() {
         delay(1);
     }
     
-    // Move storage motor trim amount past home switch (positive direction = clockwise)
-    // This allows for mechanical adjustment before setting position to zero
-    // Only move trim if storage motor actually moved to reach home (not already at home on startup)
-    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0 && !storageAlreadyAtHome) {
+    //! ************************************************************************
+    //! STORAGE MOTOR: ADD TRIM AMOUNT AND SET AS COLUMN A
+    //! ************************************************************************
+    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0) {
         motorStorage->moveSteps(STORAGE_MOTOR_HOMING_TRIM);
         while (motorStorage->isMotorRunning()) {
             updateOTA(); // Allow OTA updates during homing
@@ -236,6 +253,11 @@ void homeAllAxes() {
         motorStorage->resetPosition();
     }
     
+    // Set current column to A (0) - this is the column we just homed to
+    extern int currentColumn;  // Declared in Web_Manager.cpp
+    currentColumn = 0;
+    Serial.println("[HOMING] Storage motor set to column A");
+    
     // Restore full speeds for normal operations
     motorX->setSpeed(X_MAX_SPEED);
     motorY->setSpeed(Y_MAX_SPEED);
@@ -244,5 +266,96 @@ void homeAllAxes() {
     }
     
     Serial.println("[HOMING] ========== Homing sequence complete ==========");
+}
+
+// Move storage motor to target column (0-5, where 0=A, 5=F)
+// Storage motor can ONLY move clockwise
+void moveToColumn(int targetColumn) {
+    extern int currentColumn;  // Declared in Web_Manager.cpp
+    extern StepperMotor* motorStorage;  // Declared in Web_Manager.cpp
+    extern Bounce2::Button storagePositionSensor;  // Declared in Web_Manager.cpp
+    
+    if (!motorStorage) {
+        Serial.println("[COLUMN] Storage motor not initialized");
+        return;
+    }
+    
+    // Validate target column
+    if (targetColumn < 0 || targetColumn > 5) {
+        Serial.printf("[COLUMN] Invalid target column: %d\n", targetColumn);
+        return;
+    }
+    
+    // If already at target column, no movement needed
+    if (currentColumn == targetColumn) {
+        Serial.printf("[COLUMN] Already at column %c\n", 'A' + targetColumn);
+        return;
+    }
+    
+    // Calculate number of columns to move clockwise
+    int columnsToMove = targetColumn - currentColumn;
+    if (columnsToMove < 0) {
+        // Wrap around (e.g., F to A = 1 column clockwise)
+        columnsToMove = 6 + columnsToMove;
+    }
+    
+    Serial.printf("[COLUMN] Moving from column %c to column %c (%d columns clockwise)\n", 
+                  'A' + currentColumn, 'A' + targetColumn, columnsToMove);
+    
+    // Set storage motor to homing speed for column detection
+    motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+    
+    // Move to each column by detecting switch triggers
+    for (int i = 0; i < columnsToMove; i++) {
+        // Move clockwise until switch triggers
+        storagePositionSensor.update();
+        bool switchTriggered = storagePositionSensor.read();
+        
+        // If switch is already triggered, move away first
+        if (switchTriggered) {
+            Serial.println("[COLUMN] Switch already triggered, moving away...");
+            motorStorage->startContinuous(true);  // Clockwise
+            while (switchTriggered) {
+                storagePositionSensor.update();
+                switchTriggered = storagePositionSensor.read();
+                motorStorage->runContinuous();
+                updateOTA();
+                delay(1);
+            }
+            motorStorage->stopContinuous();
+            delay(100);  // Small delay to ensure switch is fully released
+        }
+        
+        // Move clockwise until switch triggers
+        Serial.printf("[COLUMN] Moving to next column...\n");
+        motorStorage->startContinuous(true);  // Clockwise
+        while (!switchTriggered) {
+            storagePositionSensor.update();
+            switchTriggered = storagePositionSensor.read();
+            motorStorage->runContinuous();
+            updateOTA();
+            delay(1);
+        }
+        motorStorage->stopContinuous();
+        
+        // Add trim amount after switch trigger
+        if (STORAGE_MOTOR_HOMING_TRIM > 0) {
+            motorStorage->moveSteps(STORAGE_MOTOR_HOMING_TRIM);
+            while (motorStorage->isMotorRunning()) {
+                updateOTA();
+                delay(1);
+            }
+        }
+        
+        // Update current column
+        currentColumn = (currentColumn + 1) % 6;
+        Serial.printf("[COLUMN] Reached column %c\n", 'A' + currentColumn);
+    }
+    
+    // Restore storage motor speed
+    extern long motorSpeedStorage;  // Declared in Web_Manager.cpp
+    motorStorage->setSpeed(motorSpeedStorage);
+    
+    Serial.printf("[COLUMN] Successfully moved to column %c\n", 'A' + currentColumn);
 }
 

@@ -729,6 +729,17 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <span class="card-title">Run Test Cycle</span>
           </div>
           <div class="card-body">
+            <div class="panel-label" style="margin-bottom: 16px;">Column (a-f)</div>
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+              <div class="distance-selector" style="flex: 1;">
+                <button class="distance-btn active" id="columnA" onclick="setColumn(0)">a</button>
+                <button class="distance-btn" id="columnB" onclick="setColumn(1)">b</button>
+                <button class="distance-btn" id="columnC" onclick="setColumn(2)">c</button>
+                <button class="distance-btn" id="columnD" onclick="setColumn(3)">d</button>
+                <button class="distance-btn" id="columnE" onclick="setColumn(4)">e</button>
+                <button class="distance-btn" id="columnF" onclick="setColumn(5)">f</button>
+              </div>
+            </div>
             <div class="panel-label" style="margin-bottom: 16px;">Height (a1-a8)</div>
             <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
               <div class="distance-selector" style="flex: 1;">
@@ -1111,6 +1122,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('pos1Fork').value = data.pos1Fork || 0;
           const savedHeight = data.pos1Height || 8;
           setHeight(savedHeight);
+          const savedColumn = data.column !== undefined ? data.column : 0;
+          setColumn(savedColumn);
           document.getElementById('pos2X').value = data.pos2X || 0;
           document.getElementById('pos2Y').value = data.pos2Y || 0;
           document.getElementById('pos2Fork').value = data.pos2Fork || 0;
@@ -1235,6 +1248,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     let selectedHeight = 8; // Default to a8 (lowest position)
+    let selectedColumn = 0; // Default to column A (0=a, 5=f)
+    
+    function setColumn(column) {
+      selectedColumn = column;
+      const columns = ['A', 'B', 'C', 'D', 'E', 'F'];
+      for (let i = 0; i < 6; i++) {
+        document.getElementById('column' + columns[i]).classList.toggle('active', i === column);
+      }
+    }
     
     function setHeight(level) {
       selectedHeight = level;
@@ -1349,12 +1371,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
       const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
       const pos1Height = selectedHeight || 8;
+      const column = String.fromCharCode(97 + selectedColumn); // Convert 0-5 to 'a'-'f'
       const pos2X = parseFloat(document.getElementById('pos2X').value) || 0;
       const pos2Y = parseFloat(document.getElementById('pos2Y').value) || 0;
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
       
       const url = '/api/test?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
-                  '&pos1Height=' + pos1Height +
+                  '&pos1Height=' + pos1Height + '&column=' + column +
                   '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork;
       
       fetch(url)
@@ -1369,11 +1392,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos1X = parseFloat(document.getElementById('pos1X').value) || 0;
       const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
       const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
+      const column = String.fromCharCode(97 + selectedColumn); // Convert 0-5 to 'a'-'f'
       const pos2X = parseFloat(document.getElementById('pos2X').value) || 0;
       const pos2Y = parseFloat(document.getElementById('pos2Y').value) || 0;
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
       
       const url = '/api/test/all?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
+                  '&column=' + column +
                   '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork;
       
       fetch(url)
