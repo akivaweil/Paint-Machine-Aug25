@@ -213,8 +213,17 @@ void testState() {
         }
         
         // Check if square is present (sensor is active LOW)
-        // If no square present, skip to end of position 4 (step 18)
+        // If no square present, retract fork and skip to end of position 4 (step 18)
         if (digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
+            // Retract fork before skipping
+            motorFork->moveInches(testPos1Fork);
+            
+            // Wait for fork motor to finish retracting
+            while (motorFork->isMotorRunning()) {
+                updateOTA();
+                delay(1);
+            }
+            
             step = 18;
         } else {
             step = 2;
@@ -467,8 +476,18 @@ void testState() {
         }
         
         // Check if square is present (sensor is active LOW)
-        // If no square present, skip to end of position 4 (step 18)
+        // If no square present, retract fork and skip to end of position 4 (step 18)
         if (digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
+            // Retract fork to home before skipping
+            float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
+            motorFork->moveInches(-currentFork);
+            
+            // Wait for fork motor to finish retracting
+            while (motorFork->isMotorRunning()) {
+                updateOTA();
+                delay(1);
+            }
+            
             step = 18;
         } else {
             step = 12;
