@@ -823,22 +823,22 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <div class="card-header">
             <div class="card-icon">↕</div>
-            <span class="card-title">Position 1 Height Selection</span>
+            <span class="card-title">Pos1 + Pos4 Height Selection</span>
           </div>
           <div class="card-body">
             <div class="panel-label" style="margin-bottom: 16px;">Height (a1-a8)</div>
-            <div class="distance-selector" style="margin-bottom: 20px;">
-              <button class="distance-btn" id="heightA1" onclick="setHeight(1)">a1</button>
-              <button class="distance-btn" id="heightA2" onclick="setHeight(2)">a2</button>
-              <button class="distance-btn" id="heightA3" onclick="setHeight(3)">a3</button>
-              <button class="distance-btn" id="heightA4" onclick="setHeight(4)">a4</button>
-              <button class="distance-btn" id="heightA5" onclick="setHeight(5)">a5</button>
-              <button class="distance-btn" id="heightA6" onclick="setHeight(6)">a6</button>
-              <button class="distance-btn" id="heightA7" onclick="setHeight(7)">a7</button>
-              <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">a8</button>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
-              <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+              <div class="distance-selector" style="flex: 1;">
+                <button class="distance-btn" id="heightA1" onclick="setHeight(1)">a1</button>
+                <button class="distance-btn" id="heightA2" onclick="setHeight(2)">a2</button>
+                <button class="distance-btn" id="heightA3" onclick="setHeight(3)">a3</button>
+                <button class="distance-btn" id="heightA4" onclick="setHeight(4)">a4</button>
+                <button class="distance-btn" id="heightA5" onclick="setHeight(5)">a5</button>
+                <button class="distance-btn" id="heightA6" onclick="setHeight(6)">a6</button>
+                <button class="distance-btn" id="heightA7" onclick="setHeight(7)">a7</button>
+                <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">a8</button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Square Sensing:</span>
                 <label class="toggle-switch">
                   <input type="checkbox" id="squareSensingToggle" onchange="toggleSquareSensing()">
@@ -861,7 +861,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           <div class="card-body">
       <div class="position-group">
         <div class="position-inputs">
-          <h3>Position 1</h3>
+          <h3>Pos1 + Pos4</h3>
           <div class="input-row">
             <label>X:</label>
             <input type="number" id="pos1X" step="0.1" value="0" placeholder="0.0">
@@ -876,7 +876,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
         <div class="position-inputs">
-          <h3>Position 2</h3>
+          <h3>Pos2 + Pos3</h3>
           <div class="input-row">
             <label>X:</label>
             <input type="number" id="pos2X" step="0.1" value="0" placeholder="0.0">

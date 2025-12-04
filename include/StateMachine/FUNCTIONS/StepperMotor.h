@@ -49,6 +49,9 @@ public:
     // Movement calculations
     long inchesToSteps(float inches);
     float stepsToInches(long steps);
+    
+    // Update steps per inch
+    void setStepsPerInch(float stepsPerInch);
 };
 
 #endif // STEPPER_MOTOR_H

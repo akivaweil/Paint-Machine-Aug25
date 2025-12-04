@@ -117,6 +117,10 @@ float StepperMotor::stepsToInches(long steps) {
     return (float)steps / stepsPerInch;
 }
 
+void StepperMotor::setStepsPerInch(float stepsPerInch) {
+    this->stepsPerInch = stepsPerInch;
+}
+
 void StepperMotor::startContinuous(bool positive) {
     continuousMode = true;
     continuousDirection = positive;  // Direction set here - single location
