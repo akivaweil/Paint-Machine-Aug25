@@ -20,5 +20,8 @@ void homeAllAxes(bool resetColumn = true);  // resetColumn: true for initial sta
 // Column movement function
 void moveToColumn(int targetColumn);  // targetColumn: 0-5 (0=A, 5=F)
 
+// Storage motor clockwise movement with location finding
+void moveStorageClockwise();
+
 #endif // HOMING_STATE_H
 

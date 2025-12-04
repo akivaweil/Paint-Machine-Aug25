@@ -34,6 +34,14 @@ void setupAPIRoutes() {
         request->send(200, "application/json", json);
     });
     
+    // API endpoint for storage motor clockwise movement with location finding
+    // NOTE: Must be registered BEFORE /api/move to avoid prefix matching issues
+    server.on("/api/storage/clockwise", HTTP_GET, [](AsyncWebServerRequest *request){
+        moveStorageClockwise();
+        request->send(200, "text/plain", "OK");
+        Serial.println("Web Request: Move storage motor clockwise with location finding");
+    });
+    
     // API endpoint for movement
     server.on("/api/move", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("axis")) {

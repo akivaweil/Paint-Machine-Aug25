@@ -45,6 +45,14 @@ void StepperMotor::setAcceleration(long acceleration) {
     }
 }
 
+void StepperMotor::overrideSpeed(long speed) {
+    if (stepper) {
+        // setSpeedInHz can be called during movement to change speed smoothly
+        stepper->setSpeedInHz(speed);
+        maxSpeed = speed; // Update max speed
+    }
+}
+
 void StepperMotor::step() {
     // Single step not typically used with FastAccelStepper
     // This is kept for compatibility but may not work as expected
@@ -65,6 +73,19 @@ void StepperMotor::moveSteps(long steps) {
         }
         continuousMode = false;
         // Start the move - FastAccelStepper handles the rest
+        stepper->move(steps);
+    } else if (stepper && steps == 0) {
+        // If steps is 0, stop motor
+        stepper->stopMove();
+        continuousMode = false;
+    }
+}
+
+void StepperMotor::moveStepsSmooth(long steps) {
+    if (stepper && steps != 0) {
+        // Transition smoothly from continuous mode to decelerated move
+        // FastAccelStepper will handle the smooth transition automatically
+        continuousMode = false;
         stepper->move(steps);
     } else if (stepper && steps == 0) {
         // If steps is 0, stop motor

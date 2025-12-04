@@ -26,8 +26,10 @@ public:
     // Basic motor control
     void setSpeed(long speed);
     void setAcceleration(long acceleration);
+    void overrideSpeed(long speed);  // Change speed during movement (smooth deceleration)
     void step();
     void moveSteps(long steps);
+    void moveStepsSmooth(long steps);  // Transitions smoothly from continuous mode without force stop
     void moveInches(float inches);
 
     // Continuous movement control

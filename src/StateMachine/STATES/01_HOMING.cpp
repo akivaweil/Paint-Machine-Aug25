@@ -309,23 +309,35 @@ void moveToColumn(int targetColumn) {
     motorStorage->setAcceleration(motorAccelStorage);
     
     // Move column spacing distance at normal speed
+    // Constantly check if sensor triggers early to prevent overshooting
     motorStorage->moveSteps(mainSteps);
+    bool sensorTriggeredEarly = false;
     while (motorStorage->isMotorRunning()) {
+        storagePositionSensor.update();
+        if (storagePositionSensor.read()) {
+            // Sensor triggered early - immediately stop to prevent overshooting
+            motorStorage->forceStop();
+            sensorTriggeredEarly = true;
+            Serial.println("[COLUMN] Storage sensor triggered early - force stopped");
+            break;
+        }
         updateOTA();
         delay(1);
     }
     
-    // Now move at homing speed until switch is detected
-    Serial.println("[COLUMN] Finding switch at homing speed...");
-    motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
-    motorStorage->startContinuous(true);  // Clockwise
-    
-    storagePositionSensor.update();
-    while (!storagePositionSensor.read()) {
+    // Now move at homing speed until switch is detected (only if sensor didn't trigger early)
+    if (!sensorTriggeredEarly) {
+        Serial.println("[COLUMN] Finding switch at homing speed...");
+        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+        motorStorage->startContinuous(true);  // Clockwise
+        
         storagePositionSensor.update();
-        motorStorage->runContinuous();
-        updateOTA();
-        delay(1);
+        while (!storagePositionSensor.read()) {
+            storagePositionSensor.update();
+            motorStorage->runContinuous();
+            updateOTA();
+            delay(1);
+        }
     }
     
     // Transition smoothly to trim movement
@@ -371,23 +383,35 @@ void moveStorageClockwise() {
     motorStorage->setAcceleration(motorAccelStorage);
     
     // Move column spacing distance at normal speed
+    // Constantly check if sensor triggers early to prevent overshooting
     motorStorage->moveSteps(mainSteps);
+    bool sensorTriggeredEarly = false;
     while (motorStorage->isMotorRunning()) {
+        storagePositionSensor.update();
+        if (storagePositionSensor.read()) {
+            // Sensor triggered early - immediately stop to prevent overshooting
+            motorStorage->forceStop();
+            sensorTriggeredEarly = true;
+            Serial.println("[STORAGE] Storage sensor triggered early - force stopped");
+            break;
+        }
         updateOTA();
         delay(1);
     }
     
-    // Now move at homing speed until switch is detected
-    Serial.println("[STORAGE] Finding switch at homing speed...");
-    motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
-    motorStorage->startContinuous(true);  // Clockwise
-    
-    storagePositionSensor.update();
-    while (!storagePositionSensor.read()) {
+    // Now move at homing speed until switch is detected (only if sensor didn't trigger early)
+    if (!sensorTriggeredEarly) {
+        Serial.println("[STORAGE] Finding switch at homing speed...");
+        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+        motorStorage->startContinuous(true);  // Clockwise
+        
         storagePositionSensor.update();
-        motorStorage->runContinuous();
-        updateOTA();
-        delay(1);
+        while (!storagePositionSensor.read()) {
+            storagePositionSensor.update();
+            motorStorage->runContinuous();
+            updateOTA();
+            delay(1);
+        }
     }
     
     // Transition smoothly to trim movement
