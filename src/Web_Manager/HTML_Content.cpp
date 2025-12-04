@@ -740,17 +740,17 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <button class="distance-btn" id="columnF" onclick="setColumn(5)">f</button>
               </div>
             </div>
-            <div class="panel-label" style="margin-bottom: 16px;">Height (a1-a8)</div>
+            <div class="panel-label" style="margin-bottom: 16px;">Height (1-8)</div>
             <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
               <div class="distance-selector" style="flex: 1;">
-                <button class="distance-btn" id="heightA1" onclick="setHeight(1)">a1</button>
-                <button class="distance-btn" id="heightA2" onclick="setHeight(2)">a2</button>
-                <button class="distance-btn" id="heightA3" onclick="setHeight(3)">a3</button>
-                <button class="distance-btn" id="heightA4" onclick="setHeight(4)">a4</button>
-                <button class="distance-btn" id="heightA5" onclick="setHeight(5)">a5</button>
-                <button class="distance-btn" id="heightA6" onclick="setHeight(6)">a6</button>
-                <button class="distance-btn" id="heightA7" onclick="setHeight(7)">a7</button>
-                <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">a8</button>
+                <button class="distance-btn" id="heightA1" onclick="setHeight(1)">1</button>
+                <button class="distance-btn" id="heightA2" onclick="setHeight(2)">2</button>
+                <button class="distance-btn" id="heightA3" onclick="setHeight(3)">3</button>
+                <button class="distance-btn" id="heightA4" onclick="setHeight(4)">4</button>
+                <button class="distance-btn" id="heightA5" onclick="setHeight(5)">5</button>
+                <button class="distance-btn" id="heightA6" onclick="setHeight(6)">6</button>
+                <button class="distance-btn" id="heightA7" onclick="setHeight(7)">7</button>
+                <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">8</button>
               </div>
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Square Sensing:</span>
@@ -1247,7 +1247,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       document.getElementById('btnFork3in').classList.toggle('active', inches === 3);
     }
     
-    let selectedHeight = 8; // Default to a8 (lowest position)
+    let selectedHeight = 8; // Default to 8 (lowest position)
     let selectedColumn = 0; // Default to column A (0=a, 5=f)
     
     function setColumn(column) {

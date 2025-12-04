@@ -222,9 +222,13 @@ void homeAllAxes(bool resetColumn) {
     }
     
     //! ************************************************************************
-    //! STORAGE MOTOR: ADD TRIM AMOUNT AND SET AS COLUMN A
+    //! STORAGE MOTOR: ADD TRIM AMOUNT (only if we actually moved to find a column)
     //! ************************************************************************
-    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0) {
+    // Only add trim if we actually moved the storage motor to find a column
+    // If switch was already triggered, we're already at a column position - don't move
+    bool storageMovedToFindColumn = !storageSwitchTriggered;
+    
+    if (motorStorage && STORAGE_MOTOR_HOMING_TRIM > 0 && storageMovedToFindColumn) {
         motorStorage->moveSteps(STORAGE_MOTOR_HOMING_TRIM);
         while (motorStorage->isMotorRunning()) {
             updateOTA(); // Allow OTA updates during homing
