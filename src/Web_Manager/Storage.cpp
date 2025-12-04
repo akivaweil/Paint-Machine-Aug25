@@ -47,6 +47,8 @@ void saveMotorSettings() {
     preferences.putLong("accelFork", motorAccelFork);
     preferences.putLong("spdPaintRot", motorSpeedPaintRotation);
     preferences.putLong("accPaintRot", motorAccelPaintRotation);
+    preferences.putLong("spdStorage", motorSpeedStorage);
+    preferences.putLong("accStorage", motorAccelStorage);
     preferences.putLong("storageSteps", storageMotorStepsPerClick);
     preferences.putLong("paintRotSteps", paintRotationMotorStepsPerClick);
     preferences.putLong("paintRotRevOut", paintRotationMotorStepsPerRevOutput);
@@ -67,6 +69,10 @@ void loadMotorSettings() {
     // Load paint rotation motor settings
     motorSpeedPaintRotation = preferences.getLong("spdPaintRot", PAINT_ROTATION_MOTOR_SPEED);
     motorAccelPaintRotation = preferences.getLong("accPaintRot", PAINT_ROTATION_MOTOR_ACCEL);
+    
+    // Load storage motor settings
+    motorSpeedStorage = preferences.getLong("spdStorage", STORAGE_MOTOR_SPEED);
+    motorAccelStorage = preferences.getLong("accStorage", STORAGE_MOTOR_ACCEL);
     
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     paintRotationMotorStepsPerClick = preferences.getLong("paintRotSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);

@@ -886,6 +886,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           <div class="position-inputs">
             <h3>Storage Motor</h3>
             <div class="input-row">
+              <label>Speed:</label>
+              <input type="number" id="speedStorage" step="100" min="100" max="30000" placeholder="10000">
+            </div>
+            <div class="input-row">
+              <label>Accel:</label>
+              <input type="number" id="accelStorage" step="100" min="100" max="30000" placeholder="10000">
+            </div>
+            <div class="input-row">
               <label>Steps/Click:</label>
               <input type="number" id="storageSteps" step="100" min="100" max="1000000" placeholder="120000">
             </div>
@@ -1073,6 +1081,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             document.getElementById('accelPaintRotation').value = data.accelPaintRotation;
             currentAccelPaintRotation = data.accelPaintRotation;
           }
+          if (data.speedStorage !== undefined) {
+            document.getElementById('speedStorage').value = data.speedStorage;
+          }
+          if (data.accelStorage !== undefined) {
+            document.getElementById('accelStorage').value = data.accelStorage;
+          }
           if (data.storageSteps !== undefined) {
             document.getElementById('storageSteps').value = data.storageSteps;
             STORAGE_MOTOR_STEPS_PER_CLICK = data.storageSteps;
@@ -1108,6 +1122,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const paintRotationRevOutputInput = document.getElementById('paintRotationRevOutput').value;
       const speedPaintRotation = speedPaintRotationInput ? parseInt(speedPaintRotationInput) : currentSpeedPaintRotation;
       const accelPaintRotation = accelPaintRotationInput ? parseInt(accelPaintRotationInput) : currentAccelPaintRotation;
+      const speedStorage = parseInt(document.getElementById('speedStorage').value) || 10000;
+      const accelStorage = parseInt(document.getElementById('accelStorage').value) || 10000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
       const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
       const paintRotationRevOutput = paintRotationRevOutputInput ? parseInt(paintRotationRevOutputInput) : 38400;
@@ -1117,6 +1133,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   '&speedY=' + speedY + '&accelY=' + accelY +
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
                   '&speedPaintRotation=' + speedPaintRotation + '&accelPaintRotation=' + accelPaintRotation +
+                  '&speedStorage=' + speedStorage + '&accelStorage=' + accelStorage +
                   '&storageSteps=' + storageSteps + '&paintRotationSteps=' + paintRotationSteps + 
                   '&paintRotationRevOutput=' + paintRotationRevOutput + '&servoSpeed=' + servoSpeed;
       

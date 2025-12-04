@@ -291,7 +291,9 @@ void setupAPIRoutes() {
     server.on("/api/motor/settings", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("speedX") && request->hasParam("accelX") &&
             request->hasParam("speedY") && request->hasParam("accelY") &&
-            request->hasParam("speedFork") && request->hasParam("accelFork")) {
+            request->hasParam("speedFork") && request->hasParam("accelFork") &&
+            request->hasParam("speedPaintRotation") && request->hasParam("accelPaintRotation") &&
+            request->hasParam("speedStorage") && request->hasParam("accelStorage")) {
             
             // Get motor settings from request
             motorSpeedX = request->getParam("speedX")->value().toInt();
@@ -304,6 +306,10 @@ void setupAPIRoutes() {
             // Get paint rotation speed and accel (always sent from frontend)
             motorSpeedPaintRotation = request->getParam("speedPaintRotation")->value().toInt();
             motorAccelPaintRotation = request->getParam("accelPaintRotation")->value().toInt();
+            
+            // Get storage motor speed and accel (always sent from frontend)
+            motorSpeedStorage = request->getParam("speedStorage")->value().toInt();
+            motorAccelStorage = request->getParam("accelStorage")->value().toInt();
             
             // Get storage steps if provided
             if (request->hasParam("storageSteps")) {
@@ -344,6 +350,8 @@ void setupAPIRoutes() {
             json += "\"accelFork\":" + String(motorAccelFork) + ",";
             json += "\"speedPaintRotation\":" + String(motorSpeedPaintRotation) + ",";
             json += "\"accelPaintRotation\":" + String(motorAccelPaintRotation) + ",";
+            json += "\"speedStorage\":" + String(motorSpeedStorage) + ",";
+            json += "\"accelStorage\":" + String(motorAccelStorage) + ",";
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
             json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick) + ",";
             json += "\"paintRotationRevOutput\":" + String(paintRotationMotorStepsPerRevOutput) + ",";

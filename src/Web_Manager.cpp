@@ -66,6 +66,8 @@ long motorAccelY = Y_MAX_ACCEL;
 long motorAccelFork = FORK_MAX_ACCEL;
 long motorSpeedPaintRotation = PAINT_ROTATION_MOTOR_SPEED;
 long motorAccelPaintRotation = PAINT_ROTATION_MOTOR_ACCEL;
+long motorSpeedStorage = STORAGE_MOTOR_SPEED;
+long motorAccelStorage = STORAGE_MOTOR_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
@@ -88,6 +90,10 @@ void applyMotorSettings() {
     if (motorPaintRotation) {
         motorPaintRotation->setSpeed(motorSpeedPaintRotation);
         motorPaintRotation->setAcceleration(motorAccelPaintRotation);
+    }
+    if (motorStorage) {
+        motorStorage->setSpeed(motorSpeedStorage);
+        motorStorage->setAcceleration(motorAccelStorage);
     }
 }
 

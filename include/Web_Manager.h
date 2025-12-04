@@ -45,6 +45,8 @@ extern long motorAccelY;
 extern long motorAccelFork;
 extern long motorSpeedPaintRotation;
 extern long motorAccelPaintRotation;
+extern long motorSpeedStorage;
+extern long motorAccelStorage;
 extern long storageMotorStepsPerClick;
 extern long paintRotationMotorStepsPerClick;
 extern long paintRotationMotorStepsPerRevOutput;
