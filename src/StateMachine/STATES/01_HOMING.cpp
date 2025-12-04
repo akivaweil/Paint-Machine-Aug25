@@ -145,7 +145,7 @@ void homeAllAxes() {
     motorX->setSpeed(700);
     motorY->setSpeed(700);
     if (motorStorage) {
-        motorStorage->setSpeed(700);
+        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
     }
     
     // Start continuous movement for X and Y toward home (positive direction)
