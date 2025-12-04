@@ -977,9 +977,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         });
     }
     
-    // Update immediately and then every 200ms
+    // Update immediately and then every 100ms
     updateSensors();
-    setInterval(updateSensors, 200);
+    setInterval(updateSensors, 100);
     
     // Update positions
     function updatePositions() {
