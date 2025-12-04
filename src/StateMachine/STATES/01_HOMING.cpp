@@ -18,6 +18,9 @@ extern void updateOTA();
 
 // State machine function
 extern void setMachineState(int state);
+
+// Storage motor trim distance
+extern long storageMotorTrimDistance;
 #define STATE_IDLE 1
 
 //* ************************************************************************
@@ -368,8 +371,8 @@ void moveToColumn(int targetColumn) {
     }
     
     // Transition smoothly to trim movement
-    if (STORAGE_MOTOR_HOMING_TRIM > 0) {
-        motorStorage->moveStepsSmooth(STORAGE_MOTOR_HOMING_TRIM);
+    if (storageMotorTrimDistance > 0) {
+        motorStorage->moveStepsSmooth(storageMotorTrimDistance);
         while (motorStorage->isMotorRunning()) {
             updateOTA();
             delay(1);
@@ -469,8 +472,8 @@ void moveStorageClockwise() {
     }
     
     // Transition smoothly to trim movement
-    if (STORAGE_MOTOR_HOMING_TRIM > 0) {
-        motorStorage->moveStepsSmooth(STORAGE_MOTOR_HOMING_TRIM);
+    if (storageMotorTrimDistance > 0) {
+        motorStorage->moveStepsSmooth(storageMotorTrimDistance);
         while (motorStorage->isMotorRunning()) {
             updateOTA();
             delay(1);

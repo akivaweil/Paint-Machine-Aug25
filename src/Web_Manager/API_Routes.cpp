@@ -363,6 +363,11 @@ void setupAPIRoutes() {
                 storageMotorStepsPerClick = request->getParam("storageSteps")->value().toInt();
             }
             
+            // Get storage trim distance if provided
+            if (request->hasParam("storageTrim")) {
+                storageMotorTrimDistance = request->getParam("storageTrim")->value().toInt();
+            }
+            
             // Get paint rotation steps (always sent from frontend)
             paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
             
@@ -400,6 +405,7 @@ void setupAPIRoutes() {
             json += "\"speedStorage\":" + String(motorSpeedStorage) + ",";
             json += "\"accelStorage\":" + String(motorAccelStorage) + ",";
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
+            json += "\"storageTrim\":" + String(storageMotorTrimDistance) + ",";
             json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick) + ",";
             json += "\"paintRotationRevOutput\":" + String(paintRotationMotorStepsPerRevOutput) + ",";
             json += "\"servoSpeed\":" + String(servoSpeed);

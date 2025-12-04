@@ -965,6 +965,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <label>Steps/Click:</label>
               <input type="number" id="storageSteps" step="100" min="100" max="1000000" placeholder="120000">
             </div>
+            <div class="input-row">
+              <label>Trim Distance:</label>
+              <input type="number" id="storageTrim" step="10" min="0" max="10000" placeholder="300">
+            </div>
           </div>
           <div class="position-inputs">
             <h3>Paint Rotation Motor</h3>
@@ -1162,6 +1166,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             document.getElementById('storageSteps').value = data.storageSteps;
             STORAGE_MOTOR_STEPS_PER_CLICK = data.storageSteps;
           }
+          if (data.storageTrim !== undefined) {
+            document.getElementById('storageTrim').value = data.storageTrim;
+          }
           if (data.paintRotationSteps !== undefined) {
             document.getElementById('paintRotationSteps').value = data.paintRotationSteps;
             PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
@@ -1196,6 +1203,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const speedStorage = parseInt(document.getElementById('speedStorage').value) || 10000;
       const accelStorage = parseInt(document.getElementById('accelStorage').value) || 10000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+      const storageTrim = parseInt(document.getElementById('storageTrim').value) || 300;
       const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
       const paintRotationRevOutput = paintRotationRevOutputInput ? parseInt(paintRotationRevOutputInput) : 38400;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
@@ -1205,7 +1213,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
                   '&speedPaintRotation=' + speedPaintRotation + '&accelPaintRotation=' + accelPaintRotation +
                   '&speedStorage=' + speedStorage + '&accelStorage=' + accelStorage +
-                  '&storageSteps=' + storageSteps + '&paintRotationSteps=' + paintRotationSteps + 
+                  '&storageSteps=' + storageSteps + '&storageTrim=' + storageTrim + '&paintRotationSteps=' + paintRotationSteps + 
                   '&paintRotationRevOutput=' + paintRotationRevOutput + '&servoSpeed=' + servoSpeed;
       
       fetch(url)
