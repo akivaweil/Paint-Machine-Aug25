@@ -21,6 +21,9 @@ void initializeSensors() {
     storagePositionSensor.attach(STORAGE_POSITION_SENSOR_PIN, INPUT_PULLDOWN);
     storagePositionSensor.interval(5);  // 5ms debounce
     
+    // Initialize Square Present Sensor (active LOW with pullup)
+    pinMode(SQUARE_PRESENT_SENSOR_PIN, INPUT_PULLUP);
+    
     // Initialize Servo
     if (servo == nullptr) {
         servo = new ServoControl();
@@ -140,6 +143,7 @@ String getSensorStatesJSON() {
     bool forkHome = homeSwitchFork ? homeSwitchFork->read() : false;
     bool testButton = digitalRead(TEST_BUTTON_PIN); // Active HIGH
     bool storagePosition = storagePositionSensor.read(); // Active HIGH
+    bool squarePresent = !digitalRead(SQUARE_PRESENT_SENSOR_PIN); // Active LOW, invert so true = present
     
     String json = "{";
     json += "\"xHome1\":" + String(xHome1 ? "true" : "false") + ",";
@@ -147,7 +151,8 @@ String getSensorStatesJSON() {
     json += "\"yHome\":" + String(yHome ? "true" : "false") + ",";
     json += "\"forkHome\":" + String(forkHome ? "true" : "false") + ",";
     json += "\"testButton\":" + String(testButton ? "true" : "false") + ",";
-    json += "\"storagePosition\":" + String(storagePosition ? "true" : "false");
+    json += "\"storagePosition\":" + String(storagePosition ? "true" : "false") + ",";
+    json += "\"squarePresent\":" + String(squarePresent ? "true" : "false");
     json += "}";
     
     return json;
