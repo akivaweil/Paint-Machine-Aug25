@@ -151,9 +151,9 @@ void homeAllAxes() {
     // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
     motorY->startContinuous(true);
-    // Start storage motor counter clockwise (false = backward = counter clockwise)
+    // Start storage motor clockwise (true = forward = clockwise)
     if (motorStorage) {
-        motorStorage->startContinuous(false);
+        motorStorage->startContinuous(true);
     }
     
     // Keep moving until all home switches/sensors are triggered
