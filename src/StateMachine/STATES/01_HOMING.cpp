@@ -81,6 +81,8 @@ void homeYAxis() {
 void homeForkAxis() {
     if (!motorFork || !homeSwitchFork) return;
     
+    Serial.println("[HOMING] Starting Fork axis homing...");
+    
     // If already homed, move 0.3 inches away from home first
     if (homeSwitchFork->read()) {
         // Set homing speed to 700
@@ -122,11 +124,15 @@ void homeForkAxis() {
     
     // Restore full speed for normal operations
     motorFork->setSpeed(FORK_MAX_SPEED);
+    
+    Serial.println("[HOMING] Fork axis homed");
 }
 
 // Home all axes
 void homeAllAxes() {
     if (!motorX || !homeSwitchX || !motorY || !homeSwitchY || !motorFork || !homeSwitchFork) return;
+    
+    Serial.println("[HOMING] ========== Starting homing sequence ==========");
     
     //! ************************************************************************
     //! STEP 1: HOME FORK MOTOR FIRST
@@ -136,6 +142,8 @@ void homeAllAxes() {
     //! ************************************************************************
     //! STEP 2: HOME X, Y, AND STORAGE MOTORS SIMULTANEOUSLY
     //! ************************************************************************
+    Serial.println("[HOMING] Starting X, Y, and Storage axes homing...");
+    
     // Track which axes are still homing
     bool xHomed = false;
     bool yHomed = false;
@@ -183,14 +191,17 @@ void homeAllAxes() {
         if (!xHomed && homeSwitchX->readDual()) {
             motorX->stopContinuous();
             xHomed = true;
+            Serial.println("[HOMING] X axis homed");
         }
         if (!yHomed && homeSwitchY->read()) {
             motorY->stopContinuous();
             yHomed = true;
+            Serial.println("[HOMING] Y axis homed");
         }
         if (!storageHomed && motorStorage && storagePositionSensor.read()) {
             motorStorage->stopContinuous();
             storageHomed = true;
+            Serial.println("[HOMING] Storage axis homed");
         }
         
         updateOTA(); // Allow OTA updates during homing
@@ -231,5 +242,7 @@ void homeAllAxes() {
     if (motorStorage) {
         motorStorage->setSpeed(STORAGE_MOTOR_SPEED);
     }
+    
+    Serial.println("[HOMING] ========== Homing sequence complete ==========");
 }
 
