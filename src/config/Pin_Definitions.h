@@ -43,6 +43,9 @@
 // Test button
 #define TEST_BUTTON_PIN 17
 
+// Storage Position Sensor (Active HIGH with pulldown)
+#define STORAGE_POSITION_SENSOR_PIN 2
+
 // Servo Motor (24V 160kg 180 degree)
 #define SERVO_PIN 40
 

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <Bounce2.h>
 #include "Web_Manager.h"
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
@@ -29,6 +30,9 @@ StepperMotor* motorPaintRotation = nullptr;
 HomeSwitch* homeSwitchX = nullptr;
 HomeSwitch* homeSwitchY = nullptr;
 HomeSwitch* homeSwitchFork = nullptr;
+
+// Storage Position Sensor (Bounce2 instance)
+Bounce2::Button storagePositionSensor;
 
 // Servo instance
 ServoControl* servo = nullptr;
@@ -112,5 +116,6 @@ void initializeWebServer() {
 }
 
 void updateWebServer() {
-    // Web server handles requests asynchronously, no update needed
+    // Update Bounce2 sensors
+    storagePositionSensor.update();
 }

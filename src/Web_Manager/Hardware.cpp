@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Bounce2.h>
 #include "Web_Manager.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
@@ -15,6 +16,10 @@ void initializeSensors() {
     
     // Initialize test button (active HIGH with pulldown)
     pinMode(TEST_BUTTON_PIN, INPUT_PULLDOWN);
+    
+    // Initialize Storage Position Sensor (active HIGH with pulldown, 5ms debounce)
+    storagePositionSensor.attach(STORAGE_POSITION_SENSOR_PIN, INPUT_PULLDOWN);
+    storagePositionSensor.interval(5);  // 5ms debounce
     
     // Initialize Servo
     if (servo == nullptr) {
@@ -124,6 +129,9 @@ void initializeMotors() {
 
 // Read sensor states
 String getSensorStatesJSON() {
+    // Update Bounce2 sensor
+    storagePositionSensor.update();
+    
     // Read X home switches (need individual pins for JSON)
     bool xHome1 = homeSwitchX ? digitalRead(X_HOME_PIN) : false;
     bool xHome2 = homeSwitchX ? digitalRead(X_HOME_PIN2) : false;
@@ -131,13 +139,15 @@ String getSensorStatesJSON() {
     bool yHome = homeSwitchY ? homeSwitchY->read() : false;
     bool forkHome = homeSwitchFork ? homeSwitchFork->read() : false;
     bool testButton = digitalRead(TEST_BUTTON_PIN); // Active HIGH
+    bool storagePosition = storagePositionSensor.read(); // Active HIGH
     
     String json = "{";
     json += "\"xHome1\":" + String(xHome1 ? "true" : "false") + ",";
     json += "\"xHome2\":" + String(xHome2 ? "true" : "false") + ",";
     json += "\"yHome\":" + String(yHome ? "true" : "false") + ",";
     json += "\"forkHome\":" + String(forkHome ? "true" : "false") + ",";
-    json += "\"testButton\":" + String(testButton ? "true" : "false");
+    json += "\"testButton\":" + String(testButton ? "true" : "false") + ",";
+    json += "\"storagePosition\":" + String(storagePosition ? "true" : "false");
     json += "}";
     
     return json;

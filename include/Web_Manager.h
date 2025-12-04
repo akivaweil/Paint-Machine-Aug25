@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+#include <Bounce2.h>
 
 // Forward declarations
 class ServoControl;
@@ -22,6 +23,7 @@ extern StepperMotor* motorPaintRotation;
 extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;
+extern Bounce2::Button storagePositionSensor;
 extern ServoControl* servo;
 extern float currentServoAngle;
 extern bool suctionState;
