@@ -211,7 +211,14 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 2;
+        
+        // Check if square is present (sensor is active LOW)
+        // If no square present, skip to end of position 4 (step 18)
+        if (digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
+            step = 18;
+        } else {
+            step = 2;
+        }
     }
     
     //! ************************************************************************
@@ -458,7 +465,14 @@ void testState() {
             updateOTA();
             delay(1);
         }
-        step = 12;
+        
+        // Check if square is present (sensor is active LOW)
+        // If no square present, skip to end of position 4 (step 18)
+        if (digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
+            step = 18;
+        } else {
+            step = 12;
+        }
     }
     
     //! ************************************************************************
