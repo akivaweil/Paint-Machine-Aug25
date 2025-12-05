@@ -58,11 +58,16 @@ void updateServoNonBlocking(float targetAngle) {
     if (!servo) return;
     
     const float stepSize = 0.5;  // Step size in degrees
-    const float stepDelayMs = (stepSize / servoSpeed) * 1000.0;  // Delay in milliseconds
+    // Calculate delay based on current servoSpeed (degrees per second)
+    // stepDelayMs = (stepSize / servoSpeed) * 1000.0 converts to milliseconds
+    // Ensure minimum delay of 1ms to prevent issues with very high speeds
+    float stepDelayMs = (stepSize / servoSpeed) * 1000.0;
+    if (stepDelayMs < 1.0) stepDelayMs = 1.0;
     static unsigned long lastServoUpdate = 0;
     
     unsigned long now = millis();
-    if (now - lastServoUpdate >= (unsigned long)stepDelayMs) {
+    unsigned long delayMs = (unsigned long)stepDelayMs;
+    if ((now - lastServoUpdate) >= delayMs) {
         float diff = targetAngle - currentServoAngle;
         
         if (abs(diff) > stepSize) {
