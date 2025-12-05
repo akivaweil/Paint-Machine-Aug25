@@ -349,12 +349,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       background: var(--bg-elevated);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      padding: 8px 16px;
+      padding: 10px 20px;
       color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.15s ease;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.9375rem;
       font-weight: 500;
     }
     
@@ -571,6 +571,16 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
     
+    #columnCountSelect:hover {
+      border-color: var(--accent-secondary);
+    }
+    
+    #columnCountSelect:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    
     .action-btn {
       background: linear-gradient(135deg, var(--accent-primary) 0%, #ff8f5a 100%);
       border: none;
@@ -741,7 +751,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <button class="distance-btn" id="columnF" onclick="setColumn(5)">f</button>
               </div>
             </div>
-            <div class="panel-label" style="margin-bottom: 16px;">Height (1-8)</div>
+            <div class="panel-label" style="margin-bottom: 16px;">Row (1-8)</div>
             <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
               <div class="distance-selector" style="flex: 1;">
                 <button class="distance-btn" id="heightA1" onclick="setHeight(1)">1</button>
@@ -762,7 +772,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               </div>
             </div>
             <div class="button-container">
-              <button class="action-btn" onclick="startTest()" style="width: 75%;">Run Test</button>
+              <button class="action-btn" onclick="startTest()" style="width: 60%;">Run Test</button>
+              <select id="columnCountSelect" style="width: 15%; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 12px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease;">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
               <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;">Test All</button>
             </div>
           </div>
@@ -1404,10 +1422,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos2X = parseFloat(document.getElementById('pos2X').value) || 0;
       const pos2Y = parseFloat(document.getElementById('pos2Y').value) || 0;
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
+      const columnCount = parseInt(document.getElementById('columnCountSelect').value) || 1;
       
       const url = '/api/test/all?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
                   '&column=' + column +
-                  '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork;
+                  '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork +
+                  '&columnCount=' + columnCount;
       
       fetch(url)
         .then(response => response.text())

@@ -60,6 +60,9 @@ int selectedColumn = 0;  // Selected column for test cycle (default: column A)
 // Test All mode tracking
 bool testAllMode = false;  // Flag to track if we're in "test all" mode
 int currentTestAllHeight = 1;  // Track which height we're currently testing (1-8)
+int testAllColumnCount = 1;  // Number of columns to test (1-6)
+int testAllStartColumn = 0;  // Starting column position (from physical position)
+int testAllCurrentColumnIndex = 0;  // Current column index in the test sequence (0 to testAllColumnCount-1)
 
 // Square sensing toggle (enables/disables wood_present_sensor check during test cycle)
 bool squareSensingEnabled = true;  // Default to enabled

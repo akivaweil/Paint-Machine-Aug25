@@ -37,6 +37,9 @@ extern int selectedPosition1Height;  // Position 1 height selection (1-8, where 
 extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
 extern bool testAllMode;  // Flag to track if we're in "test all" mode
 extern int currentTestAllHeight;  // Track which height we're currently testing (1-8)
+extern int testAllColumnCount;  // Number of columns to test (1-6)
+extern int testAllStartColumn;  // Starting column position (from physical position)
+extern int testAllCurrentColumnIndex;  // Current column index in the test sequence (0 to testAllColumnCount-1)
 
 // Paint gun pin
 #include "../../config/Pin_Definitions.h"
@@ -619,8 +622,8 @@ void testState() {
     //! STEP 19: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
     //! ************************************************************************
     else if (step == 18) {
-        // Skip return to 0 if we're in test all mode and have more heights to test
-        if (testAllMode && currentTestAllHeight < 8) {
+        // Skip return to 0 if we're in test all mode and have more heights or columns to test
+        if (testAllMode && (currentTestAllHeight < 8 || testAllCurrentColumnIndex < testAllColumnCount - 1)) {
             step = 19;
         } else {
             // Get current positions
@@ -671,29 +674,68 @@ void testState() {
         }
         
         // Check if we're in test all mode and need to continue
-        if (testAllMode && currentTestAllHeight < 8) {
-            // Increment to next height
-            currentTestAllHeight++;
-            selectedPosition1Height = currentTestAllHeight;
-            
-            // Reset test state to restart from step 0
-            testStarted = false;
-            step = 0;
-            parallelSequenceStarted = false;
-            parallelStep = 0;
-            
-            // Return immediately - next loop iteration will restart from step 0
-            return;
+        if (testAllMode) {
+            // Check if we've completed all heights for current column
+            if (currentTestAllHeight < 8) {
+                // Increment to next height
+                currentTestAllHeight++;
+                selectedPosition1Height = currentTestAllHeight;
+                
+                // Reset test state to restart from step 0
+                testStarted = false;
+                step = 0;
+                parallelSequenceStarted = false;
+                parallelStep = 0;
+                
+                // Return immediately - next loop iteration will restart from step 0
+                return;
+            } else {
+                // All heights completed for current column
+                // Check if there are more columns to test
+                if (testAllCurrentColumnIndex < testAllColumnCount - 1) {
+                    // Move to next column
+                    testAllCurrentColumnIndex++;
+                    
+                    // Calculate next column with wrap-around (0-5)
+                    int nextColumn = (testAllStartColumn + testAllCurrentColumnIndex) % 6;
+                    selectedColumn = nextColumn;
+                    
+                    // Move storage motor to next column
+                    moveToColumn(nextColumn);
+                    
+                    // Reset height to 1 for new column
+                    currentTestAllHeight = 1;
+                    selectedPosition1Height = 1;
+                    
+                    // Reset test state to restart from step 0
+                    testStarted = false;
+                    step = 0;
+                    parallelSequenceStarted = false;
+                    parallelStep = 0;
+                    
+                    // Return immediately - next loop iteration will restart from step 0
+                    return;
+                } else {
+                    // All columns completed - proceed to cleanup
+                    // Home all axes (X, Y, and Fork) but preserve column position
+                    homeAllAxes(false);  // false = don't reset column position
+                    
+                    // Reset test all mode
+                    testAllMode = false;
+                    currentTestAllHeight = 1;
+                    testAllColumnCount = 1;
+                    testAllStartColumn = 0;
+                    testAllCurrentColumnIndex = 0;
+                    
+                    // Return to idle
+                    testStarted = false;
+                    setMachineState(STATE_IDLE);
+                }
+            }
         } else {
-            // All tests complete - now do cleanup (homing only happens at the end)
+            // Single test complete - now do cleanup (homing only happens at the end)
             // Home all axes (X, Y, and Fork) but preserve column position
             homeAllAxes(false);  // false = don't reset column position
-            
-            // Reset test all mode if it was active
-            if (testAllMode) {
-                testAllMode = false;
-                currentTestAllHeight = 1;
-            }
             
             // Return to idle
             testStarted = false;

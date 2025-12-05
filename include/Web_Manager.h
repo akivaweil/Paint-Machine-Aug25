@@ -39,6 +39,9 @@ extern int currentColumn;  // Current column position (0-5, where 0=A, 5=F)
 extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
 extern bool testAllMode;
 extern int currentTestAllHeight;
+extern int testAllColumnCount;
+extern int testAllStartColumn;
+extern int testAllCurrentColumnIndex;
 extern bool squareSensingEnabled;
 extern long motorSpeedX;
 extern long motorSpeedY;

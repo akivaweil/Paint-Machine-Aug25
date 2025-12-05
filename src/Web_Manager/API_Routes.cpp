@@ -213,24 +213,23 @@ void setupAPIRoutes() {
             testPos2Y = request->getParam("pos2Y")->value().toFloat();
             testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
             
-            // Get column selection (a-f, convert to 0-5)
-            if (request->hasParam("column")) {
-                String columnStr = request->getParam("column")->value();
-                if (columnStr.length() == 1) {
-                    char colChar = columnStr.charAt(0);
-                    if (colChar >= 'a' && colChar <= 'f') {
-                        selectedColumn = colChar - 'a';
-                    } else if (colChar >= 'A' && colChar <= 'F') {
-                        selectedColumn = colChar - 'A';
-                    } else {
-                        selectedColumn = 0;  // Default to column A
-                    }
+            // Get column count (1-6, default to 1)
+            if (request->hasParam("columnCount")) {
+                int count = request->getParam("columnCount")->value().toInt();
+                if (count >= 1 && count <= 6) {
+                    testAllColumnCount = count;
                 } else {
-                    selectedColumn = 0;  // Default to column A
+                    testAllColumnCount = 1;  // Default to 1
                 }
             } else {
-                selectedColumn = 0;  // Default to column A
+                testAllColumnCount = 1;  // Default to 1
             }
+            
+            // Start from current physical column position
+            extern int currentColumn;
+            testAllStartColumn = currentColumn;
+            testAllCurrentColumnIndex = 0;
+            selectedColumn = currentColumn;  // Use physical position as starting column
             
             // Set position 1 height to 1 (a1, highest)
             selectedPosition1Height = 1;
@@ -243,7 +242,8 @@ void setupAPIRoutes() {
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.printf("Web Request: Start test all sequence (a1-a8) for column %c\n", 'A' + selectedColumn);
+            Serial.printf("Web Request: Start test all sequence (a1-a8) for %d columns starting at column %c\n", 
+                         testAllColumnCount, 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
