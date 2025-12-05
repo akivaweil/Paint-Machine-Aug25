@@ -708,6 +708,162 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       letter-spacing: 1px;
     }
     
+    .block-editor {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      min-height: 200px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    
+    .block-item {
+      background: var(--bg-surface);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .block-item:hover {
+      border-color: var(--accent-primary);
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2);
+    }
+    
+    .block-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      min-width: 80px;
+    }
+    
+    .block-params {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      align-items: center;
+    }
+    
+    .block-param {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .block-param label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    
+    .block-param input {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      width: 80px;
+    }
+    
+    .block-param input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+    
+    .block-controls {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .block-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+    }
+    
+    .block-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: white;
+    }
+    
+    .block-btn.danger:hover {
+      background: var(--accent-danger);
+      border-color: var(--accent-danger);
+    }
+    
+    .block-parallel {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .block-parallel input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .block-parallel label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    
+    .block-add-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .block-add-btn {
+      background: linear-gradient(135deg, var(--accent-secondary) 0%, #00f5d4 100%);
+      border: 2px solid var(--accent-secondary);
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .block-add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--accent-green-glow);
+    }
+    
+    .block-save-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+    
     @media (max-width: 768px) {
       .main-layout {
         grid-template-columns: 1fr;
@@ -729,6 +885,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       }
       .position-group {
         grid-template-columns: 1fr;
+      }
+      .block-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .block-params {
+        flex-direction: column;
+        width: 100%;
       }
     }
   </style>
@@ -1038,6 +1202,32 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <input type="number" id="servoSpeed" step="1" min="1" max="120" placeholder="30" onblur="autoSaveMotorSettings()">
             </div>
           </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+        <div class="card">
+      <div class="collapsible-header" id="paintingSequenceHeader" onclick="togglePaintingSequence()">
+            <div class="card-header-content">
+              <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-secondary) 0%, #00f5d4 100%);">⚙️</div>
+              <span class="card-title">Painting Sequence Editor</span>
+            </div>
+            <span class="chevron">&darr;</span>
+      </div>
+      <div class="collapsible-content" id="paintingSequenceContent">
+            <div class="card-body">
+        <div class="block-add-buttons">
+          <button class="block-add-btn" onclick="addBlock(0)">+ Servo Angle Block</button>
+          <button class="block-add-btn" onclick="addBlock(1)">+ Painting Motor Block</button>
+        </div>
+        <div class="block-editor" id="blockEditor">
+          <!-- Blocks will be added here -->
+        </div>
+        <div class="block-save-buttons">
+          <button class="action-btn" onclick="savePaintingSequence()" style="width: auto; padding: 10px 30px;">Save Sequence</button>
+          <button class="action-btn-secondary" onclick="loadPaintingSequence()" style="width: auto; padding: 10px 30px;">Reload Sequence</button>
+        </div>
           </div>
         </div>
       </div>
@@ -1703,6 +1893,156 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       // Reset file input
       event.target.value = '';
     }
+    
+    // Painting sequence block editor
+    let paintingBlocks = [];
+    let blockIdCounter = 0;
+    
+    function addBlock(type) {
+      const block = {
+        id: blockIdCounter++,
+        type: type,  // 0 = servo, 1 = painting motor
+        param1: type === 0 ? 130.0 : 360.0,  // angle or degrees
+        param2: type === 0 ? 30.0 : 1000.0,  // speed
+        parallel: false
+      };
+      paintingBlocks.push(block);
+      renderBlocks();
+    }
+    
+    function removeBlock(id) {
+      paintingBlocks = paintingBlocks.filter(b => b.id !== id);
+      renderBlocks();
+    }
+    
+    function moveBlockUp(id) {
+      const index = paintingBlocks.findIndex(b => b.id === id);
+      if (index > 0) {
+        [paintingBlocks[index], paintingBlocks[index - 1]] = [paintingBlocks[index - 1], paintingBlocks[index]];
+        renderBlocks();
+      }
+    }
+    
+    function moveBlockDown(id) {
+      const index = paintingBlocks.findIndex(b => b.id === id);
+      if (index < paintingBlocks.length - 1) {
+        [paintingBlocks[index], paintingBlocks[index + 1]] = [paintingBlocks[index + 1], paintingBlocks[index]];
+        renderBlocks();
+      }
+    }
+    
+    function updateBlockParam(id, param, value) {
+      const block = paintingBlocks.find(b => b.id === id);
+      if (block) {
+        block[param] = param === 'parallel' ? value : parseFloat(value) || 0;
+      }
+    }
+    
+    function renderBlocks() {
+      const editor = document.getElementById('blockEditor');
+      if (paintingBlocks.length === 0) {
+        editor.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px; font-family: \'JetBrains Mono\', monospace; font-size: 0.7rem;">No blocks added yet. Click buttons above to add blocks.</div>';
+        return;
+      }
+      
+      editor.innerHTML = paintingBlocks.map((block, index) => {
+        const typeName = block.type === 0 ? 'Servo Angle' : 'Painting Motor';
+        const param1Label = block.type === 0 ? 'Angle (0-270°):' : 'Degrees (0-360°):';
+        const param2Label = block.type === 0 ? 'Speed (deg/sec):' : 'Speed (steps/sec):';
+        const param1Max = block.type === 0 ? 270 : 360;
+        const param1Step = block.type === 0 ? 5 : 1;
+        
+        return `
+          <div class="block-item">
+            <div class="block-type">${typeName}</div>
+            <div class="block-params">
+              <div class="block-param">
+                <label>${param1Label}</label>
+                <input type="number" value="${block.param1}" min="0" max="${param1Max}" step="${param1Step}" 
+                       onchange="updateBlockParam(${block.id}, 'param1', this.value)">
+              </div>
+              <div class="block-param">
+                <label>${param2Label}</label>
+                <input type="number" value="${block.param2}" min="1" step="1" 
+                       onchange="updateBlockParam(${block.id}, 'param2', this.value)">
+              </div>
+              <div class="block-parallel">
+                <input type="checkbox" id="parallel_${block.id}" ${block.parallel ? 'checked' : ''} 
+                       onchange="updateBlockParam(${block.id}, 'parallel', this.checked)">
+                <label for="parallel_${block.id}">Parallel</label>
+              </div>
+            </div>
+            <div class="block-controls">
+              <button class="block-btn" onclick="moveBlockUp(${block.id})" ${index === 0 ? 'disabled style="opacity: 0.5;"' : ''}>↑</button>
+              <button class="block-btn" onclick="moveBlockDown(${block.id})" ${index === paintingBlocks.length - 1 ? 'disabled style="opacity: 0.5;"' : ''}>↓</button>
+              <button class="block-btn danger" onclick="removeBlock(${block.id})">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function savePaintingSequence() {
+      const sequence = paintingBlocks.map(b => ({
+        type: b.type,
+        param1: b.param1,
+        param2: b.param2,
+        parallel: b.parallel
+      }));
+      
+      fetch('/api/painting/sequence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sequence: sequence })
+      })
+      .then(response => response.text())
+      .then(data => {
+        console.log('Painting sequence saved:', data);
+        alert('Painting sequence saved successfully!');
+      })
+      .catch(error => {
+        console.error('Error saving painting sequence:', error);
+        alert('Error saving painting sequence');
+      });
+    }
+    
+    function loadPaintingSequence() {
+      fetch('/api/painting/sequence')
+        .then(response => response.json())
+        .then(data => {
+          paintingBlocks = [];
+          blockIdCounter = 0;
+          if (data.sequence && data.sequence.length > 0) {
+            data.sequence.forEach(block => {
+              paintingBlocks.push({
+                id: blockIdCounter++,
+                type: block.type,
+                param1: block.param1,
+                param2: block.param2,
+                parallel: block.parallel
+              });
+            });
+          }
+          renderBlocks();
+        })
+        .catch(error => {
+          console.error('Error loading painting sequence:', error);
+        });
+    }
+    
+    function togglePaintingSequence() {
+      const content = document.getElementById('paintingSequenceContent');
+      const header = document.getElementById('paintingSequenceHeader');
+      if (content && header) {
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+      }
+    }
+    
+    // Load painting sequence on page load
+    loadPaintingSequence();
   </script>
 </body>
 </html>

@@ -556,5 +556,105 @@ void setupAPIRoutes() {
         request->send(200, "text/plain", "OK");
         Serial.println("Web Request: Cycle CANCELLED");
     });
+    
+    // API endpoint for painting sequence (GET to retrieve, POST to save)
+    server.on("/api/painting/sequence", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Return current sequence as JSON
+        String json = "{\"sequence\":[";
+        for (int i = 0; i < paintingSequenceCount; i++) {
+            if (i > 0) json += ",";
+            json += "{";
+            json += "\"type\":" + String(paintingSequence[i].type) + ",";
+            json += "\"param1\":" + String(paintingSequence[i].param1) + ",";
+            json += "\"param2\":" + String(paintingSequence[i].param2) + ",";
+            json += "\"parallel\":" + String(paintingSequence[i].parallel ? "true" : "false");
+            json += "}";
+        }
+        json += "]}";
+        request->send(200, "application/json", json);
+    });
+    
+    // API endpoint to save painting sequence (POST with JSON body)
+    server.on("/api/painting/sequence", HTTP_POST, [](AsyncWebServerRequest *request){
+        // This will be handled by the body handler
+    }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+        // Handle JSON body
+        static String body = "";
+        if (index == 0) {
+            body = "";
+        }
+        for (size_t i = 0; i < len; i++) {
+            body += (char)data[i];
+        }
+        
+        if (index + len == total) {
+            // Parse JSON (simple parsing for this use case)
+            paintingSequenceCount = 0;
+            int seqStart = body.indexOf("\"sequence\":[");
+            if (seqStart >= 0) {
+                int arrayStart = body.indexOf('[', seqStart);
+                int pos = arrayStart + 1;
+                
+                while (pos < body.length() && paintingSequenceCount < MAX_PAINTING_BLOCKS) {
+                    int blockStart = body.indexOf('{', pos);
+                    if (blockStart < 0) break;
+                    
+                    int blockEnd = body.indexOf('}', blockStart);
+                    if (blockEnd < 0) break;
+                    
+                    String blockStr = body.substring(blockStart, blockEnd + 1);
+                    
+                    // Parse block fields
+                    int typeStart = blockStr.indexOf("\"type\":");
+                    int param1Start = blockStr.indexOf("\"param1\":");
+                    int param2Start = blockStr.indexOf("\"param2\":");
+                    int parallelStart = blockStr.indexOf("\"parallel\":");
+                    
+                    if (typeStart >= 0 && param1Start >= 0 && param2Start >= 0 && parallelStart >= 0) {
+                        // Extract type
+                        int typeVal = blockStr.substring(typeStart + 7, blockStr.indexOf(',', typeStart)).toInt();
+                        
+                        // Extract param1
+                        int param1End = blockStr.indexOf(',', param1Start);
+                        if (param1End < 0) param1End = blockStr.indexOf('}', param1Start);
+                        float param1Val = blockStr.substring(param1Start + 9, param1End).toFloat();
+                        
+                        // Extract param2
+                        int param2End = blockStr.indexOf(',', param2Start);
+                        if (param2End < 0) param2End = blockStr.indexOf('}', param2Start);
+                        float param2Val = blockStr.substring(param2Start + 9, param2End).toFloat();
+                        
+                        // Extract parallel
+                        int parallelEnd = blockStr.indexOf(',', parallelStart);
+                        if (parallelEnd < 0) parallelEnd = blockStr.indexOf('}', parallelStart);
+                        String parallelStr = blockStr.substring(parallelStart + 11, parallelEnd);
+                        bool parallelVal = (parallelStr == "true");
+                        
+                        // Store block
+                        paintingSequence[paintingSequenceCount].type = typeVal;
+                        paintingSequence[paintingSequenceCount].param1 = param1Val;
+                        paintingSequence[paintingSequenceCount].param2 = param2Val;
+                        paintingSequence[paintingSequenceCount].parallel = parallelVal;
+                        paintingSequenceCount++;
+                    }
+                    
+                    pos = blockEnd + 1;
+                }
+            }
+            
+            // Validate and save
+            if (paintingSequenceCount > 0) {
+                savePaintingSequence();
+                request->send(200, "text/plain", "OK");
+                Serial.printf("Web Request: Painting sequence saved (%d blocks)\n", paintingSequenceCount);
+            } else {
+                // Clear sequence if empty
+                paintingSequenceCount = 0;
+                savePaintingSequence();
+                request->send(200, "text/plain", "OK");
+                Serial.println("Web Request: Painting sequence cleared");
+            }
+        }
+    });
 }
 

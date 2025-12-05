@@ -88,6 +88,11 @@ long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
 float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
 
+// Painting sequence storage
+PaintingBlock paintingSequence[MAX_PAINTING_BLOCKS];
+int paintingSequenceCount = 0;
+bool paintingSequenceLoaded = false;
+
 // Apply motor settings to motors
 void applyMotorSettings() {
     if (motorX) {
@@ -121,6 +126,9 @@ void initializeWebServer() {
     
     // Load saved square sensing state
     loadSquareSensingState();
+    
+    // Load saved painting sequence
+    loadPaintingSequence();
     
     // Initialize sensor pins
     initializeSensors();

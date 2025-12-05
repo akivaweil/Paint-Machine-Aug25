@@ -61,6 +61,20 @@ extern float servoSpeed;
 extern bool cyclePaused;
 extern bool cycleCancelled;
 
+// Painting sequence block structure
+struct PaintingBlock {
+    int type;      // 0 = servo, 1 = painting motor
+    float param1;  // angle (servo) or degrees (motor)
+    float param2;  // speed
+    bool parallel; // execute with previous block
+};
+
+// Painting sequence storage
+#define MAX_PAINTING_BLOCKS 50
+extern PaintingBlock paintingSequence[MAX_PAINTING_BLOCKS];
+extern int paintingSequenceCount;
+extern bool paintingSequenceLoaded;
+
 // External HTML content
 extern const char sensors_html[] PROGMEM;
 
@@ -76,6 +90,8 @@ extern void saveMotorSettings();
 extern void loadMotorSettings();
 extern void saveSquareSensingState();
 extern void loadSquareSensingState();
+extern void savePaintingSequence();
+extern void loadPaintingSequence();
 
 // Hardware functions
 extern void initializeSensors();

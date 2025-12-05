@@ -99,3 +99,35 @@ void loadSquareSensingState() {
     preferences.end();
 }
 
+// Save painting sequence to non-volatile storage
+void savePaintingSequence() {
+    preferences.begin("paintSeq", false);
+    preferences.putInt("count", paintingSequenceCount);
+    for (int i = 0; i < paintingSequenceCount; i++) {
+        String prefix = "b" + String(i) + "_";
+        preferences.putInt((prefix + "type").c_str(), paintingSequence[i].type);
+        preferences.putFloat((prefix + "p1").c_str(), paintingSequence[i].param1);
+        preferences.putFloat((prefix + "p2").c_str(), paintingSequence[i].param2);
+        preferences.putBool((prefix + "par").c_str(), paintingSequence[i].parallel);
+    }
+    preferences.end();
+}
+
+// Load painting sequence from non-volatile storage
+void loadPaintingSequence() {
+    preferences.begin("paintSeq", true);
+    paintingSequenceCount = preferences.getInt("count", 0);
+    if (paintingSequenceCount > MAX_PAINTING_BLOCKS) {
+        paintingSequenceCount = MAX_PAINTING_BLOCKS;
+    }
+    for (int i = 0; i < paintingSequenceCount; i++) {
+        String prefix = "b" + String(i) + "_";
+        paintingSequence[i].type = preferences.getInt((prefix + "type").c_str(), 0);
+        paintingSequence[i].param1 = preferences.getFloat((prefix + "p1").c_str(), 0.0);
+        paintingSequence[i].param2 = preferences.getFloat((prefix + "p2").c_str(), 0.0);
+        paintingSequence[i].parallel = preferences.getBool((prefix + "par").c_str(), false);
+    }
+    paintingSequenceLoaded = true;
+    preferences.end();
+}
+
