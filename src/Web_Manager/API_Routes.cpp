@@ -352,6 +352,16 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for paint cycle
+    server.on("/api/paint", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Start painting state (STATE_PAINTING = 3)
+        extern void setMachineState(int state);
+        setMachineState(3);
+        
+        request->send(200, "text/plain", "OK");
+        Serial.println("Web Request: Start paint cycle");
+    });
+    
     // API endpoint for current positions
     server.on("/api/positions", HTTP_GET, [](AsyncWebServerRequest *request){
         float posX = 0.0;
@@ -533,6 +543,7 @@ void setupAPIRoutes() {
         String stateStr = "IDLE";
         if (state == 0) stateStr = "HOMING";
         else if (state == 2) stateStr = "TEST";
+        else if (state == 3) stateStr = "PAINTING";
         
         String json = "{";
         json += "\"state\":\"" + stateStr + "\",";

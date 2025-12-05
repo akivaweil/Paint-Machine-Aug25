@@ -806,6 +806,16 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     </div>
     
         <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🎨</div>
+            <span class="card-title">Test Paint Cycle</span>
+          </div>
+          <div class="card-body">
+            <button class="action-btn" onclick="startPaintCycle()" id="runPaintBtn">Test Paint Cycle</button>
+          </div>
+    </div>
+    
+        <div class="card">
       <div class="collapsible-header" id="manualControlsHeader" onclick="toggleManualControls()">
             <div class="card-header-content">
               <div class="card-icon">&oplus;</div>
@@ -1300,12 +1310,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           const cancelBtn = document.getElementById('cancelBtn');
           const runTestBtn = document.getElementById('runTestBtn');
           const testAllBtn = document.getElementById('testAllBtn');
+          const runPaintBtn = document.getElementById('runPaintBtn');
           
-          if (data.state === 'TEST') {
-            // Show cycle control buttons during test
+          if (data.state === 'TEST' || data.state === 'PAINTING') {
+            // Show cycle control buttons during test or painting
             cycleControlButtons.style.display = 'flex';
             runTestBtn.style.display = 'none';
             testAllBtn.style.display = 'none';
+            if (runPaintBtn) runPaintBtn.style.display = 'none';
             
             // Update pause/resume button
             if (data.paused) {
@@ -1316,10 +1328,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               cancelBtn.style.display = 'none';
             }
           } else {
-            // Hide cycle control buttons when not in test
+            // Hide cycle control buttons when not in test or painting
             cycleControlButtons.style.display = 'none';
             runTestBtn.style.display = 'block';
             testAllBtn.style.display = 'block';
+            if (runPaintBtn) runPaintBtn.style.display = 'block';
           }
         })
         .catch(error => {
@@ -1546,6 +1559,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           console.log('Test All started:', data);
         })
         .catch(error => console.error('Test All error:', error));
+    }
+    
+    function startPaintCycle() {
+      fetch('/api/paint')
+        .then(response => response.text())
+        .then(data => {
+          console.log('Paint cycle started:', data);
+        })
+        .catch(error => console.error('Paint cycle error:', error));
     }
     
     function toggleSquareSensing() {
