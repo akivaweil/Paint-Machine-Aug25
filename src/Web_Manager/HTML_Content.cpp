@@ -1025,7 +1025,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             </div>
           </div>
           </div>
-              <button class="action-btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);" onclick="saveMotorSettings()">Save Settings</button>
         </div>
       </div>
     </div>
