@@ -94,7 +94,7 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         // Check if paint motor reached 1.5 revolutions
         if (motorPaintRotation) {
             long stepsCompleted = motorPaintRotation->getCurrentPosition() - paintMotor2RevStepsStart;
-            long triggerSteps = paintRotationMotorStepsPerRevOutput * 1.5;
+            long triggerSteps = paintRotationMotorStepsPerRevOutput * 1.0;
             
             if (stepsCompleted >= triggerSteps) {
                 parallelStep = 1;  // Start returning servo
@@ -107,8 +107,8 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         }
     }
     else if (parallelStep == 1) {
-        // Rotate servo back to 135 degrees (home position)
-        updateServoNonBlocking(135.0);
+        // Rotate servo back to home position
+        updateServoNonBlocking(SERVO_HOME_ANGLE);
         
         // Wait for motor to complete 2 full revolutions
         bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
