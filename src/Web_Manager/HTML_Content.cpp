@@ -708,6 +708,59 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       letter-spacing: 1px;
     }
     
+    .blockly-workspace {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      min-height: 400px;
+      height: 500px;
+    }
+    
+    .blockly-workspace-container {
+      margin-top: 16px;
+    }
+    
+    .blockly-button-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+    
+    .blockly-btn {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .blockly-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: var(--text-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    
+    .blockly-btn.save {
+      background: linear-gradient(135deg, var(--accent-secondary) 0%, #00f5d4 100%);
+      border-color: var(--accent-secondary);
+      color: white;
+    }
+    
+    .blockly-btn.save:hover {
+      box-shadow: 0 4px 12px var(--accent-green-glow);
+    }
+    
     @media (max-width: 768px) {
       .main-layout {
         grid-template-columns: 1fr;
@@ -729,6 +782,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       }
       .position-group {
         grid-template-columns: 1fr;
+      }
+      .blockly-workspace {
+        height: 400px;
       }
     }
   </style>
@@ -1041,6 +1097,29 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
       </div>
+    
+        <div class="card">
+      <div class="collapsible-header" id="paintingSequenceHeader" onclick="togglePaintingSequence()">
+            <div class="card-header-content">
+              <div class="card-icon">🧩</div>
+              <span class="card-title">Painting Sequence Builder</span>
+            </div>
+            <span class="chevron">&darr;</span>
+      </div>
+      <div class="collapsible-content" id="paintingSequenceContent">
+            <div class="card-body">
+            <div class="panel-label" style="margin-bottom: 16px;">Build your custom painting sequence using blocks</div>
+            <div class="blockly-workspace-container">
+              <div id="blocklyDiv" class="blockly-workspace"></div>
+            </div>
+            <div class="blockly-button-container">
+              <button class="blockly-btn save" onclick="savePaintingSequence()">Save Sequence</button>
+              <button class="blockly-btn" onclick="loadPaintingSequence()">Load Sequence</button>
+              <button class="blockly-btn" onclick="clearBlocklyWorkspace()">Clear</button>
+            </div>
+            </div>
+        </div>
+      </div>
     </div>
     
     <div class="last-update" id="lastUpdate">Last update: --</div>
@@ -1058,6 +1137,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
   </div>
   
   <script>
+    // Error handler to catch any JavaScript errors
+    window.addEventListener('error', function(e) {
+      console.error('JavaScript error:', e.error);
+    });
+    
     const sensors = [
       { id: 'xHome1', name: 'X Home 1' },
       { id: 'xHome2', name: 'X Home 2' },
@@ -1702,6 +1786,343 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       
       // Reset file input
       event.target.value = '';
+    }
+    
+    // Blockly workspace initialization
+    let blocklyWorkspace = null;
+    let blocklyLoaded = false;
+    
+    // Load Blockly scripts asynchronously
+    function loadBlocklyScripts() {
+      if (blocklyLoaded) return;
+      blocklyLoaded = true;
+      
+      const scripts = [
+        'https://unpkg.com/blockly/blockly.min.js',
+        'https://unpkg.com/blockly/blocks_compressed.js',
+        'https://unpkg.com/blockly/javascript_compressed.js',
+        'https://unpkg.com/blockly/msg/en.js'
+      ];
+      
+      let loadedCount = 0;
+      scripts.forEach((src, index) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+          loadedCount++;
+          if (loadedCount === scripts.length) {
+            console.log('Blockly loaded');
+          }
+        };
+        script.onerror = () => {
+          console.error('Failed to load Blockly script:', src);
+        };
+        document.head.appendChild(script);
+      });
+    }
+    
+    function initBlockly() {
+      // Load scripts if not already loaded
+      if (!blocklyLoaded) {
+        loadBlocklyScripts();
+        // Wait a bit for scripts to load
+        setTimeout(() => {
+          if (typeof Blockly !== 'undefined') {
+            initBlocklyWorkspace();
+          } else {
+            console.error('Blockly library failed to load');
+          }
+        }, 500);
+        return;
+      }
+      
+      // Check if Blockly is available
+      if (typeof Blockly === 'undefined') {
+        console.error('Blockly library not loaded');
+        return;
+      }
+      
+      initBlocklyWorkspace();
+    }
+    
+    function initBlocklyWorkspace() {
+      
+      // Initialize Blockly workspace
+      blocklyWorkspace = Blockly.inject('blocklyDiv', {
+        toolbox: {
+          kind: 'categoryToolbox',
+          contents: [
+            {
+              kind: 'category',
+              name: 'Painting Actions',
+              colour: '#5C81A6',
+              contents: [
+                {
+                  kind: 'block',
+                  type: 'servo_angle'
+                },
+                {
+                  kind: 'block',
+                  type: 'paint_motor_degrees'
+                }
+              ]
+            }
+          ]
+        },
+        grid: {
+          spacing: 20,
+          length: 3,
+          colour: '#333',
+          snap: true
+        },
+        zoom: {
+          controls: true,
+          wheel: true,
+          startScale: 1.0,
+          maxScale: 3,
+          minScale: 0.3,
+          scaleSpeed: 1.2
+        },
+        trashcan: true,
+        media: 'https://unpkg.com/blockly/media/',
+        theme: Blockly.Theme.defineTheme('dark', {
+          'base': Blockly.Themes.Classic,
+          'blockStyles': {
+            'servo_angle': {
+              'colourPrimary': '#ff6b35',
+              'colourSecondary': '#ff8f5a',
+              'colourTertiary': '#ff4a1a'
+            },
+            'paint_motor_degrees': {
+              'colourPrimary': '#00d4aa',
+              'colourSecondary': '#00f5d4',
+              'colourTertiary': '#00b894'
+            }
+          },
+          'categoryStyles': {
+            'painting_actions': {
+              'colour': '#5C81A6'
+            }
+          },
+          'componentStyles': {
+            'workspaceBackgroundColour': '#0d0d0d',
+            'toolboxBackgroundColour': '#161616',
+            'toolboxForegroundColour': '#fafafa',
+            'flyoutBackgroundColour': '#1f1f1f',
+            'flyoutForegroundColour': '#fafafa',
+            'flyoutOpacity': 0.9,
+            'scrollbarColour': '#444',
+            'insertionMarkerColour': '#ff6b35',
+            'markerColour': '#ff6b35',
+            'cursorColour': '#ff6b35'
+          }
+        })
+      });
+      
+      // Define custom blocks (only if Blockly is available)
+      if (typeof Blockly !== 'undefined' && Blockly.Blocks) {
+        Blockly.Blocks['servo_angle'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('Set Servo Angle')
+              .appendField(new Blockly.FieldNumber(0, 0, 270, 5), 'ANGLE')
+              .appendField('degrees');
+          this.appendDummyInput()
+              .appendField('Speed')
+              .appendField(new Blockly.FieldNumber(30, 1, 120, 1), 'SPEED')
+              .appendField('deg/sec');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour('#ff6b35');
+          this.setTooltip('Set servo to a specific angle with custom speed');
+          this.setHelpUrl('');
+        }
+      };
+      
+        Blockly.Blocks['paint_motor_degrees'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('Rotate Painting Motor')
+              .appendField(new Blockly.FieldNumber(360, 0, 3600, 1), 'DEGREES')
+              .appendField('degrees');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour('#00d4aa');
+          this.setTooltip('Rotate the painting motor by specified degrees');
+          this.setHelpUrl('');
+        }
+      };
+      }
+      
+      // Load saved sequence on initialization
+      setTimeout(loadPaintingSequence, 100);
+    }
+    
+    function togglePaintingSequence() {
+      const content = document.getElementById('paintingSequenceContent');
+      const header = document.getElementById('paintingSequenceHeader');
+      if (content && header) {
+        const wasExpanded = content.classList.contains('expanded');
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+        
+        // Initialize Blockly when first expanded
+        if (!wasExpanded && content.classList.contains('expanded') && !blocklyWorkspace) {
+          setTimeout(() => {
+            if (!blocklyWorkspace) {
+              initBlockly();
+            }
+          }, 100);
+        }
+      }
+    }
+    
+    function savePaintingSequence() {
+      if (!blocklyWorkspace) {
+        alert('Please open the Painting Sequence Builder first');
+        return;
+      }
+      
+      if (typeof Blockly === 'undefined') {
+        alert('Blockly library not loaded');
+        return;
+      }
+      
+      // Get XML from workspace
+      const xml = Blockly.Xml.workspaceToDom(blocklyWorkspace);
+      const xmlText = Blockly.Xml.domToText(xml);
+      
+      // Convert to JSON format for backend
+      const blocks = [];
+      const topBlocks = blocklyWorkspace.getTopBlocks(true);
+      
+      for (let i = 0; i < topBlocks.length; i++) {
+        const block = topBlocks[i];
+        if (block.type === 'servo_angle') {
+          blocks.push({
+            type: 'servo_angle',
+            angle: parseFloat(block.getFieldValue('ANGLE')) || 0,
+            speed: parseFloat(block.getFieldValue('SPEED')) || 30
+          });
+        } else if (block.type === 'paint_motor_degrees') {
+          blocks.push({
+            type: 'paint_motor_degrees',
+            degrees: parseFloat(block.getFieldValue('DEGREES')) || 360
+          });
+        }
+        
+        // Get next connected block
+        let nextBlock = block.getNextBlock();
+        while (nextBlock) {
+          if (nextBlock.type === 'servo_angle') {
+            blocks.push({
+              type: 'servo_angle',
+              angle: parseFloat(nextBlock.getFieldValue('ANGLE')) || 0,
+              speed: parseFloat(nextBlock.getFieldValue('SPEED')) || 30
+            });
+          } else if (nextBlock.type === 'paint_motor_degrees') {
+            blocks.push({
+              type: 'paint_motor_degrees',
+              degrees: parseFloat(nextBlock.getFieldValue('DEGREES')) || 360
+            });
+          }
+          nextBlock = nextBlock.getNextBlock();
+        }
+      }
+      
+      const sequence = { blocks: blocks };
+      
+      // Save to backend
+      fetch('/api/painting/sequence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sequence)
+      })
+      .then(response => response.text())
+      .then(data => {
+        console.log('Sequence saved:', data);
+        alert('Painting sequence saved successfully');
+      })
+      .catch(error => {
+        console.error('Error saving sequence:', error);
+        alert('Error saving sequence');
+      });
+    }
+    
+    function loadPaintingSequence() {
+      if (!blocklyWorkspace) {
+        // Initialize if not already done
+        const content = document.getElementById('paintingSequenceContent');
+        if (content && content.classList.contains('expanded')) {
+          setTimeout(() => {
+            if (!blocklyWorkspace) initBlockly();
+            setTimeout(loadSequenceFromBackend, 100);
+          }, 200);
+        }
+        return;
+      }
+      
+      loadSequenceFromBackend();
+    }
+    
+    function loadSequenceFromBackend() {
+      if (!blocklyWorkspace || typeof Blockly === 'undefined') {
+        return;
+      }
+      
+      fetch('/api/painting/sequence')
+        .then(response => response.json())
+        .then(data => {
+          if (data.blocks && data.blocks.length > 0) {
+            // Clear workspace
+            blocklyWorkspace.clear();
+            
+            // Rebuild blocks from JSON
+            let previousBlock = null;
+            for (let i = 0; i < data.blocks.length; i++) {
+              const blockData = data.blocks[i];
+              let block = null;
+              
+              if (blockData.type === 'servo_angle') {
+                block = blocklyWorkspace.newBlock('servo_angle');
+                block.setFieldValue(blockData.angle || 0, 'ANGLE');
+                block.setFieldValue(blockData.speed || 30, 'SPEED');
+              } else if (blockData.type === 'paint_motor_degrees') {
+                block = blocklyWorkspace.newBlock('paint_motor_degrees');
+                block.setFieldValue(blockData.degrees || 360, 'DEGREES');
+              }
+              
+              if (block) {
+                block.initSvg();
+                block.render();
+                
+                // Position blocks
+                if (i === 0) {
+                  block.moveBy(50, 50);
+                } else if (previousBlock) {
+                  // Connect to previous block
+                  block.moveBy(previousBlock.getRelativeToSurfaceXY().x, 
+                              previousBlock.getRelativeToSurfaceXY().y + 80);
+                  previousBlock.nextConnection.connect(block.previousConnection);
+                }
+                
+                previousBlock = block;
+              }
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error loading sequence:', error);
+        });
+    }
+    
+    function clearBlocklyWorkspace() {
+      if (blocklyWorkspace && confirm('Are you sure you want to clear the workspace?')) {
+        blocklyWorkspace.clear();
+      }
     }
   </script>
 </body>

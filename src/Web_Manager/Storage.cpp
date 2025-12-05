@@ -99,3 +99,18 @@ void loadSquareSensingState() {
     preferences.end();
 }
 
+// Save painting sequence to non-volatile storage
+void savePaintingSequence(String sequenceJson) {
+    preferences.begin("painting", false);
+    preferences.putString("sequence", sequenceJson);
+    preferences.end();
+}
+
+// Load painting sequence from non-volatile storage and return as JSON string
+String loadPaintingSequenceJSON() {
+    preferences.begin("painting", true);
+    String sequence = preferences.getString("sequence", "{\"blocks\":[]}");
+    preferences.end();
+    return sequence;
+}
+

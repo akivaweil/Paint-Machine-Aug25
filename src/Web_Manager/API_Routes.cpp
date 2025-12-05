@@ -16,15 +16,27 @@
 
 // Setup all API routes
 void setupAPIRoutes() {
+    // Route for favicon (return 204 No Content to avoid errors)
+    server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(204);
+    });
+    
     // Route for root / web page (sensor dashboard)
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        String html = FPSTR(sensors_html);
+        // Prepare replacement values as strings
         String stepsValue = String(storageMotorStepsPerClick);
-        html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
         String paintRotationStepsValue = String(paintRotationMotorStepsPerClick);
-        html.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", paintRotationStepsValue);
         String servoHomeAngleValue = String(SERVO_HOME_ANGLE);
+        
+        // Read HTML from PROGMEM into a String
+        String html = FPSTR(sensors_html);
+        
+        // Perform replacements
+        html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
+        html.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", paintRotationStepsValue);
         html.replace("SERVO_HOME_ANGLE_VALUE", servoHomeAngleValue);
+        
+        // Send the complete HTML (ESPAsyncWebServer handles chunking automatically)
         request->send(200, "text/html", html);
     });
     
@@ -556,5 +568,24 @@ void setupAPIRoutes() {
         request->send(200, "text/plain", "OK");
         Serial.println("Web Request: Cycle CANCELLED");
     });
+    
+    // API endpoint for painting sequence (GET to retrieve, POST to save)
+    server.on("/api/painting/sequence", HTTP_GET, [](AsyncWebServerRequest *request){
+        String json = loadPaintingSequenceJSON();
+        request->send(200, "application/json", json);
+    });
+    
+    server.on("/api/painting/sequence", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL,
+        [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // Parse JSON body
+            String body = String((char*)data);
+            body = body.substring(0, len);
+            
+            // Save sequence
+            savePaintingSequence(body);
+            
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Painting sequence saved");
+        });
 }
 

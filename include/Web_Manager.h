@@ -76,6 +76,8 @@ extern void saveMotorSettings();
 extern void loadMotorSettings();
 extern void saveSquareSensingState();
 extern void loadSquareSensingState();
+extern void savePaintingSequence(String sequenceJson);
+extern String loadPaintingSequenceJSON();
 
 // Hardware functions
 extern void initializeSensors();

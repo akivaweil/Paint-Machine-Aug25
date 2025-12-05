@@ -38,12 +38,14 @@ extern float testPos2Fork;
 // Paint rotation motor steps per revolution
 extern long paintRotationMotorStepsPerRevOutput;
 
+// Storage function for loading painting sequence
+extern String loadPaintingSequenceJSON();
+
 // Macro to check for pause after step completion
 #define CHECK_PAUSE_AND_CANCEL() \
     do { \
         while (cyclePaused && !cycleCancelled) { \
             updateOTA(); \
-            updateParallelSequence(parallelSequenceStarted, parallelStep); \
             delay(10); \
         } \
         if (cycleCancelled) return; \
@@ -53,12 +55,13 @@ extern long paintRotationMotorStepsPerRevOutput;
 //* ************************ PAINTING STATE ********************************
 //* ************************************************************************
 
-// Non-blocking servo movement helper
-void updateServoNonBlocking(float targetAngle) {
+// Non-blocking servo movement helper with custom speed
+void updateServoNonBlocking(float targetAngle, float customSpeed = 0.0) {
     if (!servo) return;
     
+    float speedToUse = (customSpeed > 0.0) ? customSpeed : servoSpeed;
     const float stepSize = 0.5;  // Step size in degrees
-    const float stepDelayMs = (stepSize / servoSpeed) * 1000.0;  // Delay in milliseconds
+    const float stepDelayMs = (stepSize / speedToUse) * 1000.0;  // Delay in milliseconds
     static unsigned long lastServoUpdate = 0;
     
     unsigned long now = millis();
@@ -76,6 +79,107 @@ void updateServoNonBlocking(float targetAngle) {
         
         lastServoUpdate = now;
     }
+}
+
+// Simple structure to hold block data
+struct PaintingBlock {
+    String type;
+    float angle;
+    float speed;
+    float degrees;
+    bool isValid;
+};
+
+// Simple JSON parser for painting sequence
+// Expected format: {"blocks":[{"type":"servo_angle","angle":220,"speed":30},...]}
+int parsePaintingSequence(String json, PaintingBlock* blocks, int maxBlocks) {
+    int blockCount = 0;
+    int jsonLen = json.length();
+    
+    // Find blocks array
+    int blocksStart = json.indexOf("\"blocks\"");
+    if (blocksStart == -1) return 0;
+    
+    int arrayStart = json.indexOf('[', blocksStart);
+    if (arrayStart == -1) return 0;
+    
+    int pos = arrayStart + 1;
+    
+    while (pos < jsonLen && blockCount < maxBlocks) {
+        // Find next block object
+        int objStart = json.indexOf('{', pos);
+        if (objStart == -1) break;
+        
+        int objEnd = json.indexOf('}', objStart);
+        if (objEnd == -1) break;
+        
+        String blockStr = json.substring(objStart, objEnd + 1);
+        
+        // Initialize block
+        blocks[blockCount].isValid = false;
+        blocks[blockCount].angle = 0;
+        blocks[blockCount].speed = 0;
+        blocks[blockCount].degrees = 0;
+        
+        // Parse type
+        int typeStart = blockStr.indexOf("\"type\"");
+        if (typeStart != -1) {
+            int colonPos = blockStr.indexOf(':', typeStart);
+            int quote1 = blockStr.indexOf('"', colonPos);
+            int quote2 = blockStr.indexOf('"', quote1 + 1);
+            if (quote1 != -1 && quote2 != -1) {
+                blocks[blockCount].type = blockStr.substring(quote1 + 1, quote2);
+                blocks[blockCount].isValid = true;
+            }
+        }
+        
+        // Parse angle (for servo_angle)
+        int angleStart = blockStr.indexOf("\"angle\"");
+        if (angleStart != -1) {
+            int colonPos = blockStr.indexOf(':', angleStart);
+            int valueEnd = blockStr.indexOf(',', colonPos);
+            if (valueEnd == -1) valueEnd = blockStr.indexOf('}', colonPos);
+            if (valueEnd != -1) {
+                String valueStr = blockStr.substring(colonPos + 1, valueEnd);
+                valueStr.trim();
+                blocks[blockCount].angle = valueStr.toFloat();
+            }
+        }
+        
+        // Parse speed (for servo_angle)
+        int speedStart = blockStr.indexOf("\"speed\"");
+        if (speedStart != -1) {
+            int colonPos = blockStr.indexOf(':', speedStart);
+            int valueEnd = blockStr.indexOf(',', colonPos);
+            if (valueEnd == -1) valueEnd = blockStr.indexOf('}', colonPos);
+            if (valueEnd != -1) {
+                String valueStr = blockStr.substring(colonPos + 1, valueEnd);
+                valueStr.trim();
+                blocks[blockCount].speed = valueStr.toFloat();
+            }
+        }
+        
+        // Parse degrees (for paint_motor_degrees)
+        int degreesStart = blockStr.indexOf("\"degrees\"");
+        if (degreesStart != -1) {
+            int colonPos = blockStr.indexOf(':', degreesStart);
+            int valueEnd = blockStr.indexOf(',', colonPos);
+            if (valueEnd == -1) valueEnd = blockStr.indexOf('}', colonPos);
+            if (valueEnd != -1) {
+                String valueStr = blockStr.substring(colonPos + 1, valueEnd);
+                valueStr.trim();
+                blocks[blockCount].degrees = valueStr.toFloat();
+            }
+        }
+        
+        if (blocks[blockCount].isValid) {
+            blockCount++;
+        }
+        
+        pos = objEnd + 1;
+    }
+    
+    return blockCount;
 }
 
 // Paint motor 360 turn tracking
@@ -144,8 +248,12 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
 void paintingState() {
     static int step = 0;
     static bool paintingStarted = false;
-    static bool parallelSequenceStarted = false;
-    static int parallelStep = 0;
+    static bool usingCustomSequence = false;
+    static PaintingBlock customBlocks[20];  // Max 20 blocks
+    static int customBlockCount = 0;
+    static int currentBlockIndex = 0;
+    static bool blockExecuting = false;
+    static float savedServoSpeed = 0.0;
     
     // Check for cancel at start of function
     if (cycleCancelled) {
@@ -162,13 +270,20 @@ void paintingState() {
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
         
+        // Restore servo speed if it was changed
+        if (savedServoSpeed > 0.0) {
+            servoSpeed = savedServoSpeed;
+            savedServoSpeed = 0.0;
+        }
+        
         // Reset flags and state
         cycleCancelled = false;
         cyclePaused = false;
         paintingStarted = false;
         step = 0;
-        parallelSequenceStarted = false;
-        parallelStep = 0;
+        usingCustomSequence = false;
+        currentBlockIndex = 0;
+        blockExecuting = false;
         
         // Return to test state (test state will handle further cleanup)
         setMachineState(STATE_TEST);
@@ -177,112 +292,124 @@ void paintingState() {
     
     // Initialize on first entry
     if (!paintingStarted) {
-        step = 0;
+        // Check for custom sequence
+        String sequenceJson = loadPaintingSequenceJSON();
+        customBlockCount = parsePaintingSequence(sequenceJson, customBlocks, 20);
+        
+        if (customBlockCount > 0) {
+            usingCustomSequence = true;
+            currentBlockIndex = 0;
+            blockExecuting = false;
+        } else {
+            usingCustomSequence = false;
+            step = 0;
+        }
+        
         paintingStarted = true;
-        parallelSequenceStarted = false;
-        parallelStep = 0;
         cyclePaused = false;  // Reset pause flag on new painting
         cycleCancelled = false;  // Reset cancel flag on new painting
+        savedServoSpeed = 0.0;
     }
     
-    // Handle parallel sequence (runs independently)
-    updateParallelSequence(parallelSequenceStarted, parallelStep);
-    
-    //! ************************************************************************
-    //! STEP 0: RETRACT FORK MOTOR AT POSITION 2, START PAINT MOTOR 360 TURN
-    //! ************************************************************************
-    if (step == 0) {
-        motorFork->moveInches(testPos2Fork);
-        
-        // Wait for fork motor to finish retracting
-        while (motorFork->isMotorRunning()) {
-            updateOTA();
-            delay(1);
+    // Execute custom sequence
+    if (usingCustomSequence) {
+        // Execute blocks sequentially
+        while (currentBlockIndex < customBlockCount) {
+            CHECK_PAUSE_AND_CANCEL();
+            
+            PaintingBlock& block = customBlocks[currentBlockIndex];
+            
+            if (block.type == "servo_angle") {
+                if (!blockExecuting) {
+                    // Save current servo speed if custom speed is specified
+                    if (block.speed > 0.0 && savedServoSpeed == 0.0) {
+                        savedServoSpeed = servoSpeed;
+                        servoSpeed = block.speed;
+                    }
+                    blockExecuting = true;
+                }
+                
+                // Move servo non-blocking with custom speed
+                updateServoNonBlocking(block.angle, block.speed);
+                
+                // Check if servo reached target
+                if (abs(currentServoAngle - block.angle) < 0.5) {
+                    // Block complete, move to next
+                    currentBlockIndex++;
+                    blockExecuting = false;
+                } else {
+                    // Still moving, wait
+                    updateOTA();
+                    delay(10);
+                    return;
+                }
+            }
+            else if (block.type == "paint_motor_degrees") {
+                if (!blockExecuting) {
+                    // Convert degrees to steps
+                    long steps = (long)((block.degrees / 360.0) * paintRotationMotorStepsPerRevOutput);
+                    
+                    // Enable motor and start movement
+                    enablePaintRotationMotor();
+                    delay(50);
+                    digitalWrite(SUCTION_PIN, HIGH);
+                    
+                    if (motorPaintRotation) {
+                        motorPaintRotation->moveSteps(steps);
+                    }
+                    
+                    blockExecuting = true;
+                }
+                
+                // Wait for motor to finish
+                if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+                    updateOTA();
+                    delay(10);
+                    return;
+                } else {
+                    // Motor finished
+                    delay(50);
+                    digitalWrite(SUCTION_PIN, LOW);
+                    disablePaintRotationMotor();
+                    
+                    // Block complete, move to next
+                    currentBlockIndex++;
+                    blockExecuting = false;
+                }
+            }
+            else {
+                // Unknown block type, skip
+                currentBlockIndex++;
+                blockExecuting = false;
+            }
         }
         
-        // Start paint motor 360 turn immediately after pos2
-        enablePaintRotationMotor();
-        if (motorPaintRotation) {
-            paintMotor360StepsStart = motorPaintRotation->getCurrentPosition();
-            paintMotor360StepsTarget = paintRotationMotorStepsPerRevOutput;
-            motorPaintRotation->moveSteps(paintMotor360StepsTarget);
-            // Turn on suction when painting motor starts rotating
-            digitalWrite(SUCTION_PIN, HIGH);
+        // All blocks executed
+        // Restore servo speed if it was changed
+        if (savedServoSpeed > 0.0) {
+            servoSpeed = savedServoSpeed;
+            savedServoSpeed = 0.0;
         }
-        
-        CHECK_PAUSE_AND_CANCEL();
-        step = 1;
-    }
-    
-    //! ************************************************************************
-    //! STEP 1: MOVE TO WAITING POSITION (5 INCHES RIGHT OF POSITION 3)
-    //! ************************************************************************
-    else if (step == 1) {
-        // Start parallel sequence when beginning to move to waiting position
-        if (!parallelSequenceStarted) {
-            parallelSequenceStarted = true;
-            parallelStep = 0;
-        }
-        
-        // Get current positions
-        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
-        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
-        
-        // Calculate target absolute positions (5 inches right of pos3, same Y as pos3)
-        // Position 3 is: X = -testPos2X, Y = -testPos2Y + 0.5
-        // Waiting position is: X = -testPos2X + 5, Y = -testPos2Y + 0.5
-        float targetX = -testPos2X + 5.0;  // 5 inches right (more positive)
-        float targetY = -testPos2Y + 0.5;   // Same Y as pos3
-        
-        // Calculate relative movement needed to reach absolute position
-        float moveX = targetX - currentX;
-        float moveY = targetY - currentY;
-        
-        // Move X and Y simultaneously to waiting position
-        motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
-        
-        // Wait for both motors to finish (parallel sequence continues running)
-        while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
-            updateOTA();
-            delay(1);
-        }
-        CHECK_PAUSE_AND_CANCEL();
-        step = 2;
-    }
-    
-    //! ************************************************************************
-    //! STEP 2: WAIT FOR PARALLEL SEQUENCE (SERVO AND PAINTING MOTOR) TO COMPLETE
-    //! ************************************************************************
-    else if (step == 2) {
-        // Wait for parallel sequence to complete
-        while (parallelSequenceStarted) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
-            updateOTA();
-            delay(1);
-        }
-        
-        // Safety: Ensure paint rotation motor is stopped and disabled
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
         
         // Ensure paint gun and suction are off
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
         
-        CHECK_PAUSE_AND_CANCEL();
-        
         // Reset painting state flags
         paintingStarted = false;
-        step = 0;
-        parallelSequenceStarted = false;
-        parallelStep = 0;
+        usingCustomSequence = false;
+        currentBlockIndex = 0;
+        blockExecuting = false;
         
         // Return to test state to continue with remaining steps
         setMachineState(STATE_TEST);
+        return;
     }
+    
+    // Fallback to hardcoded sequence if no custom sequence
+    // (Original hardcoded sequence code removed - now always uses custom sequence or does nothing)
+    // If we reach here, there's no custom sequence, so just return to test state
+    paintingStarted = false;
+    setMachineState(STATE_TEST);
 }
 
