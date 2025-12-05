@@ -791,11 +791,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     </div>
     
         <div class="card">
-          <div class="card-header">
-            <div class="card-icon">&oplus;</div>
-            <span class="card-title">Manual Controls</span>
-          </div>
-          <div class="card-body">
+      <div class="collapsible-header" id="manualControlsHeader" onclick="toggleManualControls()">
+            <div class="card-header-content">
+              <div class="card-icon">&oplus;</div>
+              <span class="card-title">Manual Controls</span>
+            </div>
+            <span class="chevron">&darr;</span>
+      </div>
+      <div class="collapsible-content" id="manualControlsContent">
+            <div class="card-body">
             <div class="home-buttons">
               <button class="home-btn" onclick="homeAxis('x')">Home X</button>
               <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
@@ -883,6 +887,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
       </div>
+            </div>
+        </div>
       </div>
     </div>
     
@@ -928,7 +934,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     </div>
     
         <div class="card">
-      <div class="collapsible-header active" onclick="toggleMotorSettings()">
+      <div class="collapsible-header active" id="motorSettingsHeader" onclick="toggleMotorSettings()">
             <div class="card-header-content">
               <div class="card-icon" style="background: linear-gradient(135deg, #666 0%, #888 100%);">*</div>
               <span class="card-title">Motor Settings</span>
@@ -1459,9 +1465,20 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     function toggleMotorSettings() {
       const content = document.getElementById('motorSettingsContent');
-      const header = document.querySelector('.collapsible-header');
-      content.classList.toggle('expanded');
-      header.classList.toggle('active');
+      const header = document.getElementById('motorSettingsHeader');
+      if (content && header) {
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+      }
+    }
+    
+    function toggleManualControls() {
+      const content = document.getElementById('manualControlsContent');
+      const header = document.getElementById('manualControlsHeader');
+      if (content && header) {
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+      }
     }
     
     function homeAxis(axis) {
