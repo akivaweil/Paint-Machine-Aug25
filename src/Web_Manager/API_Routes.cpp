@@ -353,6 +353,17 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for test paint cycle (servo and paint motor only)
+    // NOTE: Must be registered BEFORE /api/paint to avoid prefix matching issues
+    server.on("/api/paint/test", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Start test paint cycle state (STATE_TEST_PAINT = 4)
+        extern void setMachineState(int state);
+        setMachineState(4);
+        
+        request->send(200, "text/plain", "OK");
+        Serial.println("Web Request: Start test paint cycle");
+    });
+    
     // API endpoint for paint cycle
     server.on("/api/paint", HTTP_GET, [](AsyncWebServerRequest *request){
         // Start painting state (STATE_PAINTING = 3)
@@ -361,16 +372,6 @@ void setupAPIRoutes() {
         
         request->send(200, "text/plain", "OK");
         Serial.println("Web Request: Start paint cycle");
-    });
-    
-    // API endpoint for test paint cycle (servo and paint motor only)
-    server.on("/api/paint/test", HTTP_GET, [](AsyncWebServerRequest *request){
-        // Start test paint cycle state (STATE_TEST_PAINT = 4)
-        extern void setMachineState(int state);
-        setMachineState(4);
-        
-        request->send(200, "text/plain", "OK");
-        Serial.println("Web Request: Start test paint cycle");
     });
     
     // API endpoint for current positions
