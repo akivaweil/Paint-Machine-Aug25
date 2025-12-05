@@ -25,6 +25,7 @@ extern void updateOTA();
 // State machine function
 extern void setMachineState(int state);
 #define STATE_TEST 2
+#define STATE_IDLE 1
 
 // Cycle control flags
 extern bool cyclePaused;
@@ -189,25 +190,21 @@ void paintingState() {
     updateParallelSequence(parallelSequenceStarted, parallelStep);
     
     //! ************************************************************************
-    //! STEP 0: RETRACT FORK MOTOR AT POSITION 2, START PAINT MOTOR 360 TURN
+    //! STEP 0: START PAINT MOTOR 360 TURN AND PARALLEL SEQUENCE (SERVO + PAINT GUN)
     //! ************************************************************************
     if (step == 0) {
-        motorFork->moveInches(testPos2Fork);
-        
-        // Wait for fork motor to finish retracting
-        while (motorFork->isMotorRunning()) {
-            updateOTA();
-            delay(1);
-        }
-        
-        // Start paint motor 360 turn immediately after pos2
+        // Start paint motor 360 turn
         enablePaintRotationMotor();
         if (motorPaintRotation) {
             paintMotor360StepsStart = motorPaintRotation->getCurrentPosition();
             paintMotor360StepsTarget = paintRotationMotorStepsPerRevOutput;
             motorPaintRotation->moveSteps(paintMotor360StepsTarget);
-            // Turn on suction when painting motor starts rotating
-            digitalWrite(SUCTION_PIN, HIGH);
+        }
+        
+        // Start parallel sequence (servo + paint gun)
+        if (!parallelSequenceStarted) {
+            parallelSequenceStarted = true;
+            parallelStep = 0;
         }
         
         CHECK_PAUSE_AND_CANCEL();
@@ -215,47 +212,9 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 1: MOVE TO WAITING POSITION (5 INCHES RIGHT OF POSITION 3)
+    //! STEP 1: WAIT FOR PARALLEL SEQUENCE (SERVO AND PAINTING MOTOR) TO COMPLETE
     //! ************************************************************************
     else if (step == 1) {
-        // Start parallel sequence when beginning to move to waiting position
-        if (!parallelSequenceStarted) {
-            parallelSequenceStarted = true;
-            parallelStep = 0;
-        }
-        
-        // Get current positions
-        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
-        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
-        
-        // Calculate target absolute positions (5 inches right of pos3, same Y as pos3)
-        // Position 3 is: X = -testPos2X, Y = -testPos2Y + 0.5
-        // Waiting position is: X = -testPos2X + 5, Y = -testPos2Y + 0.5
-        float targetX = -testPos2X + 5.0;  // 5 inches right (more positive)
-        float targetY = -testPos2Y + 0.5;   // Same Y as pos3
-        
-        // Calculate relative movement needed to reach absolute position
-        float moveX = targetX - currentX;
-        float moveY = targetY - currentY;
-        
-        // Move X and Y simultaneously to waiting position
-        motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
-        
-        // Wait for both motors to finish (parallel sequence continues running)
-        while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
-            updateOTA();
-            delay(1);
-        }
-        CHECK_PAUSE_AND_CANCEL();
-        step = 2;
-    }
-    
-    //! ************************************************************************
-    //! STEP 2: WAIT FOR PARALLEL SEQUENCE (SERVO AND PAINTING MOTOR) TO COMPLETE
-    //! ************************************************************************
-    else if (step == 2) {
         // Wait for parallel sequence to complete
         while (parallelSequenceStarted) {
             updateParallelSequence(parallelSequenceStarted, parallelStep);
@@ -281,8 +240,8 @@ void paintingState() {
         parallelSequenceStarted = false;
         parallelStep = 0;
         
-        // Return to test state to continue with remaining steps
-        setMachineState(STATE_TEST);
+        // Return to idle state
+        setMachineState(STATE_IDLE);
     }
 }
 
