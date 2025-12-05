@@ -1030,6 +1030,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     <div class="footer">
       <div class="footer-text">Paint Machine Control System</div>
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 16px;">
+        <button class="action-btn-secondary" onclick="downloadSettings()" style="width: auto; padding: 10px 20px; font-size: 0.7rem;">Download Settings</button>
+        <button class="action-btn-secondary" onclick="document.getElementById('settingsFileInput').click()" style="width: auto; padding: 10px 20px; font-size: 0.7rem;">Upload Settings</button>
+        <input type="file" id="settingsFileInput" accept=".json" style="display: none;" onchange="uploadSettings(event)">
+      </div>
     </div>
   </div>
   
@@ -1556,6 +1561,118 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         homeAxis('all');
       }
     });
+    
+    // Download all settings as JSON file
+    function downloadSettings() {
+      Promise.all([
+        fetch('/api/motor/settings').then(r => r.json()),
+        fetch('/api/test/positions').then(r => r.json()),
+        fetch('/api/squareSensing').then(r => r.json())
+      ]).then(([motorSettings, testPositions, squareSensing]) => {
+        const allSettings = {
+          motor: motorSettings,
+          testPositions: testPositions,
+          squareSensing: squareSensing.enabled
+        };
+        
+        const jsonStr = JSON.stringify(allSettings, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'paint-machine-settings.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }).catch(error => {
+        console.error('Error downloading settings:', error);
+        alert('Error downloading settings');
+      });
+    }
+    
+    // Upload settings from JSON file
+    function uploadSettings(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const settings = JSON.parse(e.target.result);
+          
+          // Upload motor settings
+          if (settings.motor) {
+            const motor = settings.motor;
+            const url = '/api/motor/settings?speedX=' + (motor.speedX || 2000) +
+                        '&accelX=' + (motor.accelX || 5000) +
+                        '&speedY=' + (motor.speedY || 2000) +
+                        '&accelY=' + (motor.accelY || 5000) +
+                        '&speedFork=' + (motor.speedFork || 2000) +
+                        '&accelFork=' + (motor.accelFork || 5000) +
+                        '&speedPaintRotation=' + (motor.speedPaintRotation || 1000) +
+                        '&accelPaintRotation=' + (motor.accelPaintRotation || 1000) +
+                        '&speedStorage=' + (motor.speedStorage || 10000) +
+                        '&accelStorage=' + (motor.accelStorage || 10000) +
+                        '&storageSteps=' + (motor.storageSteps || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE) +
+                        '&storageTrim=' + (motor.storageTrim || 300) +
+                        '&paintRotationSteps=' + (motor.paintRotationSteps || PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE) +
+                        '&paintRotationRevOutput=' + (motor.paintRotationRevOutput || 38400) +
+                        '&servoSpeed=' + (motor.servoSpeed || 30);
+            
+            fetch(url)
+              .then(() => {
+                // Update local variables
+                if (motor.storageSteps) STORAGE_MOTOR_STEPS_PER_CLICK = motor.storageSteps;
+                if (motor.paintRotationSteps) PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = motor.paintRotationSteps;
+                if (motor.speedPaintRotation) currentSpeedPaintRotation = motor.speedPaintRotation;
+                if (motor.accelPaintRotation) currentAccelPaintRotation = motor.accelPaintRotation;
+                if (motor.paintRotationSteps) currentPaintRotationSteps = motor.paintRotationSteps;
+                
+                // Reload motor settings to update UI
+                loadMotorSettings();
+              });
+          }
+          
+          // Upload test positions
+          if (settings.testPositions) {
+            const tp = settings.testPositions;
+            const url = '/api/test/positions?pos1X=' + (tp.pos1X || 0) +
+                        '&pos1Y=' + (tp.pos1Y || 0) +
+                        '&pos1Fork=' + (tp.pos1Fork || 0) +
+                        '&pos1Height=' + (tp.pos1Height || 8) +
+                        '&column=' + (tp.column !== undefined ? tp.column : 0) +
+                        '&pos2X=' + (tp.pos2X || 0) +
+                        '&pos2Y=' + (tp.pos2Y || 0) +
+                        '&pos2Fork=' + (tp.pos2Fork || 0);
+            
+            fetch(url)
+              .then(() => {
+                // Reload test positions to update UI
+                loadTestPositions();
+              });
+          }
+          
+          // Upload square sensing state
+          if (settings.squareSensing !== undefined) {
+            fetch('/api/squareSensing?enabled=' + (settings.squareSensing ? '1' : '0'))
+              .then(() => {
+                // Reload square sensing state to update UI
+                loadSquareSensingState();
+              });
+          }
+          
+          alert('Settings uploaded successfully');
+        } catch (error) {
+          console.error('Error parsing settings file:', error);
+          alert('Error: Invalid settings file format');
+        }
+      };
+      reader.readAsText(file);
+      
+      // Reset file input
+      event.target.value = '';
+    }
   </script>
 </body>
 </html>

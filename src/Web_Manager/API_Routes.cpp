@@ -180,19 +180,64 @@ void setupAPIRoutes() {
         }
     });
     
-    // API endpoint to get test position values
+    // API endpoint to get/set test position values
     server.on("/api/test/positions", HTTP_GET, [](AsyncWebServerRequest *request){
-        String json = "{";
-        json += "\"pos1X\":" + String(testPos1X) + ",";
-        json += "\"pos1Y\":" + String(testPos1Y) + ",";
-        json += "\"pos1Fork\":" + String(testPos1Fork) + ",";
-        json += "\"pos1Height\":" + String(selectedPosition1Height) + ",";
-        json += "\"column\":" + String(selectedColumn) + ",";
-        json += "\"pos2X\":" + String(testPos2X) + ",";
-        json += "\"pos2Y\":" + String(testPos2Y) + ",";
-        json += "\"pos2Fork\":" + String(testPos2Fork);
-        json += "}";
-        request->send(200, "application/json", json);
+        // Check if parameters are provided to set values
+        if (request->hasParam("pos1X") || request->hasParam("pos1Y") || request->hasParam("pos1Fork") ||
+            request->hasParam("pos2X") || request->hasParam("pos2Y") || request->hasParam("pos2Fork") ||
+            request->hasParam("pos1Height") || request->hasParam("column")) {
+            
+            // Set position values if provided
+            if (request->hasParam("pos1X")) {
+                testPos1X = request->getParam("pos1X")->value().toFloat();
+            }
+            if (request->hasParam("pos1Y")) {
+                testPos1Y = request->getParam("pos1Y")->value().toFloat();
+            }
+            if (request->hasParam("pos1Fork")) {
+                testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            }
+            if (request->hasParam("pos2X")) {
+                testPos2X = request->getParam("pos2X")->value().toFloat();
+            }
+            if (request->hasParam("pos2Y")) {
+                testPos2Y = request->getParam("pos2Y")->value().toFloat();
+            }
+            if (request->hasParam("pos2Fork")) {
+                testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            }
+            if (request->hasParam("pos1Height")) {
+                int height = request->getParam("pos1Height")->value().toInt();
+                if (height >= 1 && height <= 8) {
+                    selectedPosition1Height = height;
+                }
+            }
+            if (request->hasParam("column")) {
+                int col = request->getParam("column")->value().toInt();
+                if (col >= 0 && col <= 5) {
+                    selectedColumn = col;
+                }
+            }
+            
+            // Save to persistent storage
+            saveTestPositions();
+            
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Test positions updated");
+        } else {
+            // Return current values if no parameters provided
+            String json = "{";
+            json += "\"pos1X\":" + String(testPos1X) + ",";
+            json += "\"pos1Y\":" + String(testPos1Y) + ",";
+            json += "\"pos1Fork\":" + String(testPos1Fork) + ",";
+            json += "\"pos1Height\":" + String(selectedPosition1Height) + ",";
+            json += "\"column\":" + String(selectedColumn) + ",";
+            json += "\"pos2X\":" + String(testPos2X) + ",";
+            json += "\"pos2Y\":" + String(testPos2Y) + ",";
+            json += "\"pos2Fork\":" + String(testPos2Fork);
+            json += "}";
+            request->send(200, "application/json", json);
+        }
     });
     
     // API endpoint for test all sequence (runs all 8 heights a1-a8 for selected column)
