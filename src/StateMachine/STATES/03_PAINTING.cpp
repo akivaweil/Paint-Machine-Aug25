@@ -286,3 +286,108 @@ void paintingState() {
     }
 }
 
+//* ************************************************************************
+//* ************************ TEST PAINT CYCLE ******************************
+//* ************************************************************************
+
+void testPaintCycle() {
+    static bool testCycleStarted = false;
+    static bool parallelSequenceStarted = false;
+    static int parallelStep = 0;
+    static long paintMotor360StepsStart = 0;
+    
+    // Initialize on first entry
+    if (!testCycleStarted) {
+        testCycleStarted = true;
+        parallelSequenceStarted = false;
+        parallelStep = 0;
+    }
+    
+    // Handle parallel sequence (servo and paint motor)
+    if (!parallelSequenceStarted) {
+        parallelSequenceStarted = true;
+        parallelStep = 0;
+    }
+    
+    // Turn on paint gun and start servo to 220
+    if (parallelStep == 0) {
+        digitalWrite(PAINT_GUN_PIN, HIGH);
+        
+        // Start paint motor 360 turn
+        enablePaintRotationMotor();
+        if (motorPaintRotation) {
+            paintMotor360StepsStart = motorPaintRotation->getCurrentPosition();
+            long paintMotor360StepsTarget = paintRotationMotorStepsPerRevOutput;
+            motorPaintRotation->moveSteps(paintMotor360StepsTarget);
+            // Turn on suction when painting motor starts rotating
+            digitalWrite(SUCTION_PIN, HIGH);
+        }
+        
+        parallelStep = 1;
+    }
+    else if (parallelStep == 1) {
+        // Ensure suction is on while painting motor is rotating
+        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+            digitalWrite(SUCTION_PIN, HIGH);
+        }
+        
+        // Rotate servo to 220 degrees (non-blocking)
+        updateServoNonBlocking(220.0);
+        
+        // Check if paint motor reached 180 degrees (halfway through 360)
+        if (motorPaintRotation) {
+            long stepsCompleted = motorPaintRotation->getCurrentPosition() - paintMotor360StepsStart;
+            long halfwaySteps = paintRotationMotorStepsPerRevOutput / 2;
+            
+            if (stepsCompleted >= halfwaySteps) {
+                parallelStep = 2;  // Start returning servo
+            }
+        }
+        
+        // Fallback: if motor stops before halfway, still continue
+        if (motorPaintRotation && !motorPaintRotation->isMotorRunning()) {
+            parallelStep = 2;
+        }
+    }
+    else if (parallelStep == 2) {
+        // Ensure suction is on while painting motor is rotating
+        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+            digitalWrite(SUCTION_PIN, HIGH);
+        }
+        
+        // Rotate servo back to servo home angle
+        updateServoNonBlocking(SERVO_HOME_ANGLE);
+        
+        bool servoComplete = abs(currentServoAngle - SERVO_HOME_ANGLE) < 0.5;
+        bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
+        
+        if (servoComplete && motorComplete) {
+            parallelStep = 3;
+        }
+    }
+    else if (parallelStep == 3) {
+        // Cleanup: disable motor and turn off paint gun and suction
+        if (motorPaintRotation) {
+            motorPaintRotation->forceStop();
+        }
+        disablePaintRotationMotor();
+        digitalWrite(PAINT_GUN_PIN, LOW);
+        digitalWrite(SUCTION_PIN, LOW);
+        
+        // Reset flags
+        testCycleStarted = false;
+        parallelSequenceStarted = false;
+        parallelStep = 0;
+        
+        // Return to IDLE state
+        extern void setMachineState(int state);
+        #define STATE_IDLE 0
+        setMachineState(STATE_IDLE);
+        return;
+    }
+    
+    // Update OTA during operation
+    updateOTA();
+    delay(1);
+}
+

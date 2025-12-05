@@ -6,6 +6,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_TEST.h"
+#include "StateMachine/STATES/03_PAINTING.h"
 
 // Include HTML content (needed for sensors_html)
 #include "Web_Manager/HTML_Content.cpp"
@@ -362,6 +363,16 @@ void setupAPIRoutes() {
         Serial.println("Web Request: Start paint cycle");
     });
     
+    // API endpoint for test paint cycle (servo and paint motor only)
+    server.on("/api/paint/test", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Start test paint cycle state (STATE_TEST_PAINT = 4)
+        extern void setMachineState(int state);
+        setMachineState(4);
+        
+        request->send(200, "text/plain", "OK");
+        Serial.println("Web Request: Start test paint cycle");
+    });
+    
     // API endpoint for current positions
     server.on("/api/positions", HTTP_GET, [](AsyncWebServerRequest *request){
         float posX = 0.0;
@@ -544,6 +555,7 @@ void setupAPIRoutes() {
         if (state == 0) stateStr = "HOMING";
         else if (state == 2) stateStr = "TEST";
         else if (state == 3) stateStr = "PAINTING";
+        else if (state == 4) stateStr = "TEST_PAINT";
         
         String json = "{";
         json += "\"state\":\"" + stateStr + "\",";

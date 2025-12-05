@@ -1312,7 +1312,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           const testAllBtn = document.getElementById('testAllBtn');
           const runPaintBtn = document.getElementById('runPaintBtn');
           
-          if (data.state === 'TEST' || data.state === 'PAINTING') {
+          if (data.state === 'TEST' || data.state === 'PAINTING' || data.state === 'TEST_PAINT') {
             // Show cycle control buttons during test or painting
             cycleControlButtons.style.display = 'flex';
             runTestBtn.style.display = 'none';
@@ -1562,12 +1562,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     function startPaintCycle() {
-      fetch('/api/paint')
+      fetch('/api/paint/test')
         .then(response => response.text())
         .then(data => {
-          console.log('Paint cycle started:', data);
+          console.log('Test paint cycle started:', data);
         })
-        .catch(error => console.error('Paint cycle error:', error));
+        .catch(error => console.error('Test paint cycle error:', error));
     }
     
     function toggleSquareSensing() {

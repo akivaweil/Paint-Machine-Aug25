@@ -13,13 +13,15 @@ extern void homingState();
 extern void idleState();
 extern void testState();
 extern void paintingState();
+extern void testPaintCycle();
 
 // State machine state
 enum MachineState {
     STATE_HOMING,
     STATE_IDLE,
     STATE_TEST,
-    STATE_PAINTING
+    STATE_PAINTING,
+    STATE_TEST_PAINT
 };
 
 MachineState currentState = STATE_HOMING;
@@ -73,6 +75,9 @@ void loop() {
             break;
         case STATE_PAINTING:
             paintingState();
+            break;
+        case STATE_TEST_PAINT:
+            testPaintCycle();
             break;
     }
 

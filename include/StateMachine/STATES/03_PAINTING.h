@@ -8,6 +8,7 @@
 //* ************************************************************************
 
 void paintingState();
+void testPaintCycle();
 
 #endif // PAINTING_STATE_H
 
