@@ -5,6 +5,7 @@
 #include "StateMachine/STATES/01_HOMING.h"
 #include "Web_Manager.h"
 #include "ServoControl.h"
+#include "../../config/Pin_Definitions.h"
 
 // External motor instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
@@ -25,6 +26,24 @@ extern void updateOTA();
 // State machine function
 extern void setMachineState(int state);
 #define STATE_IDLE 1
+
+// Cycle control flags
+extern bool cyclePaused;
+extern bool cycleCancelled;
+
+// Homing function
+extern void homeAllAxes(bool resetColumn);
+
+// Macro to check for pause after step completion
+#define CHECK_PAUSE_AND_CANCEL() \
+    do { \
+        while (cyclePaused && !cycleCancelled) { \
+            updateOTA(); \
+            updateParallelSequence(parallelSequenceStarted, parallelStep); \
+            delay(10); \
+        } \
+        if (cycleCancelled) return; \
+    } while(0)
 
 // Test position values (set from web interface)
 extern float testPos1X;
@@ -142,12 +161,45 @@ void testState() {
     static bool parallelSequenceStarted = false;
     static int parallelStep = 0;
     
+    // Check for cancel at start of function
+    if (cycleCancelled) {
+        // Cleanup: stop all motors immediately
+        if (motorX) motorX->forceStop();
+        if (motorY) motorY->forceStop();
+        if (motorFork) motorFork->forceStop();
+        if (motorPaintRotation) {
+            motorPaintRotation->forceStop();
+            disablePaintRotationMotor();
+        }
+        
+        // Turn off paint gun and suction
+        digitalWrite(PAINT_GUN_PIN, LOW);
+        digitalWrite(SUCTION_PIN, LOW);
+        
+        // Home all motors (preserve column position)
+        homeAllAxes(false);
+        
+        // Reset flags and state
+        cycleCancelled = false;
+        cyclePaused = false;
+        testStarted = false;
+        step = 0;
+        parallelSequenceStarted = false;
+        parallelStep = 0;
+        
+        // Return to idle
+        setMachineState(STATE_IDLE);
+        return;
+    }
+    
     // Initialize on first entry
     if (!testStarted) {
         step = 0;
         testStarted = true;
         parallelSequenceStarted = false;
         parallelStep = 0;
+        cyclePaused = false;  // Reset pause flag on new test
+        cycleCancelled = false;  // Reset cancel flag on new test
         
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
@@ -197,6 +249,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 1;
     }
     
@@ -234,8 +287,10 @@ void testState() {
                 delay(1);
             }
             
+            CHECK_PAUSE_AND_CANCEL();
             step = 18;
         } else {
+            CHECK_PAUSE_AND_CANCEL();
             step = 2;
         }
     }
@@ -259,6 +314,7 @@ void testState() {
         // Restore motor settings
         applyMotorSettings();
         
+        CHECK_PAUSE_AND_CANCEL();
         step = 3;
     }
     
@@ -273,6 +329,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 4;
     }
     
@@ -301,6 +358,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 5;
     }
     
@@ -324,6 +382,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 6;
     }
     
@@ -346,6 +405,7 @@ void testState() {
         // Restore motor settings
         applyMotorSettings();
         
+        CHECK_PAUSE_AND_CANCEL();
         step = 7;
     }
     
@@ -371,6 +431,7 @@ void testState() {
             digitalWrite(SUCTION_PIN, HIGH);
         }
         
+        CHECK_PAUSE_AND_CANCEL();
         step = 8;
     }
     
@@ -408,6 +469,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 9;
     }
     
@@ -425,7 +487,6 @@ void testState() {
         // Safety: Ensure paint rotation motor is stopped and disabled
         if (motorPaintRotation) {
             motorPaintRotation->forceStop();
-            delay(50);
         }
         disablePaintRotationMotor();
         
@@ -433,6 +494,7 @@ void testState() {
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
         
+        CHECK_PAUSE_AND_CANCEL();
         step = 10;
     }
     
@@ -461,6 +523,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 11;
     }
     
@@ -484,6 +547,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 12;
     }
     
@@ -506,6 +570,7 @@ void testState() {
         // Restore motor settings
         applyMotorSettings();
         
+        CHECK_PAUSE_AND_CANCEL();
         step = 13;
     }
     
@@ -523,6 +588,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 14;
     }
     
@@ -556,6 +622,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 15;
     }
     
@@ -579,6 +646,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 16;
     }
     
@@ -601,6 +669,7 @@ void testState() {
         // Restore motor settings
         applyMotorSettings();
         
+        CHECK_PAUSE_AND_CANCEL();
         step = 17;
     }
     
@@ -615,6 +684,7 @@ void testState() {
             updateOTA();
             delay(1);
         }
+        CHECK_PAUSE_AND_CANCEL();
         step = 18;
     }
     
@@ -641,6 +711,7 @@ void testState() {
                 updateOTA();
                 delay(1);
             }
+            CHECK_PAUSE_AND_CANCEL();
             step = 19;
         }
     }
@@ -693,6 +764,9 @@ void testState() {
                 // All heights completed for current column
                 // Check if there are more columns to test
                 if (testAllCurrentColumnIndex < testAllColumnCount - 1) {
+                    // Home X, Y, and Fork axes before moving to next column (preserve column position)
+                    homeAllAxes(false);  // false = don't reset column position
+                    
                     // Move to next column
                     testAllCurrentColumnIndex++;
                     
