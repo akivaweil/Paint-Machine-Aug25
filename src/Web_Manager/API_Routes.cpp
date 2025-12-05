@@ -480,5 +480,36 @@ void setupAPIRoutes() {
             request->send(200, "application/json", json);
         }
     });
+    
+    // API endpoint to get cycle state
+    server.on("/api/cycle/state", HTTP_GET, [](AsyncWebServerRequest *request){
+        extern int getMachineState();
+        int state = getMachineState();
+        String stateStr = "IDLE";
+        if (state == 0) stateStr = "HOMING";
+        else if (state == 2) stateStr = "TEST";
+        
+        String json = "{";
+        json += "\"state\":\"" + stateStr + "\",";
+        json += "\"paused\":" + String(cyclePaused ? "true" : "false");
+        json += "}";
+        request->send(200, "application/json", json);
+    });
+    
+    // API endpoint to pause/resume cycle
+    server.on("/api/cycle/pause", HTTP_GET, [](AsyncWebServerRequest *request){
+        cyclePaused = !cyclePaused;
+        String json = "{\"paused\":" + String(cyclePaused ? "true" : "false") + "}";
+        request->send(200, "application/json", json);
+        Serial.printf("Web Request: Cycle %s\n", cyclePaused ? "PAUSED" : "RESUMED");
+    });
+    
+    // API endpoint to cancel cycle
+    server.on("/api/cycle/cancel", HTTP_GET, [](AsyncWebServerRequest *request){
+        cycleCancelled = true;
+        cyclePaused = false;  // Clear pause flag when cancelling
+        request->send(200, "text/plain", "OK");
+        Serial.println("Web Request: Cycle CANCELLED");
+    });
 }
 

@@ -30,6 +30,11 @@ void setMachineState(int newState) {
     currentState = (MachineState)newState;
 }
 
+// Function to get current state (accessible from web manager)
+int getMachineState() {
+    return (int)currentState;
+}
+
 // Setup function - called once at startup
 void setup() {
     // Initialize serial for debugging

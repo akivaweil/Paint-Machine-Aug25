@@ -67,6 +67,10 @@ int testAllCurrentColumnIndex = 0;  // Current column index in the test sequence
 // Square sensing toggle (enables/disables wood_present_sensor check during test cycle)
 bool squareSensingEnabled = true;  // Default to enabled
 
+// Cycle control state
+bool cyclePaused = false;  // Tracks if cycle is paused
+bool cycleCancelled = false;  // Tracks if cycle should be cancelled
+
 // Motor speed and acceleration settings
 long motorSpeedX = X_MAX_SPEED;
 long motorSpeedY = Y_MAX_SPEED;

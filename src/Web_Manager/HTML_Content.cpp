@@ -772,7 +772,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               </div>
             </div>
             <div class="button-container">
-              <button class="action-btn" onclick="startTest()" style="width: 60%;">Run Test</button>
+              <button class="action-btn" onclick="startTest()" style="width: 60%;" id="runTestBtn">Run Test</button>
+              <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;" id="testAllBtn">Test All</button>
               <select id="columnCountSelect" style="width: 15%; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 12px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease;">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -781,7 +782,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <option value="5">5</option>
                 <option value="6">6</option>
               </select>
-              <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;">Test All</button>
+            </div>
+            <div class="button-container" id="cycleControlButtons" style="display: none; margin-top: 16px;">
+              <button class="action-btn" onclick="togglePause()" id="pauseResumeBtn" style="width: 50%;">Pause</button>
+              <button class="action-btn-secondary" onclick="cancelCycle()" id="cancelBtn" style="width: 50%; display: none; background: linear-gradient(135deg, var(--accent-danger) 0%, #ff6b7a 100%);">Cancel Cycle</button>
             </div>
           </div>
     </div>
@@ -938,22 +942,22 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <h3>X Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedX" step="100" min="100" max="30000" placeholder="2000">
+              <input type="number" id="speedX" step="100" min="100" max="30000" placeholder="2000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelX" step="100" min="100" max="30000" placeholder="5000">
+              <input type="number" id="accelX" step="100" min="100" max="30000" placeholder="5000" onblur="autoSaveMotorSettings()">
             </div>
           </div>
           <div class="position-inputs">
             <h3>Y Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedY" step="100" min="100" max="30000" placeholder="2000">
+              <input type="number" id="speedY" step="100" min="100" max="30000" placeholder="2000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelY" step="100" min="100" max="30000" placeholder="5000">
+              <input type="number" id="accelY" step="100" min="100" max="30000" placeholder="5000" onblur="autoSaveMotorSettings()">
             </div>
           </div>
         </div>
@@ -962,56 +966,56 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <h3>Fork Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedFork" step="100" min="100" max="30000" placeholder="2000">
+              <input type="number" id="speedFork" step="100" min="100" max="30000" placeholder="2000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelFork" step="100" min="100" max="30000" placeholder="5000">
+              <input type="number" id="accelFork" step="100" min="100" max="30000" placeholder="5000" onblur="autoSaveMotorSettings()">
             </div>
           </div>
           <div class="position-inputs">
             <h3>Storage Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedStorage" step="100" min="100" max="30000" placeholder="10000">
+              <input type="number" id="speedStorage" step="100" min="100" max="30000" placeholder="10000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelStorage" step="100" min="100" max="30000" placeholder="10000">
+              <input type="number" id="accelStorage" step="100" min="100" max="30000" placeholder="10000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Steps/Click:</label>
-              <input type="number" id="storageSteps" step="100" min="100" max="1000000" placeholder="120000">
+              <input type="number" id="storageSteps" step="100" min="100" max="1000000" placeholder="120000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Trim Distance:</label>
-              <input type="number" id="storageTrim" step="10" min="0" max="10000" placeholder="300">
+              <input type="number" id="storageTrim" step="10" min="0" max="10000" placeholder="300" onblur="autoSaveMotorSettings()">
             </div>
           </div>
           <div class="position-inputs">
             <h3>Paint Rotation Motor</h3>
             <div class="input-row">
               <label>Speed:</label>
-              <input type="number" id="speedPaintRotation" step="100" min="100" max="30000" placeholder="1000">
+              <input type="number" id="speedPaintRotation" step="100" min="100" max="30000" placeholder="1000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Accel:</label>
-              <input type="number" id="accelPaintRotation" step="100" min="100" max="30000" placeholder="1000">
+              <input type="number" id="accelPaintRotation" step="100" min="100" max="30000" placeholder="1000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Steps/Click:</label>
-              <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000">
+              <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
               <label>Steps/Rev Output:</label>
-              <input type="number" id="paintRotationRevOutput" step="100" min="100" max="1000000" placeholder="38400">
+              <input type="number" id="paintRotationRevOutput" step="100" min="100" max="1000000" placeholder="38400" onblur="autoSaveMotorSettings()">
             </div>
           </div>
           <div class="position-inputs">
             <h3>Servo</h3>
             <div class="input-row">
               <label>Speed (deg/sec):</label>
-              <input type="number" id="servoSpeed" step="1" min="1" max="120" placeholder="30">
+              <input type="number" id="servoSpeed" step="1" min="1" max="120" placeholder="30" onblur="autoSaveMotorSettings()">
             </div>
           </div>
           </div>
@@ -1204,7 +1208,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         });
     }
     
-    // Save motor settings
+    // Save motor settings (called from button or auto-save)
     function saveMotorSettings() {
       const speedX = parseInt(document.getElementById('speedX').value) || 2000;
       const accelX = parseInt(document.getElementById('accelX').value) || 5000;
@@ -1249,11 +1253,83 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         });
     }
     
+    // Auto-save function called on blur
+    function autoSaveMotorSettings() {
+      saveMotorSettings();
+    }
+    
     // Load positions and settings when page loads
     loadTestPositions();
     loadMotorSettings();
     loadDeviceStates();
     loadSquareSensingState();
+    
+    // Cycle control state polling
+    let cycleStateInterval = null;
+    
+    function updateCycleControls() {
+      fetch('/api/cycle/state')
+        .then(response => response.json())
+        .then(data => {
+          const cycleControlButtons = document.getElementById('cycleControlButtons');
+          const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+          const cancelBtn = document.getElementById('cancelBtn');
+          const runTestBtn = document.getElementById('runTestBtn');
+          const testAllBtn = document.getElementById('testAllBtn');
+          
+          if (data.state === 'TEST') {
+            // Show cycle control buttons during test
+            cycleControlButtons.style.display = 'flex';
+            runTestBtn.style.display = 'none';
+            testAllBtn.style.display = 'none';
+            
+            // Update pause/resume button
+            if (data.paused) {
+              pauseResumeBtn.textContent = 'Resume';
+              cancelBtn.style.display = 'block';
+            } else {
+              pauseResumeBtn.textContent = 'Pause';
+              cancelBtn.style.display = 'none';
+            }
+          } else {
+            // Hide cycle control buttons when not in test
+            cycleControlButtons.style.display = 'none';
+            runTestBtn.style.display = 'block';
+            testAllBtn.style.display = 'block';
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching cycle state:', error);
+        });
+    }
+    
+    function togglePause() {
+      fetch('/api/cycle/pause')
+        .then(response => response.json())
+        .then(data => {
+          updateCycleControls();
+        })
+        .catch(error => {
+          console.error('Error toggling pause:', error);
+        });
+    }
+    
+    function cancelCycle() {
+      if (confirm('Are you sure you want to cancel the cycle? All motors will be homed.')) {
+        fetch('/api/cycle/cancel')
+          .then(response => response.text())
+          .then(data => {
+            updateCycleControls();
+          })
+          .catch(error => {
+            console.error('Error cancelling cycle:', error);
+          });
+      }
+    }
+    
+    // Start polling cycle state every 500ms
+    updateCycleControls();
+    cycleStateInterval = setInterval(updateCycleControls, 500);
     
     // Movement control
     let moveDistance = 1; // Default 1 inch

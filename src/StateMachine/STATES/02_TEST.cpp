@@ -726,7 +726,6 @@ void testState() {
             while (motorPaintRotation->isMotorRunning()) {
                 delay(10);
             }
-            delay(50);
         }
         disablePaintRotationMotor();
         

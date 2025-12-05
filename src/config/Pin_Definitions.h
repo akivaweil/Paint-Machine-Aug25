@@ -21,7 +21,7 @@
 #define X_HOME_PIN 7
 #define X_HOME_PIN2 6    // Second X home switch
 #define Y_HOME_PIN 4
-#define FORK_HOME_PIN 14
+#define FORK_HOME_PIN 18
 
 // Storage Stepper Motor
 #define STORAGE_STEP_PIN 21

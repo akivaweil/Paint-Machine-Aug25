@@ -48,7 +48,7 @@
 #define STORAGE_MOTOR_HOMING_SPEED 1000        // Storage motor speed for homing operation
 #define STORAGE_MOTOR_HOMING_TRIM 300            // Storage motor homing trim amount in steps (extra distance after reaching home switch)
 #define STORAGE_MOTOR_STEPS_PER_CLICK 6400    // Storage motor steps per click (1/6 rev output = 6400 steps)
-#define STORAGE_COLUMN_SPACING_STEPS 6125      // Distance between storage columns in steps
+#define STORAGE_COLUMN_SPACING_STEPS 6100      // Distance between storage columns in steps
 #define STORAGE_MOTOR_SENSOR_IGNORE_STEPS 500  // Steps to ignore sensor at start to clear current column
 
 // Paint rotation motor speed and acceleration settings (in steps per second)
@@ -71,8 +71,8 @@
 #define POSITION_HEIGHT_SPACING_INCHES (POSITION_HEIGHT_SPACING_MM / 25.4)
 
 // Test cycle Y-axis movement when fork is extended
-#define TEST_Y_SPEED_FORK_EXTENDED 8000      // Y-axis speed when fork is extended (steps per second)
-#define TEST_Y_ACCEL_FORK_EXTENDED 8000      // Y-axis acceleration when fork is extended (steps per second squared)
+#define TEST_Y_SPEED_FORK_EXTENDED 15000      // Y-axis speed when fork is extended (steps per second)
+#define TEST_Y_ACCEL_FORK_EXTENDED 15000      // Y-axis acceleration when fork is extended (steps per second squared)
 
 // Servo configuration
 #define SERVO_HOME_ANGLE 130.0  // Servo home angle in degrees

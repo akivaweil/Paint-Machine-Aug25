@@ -58,6 +58,8 @@ extern long storageMotorTrimDistance;
 extern long paintRotationMotorStepsPerClick;
 extern long paintRotationMotorStepsPerRevOutput;
 extern float servoSpeed;
+extern bool cyclePaused;
+extern bool cycleCancelled;
 
 // External HTML content
 extern const char sensors_html[] PROGMEM;
