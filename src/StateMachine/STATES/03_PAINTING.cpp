@@ -78,9 +78,9 @@ void updateServoNonBlocking(float targetAngle) {
     }
 }
 
-// Paint motor 1.5 revolution tracking
-static long paintMotor15RevStepsTarget = 0;
-static long paintMotor15RevStepsStart = 0;
+// Paint motor 2 revolution tracking
+static long paintMotor2RevStepsTarget = 0;
+static long paintMotor2RevStepsStart = 0;
 
 // Parallel sequence handler (called during wait loops)
 // Handles servo movement and paint gun, paint motor runs independently
@@ -93,10 +93,10 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         
         // Check if paint motor reached 1.5 revolutions
         if (motorPaintRotation) {
-            long stepsCompleted = motorPaintRotation->getCurrentPosition() - paintMotor15RevStepsStart;
-            long targetSteps = paintRotationMotorStepsPerRevOutput * 1.5;
+            long stepsCompleted = motorPaintRotation->getCurrentPosition() - paintMotor2RevStepsStart;
+            long triggerSteps = paintRotationMotorStepsPerRevOutput * 1.5;
             
-            if (stepsCompleted >= targetSteps) {
+            if (stepsCompleted >= triggerSteps) {
                 parallelStep = 1;  // Start returning servo
             }
         }
@@ -107,13 +107,13 @@ void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
         }
     }
     else if (parallelStep == 1) {
-        // Rotate servo back to 135 degrees
+        // Rotate servo back to 135 degrees (home position)
         updateServoNonBlocking(135.0);
         
-        bool servoComplete = abs(currentServoAngle - 135.0) < 0.5;
+        // Wait for motor to complete 2 full revolutions
         bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
         
-        if (servoComplete && motorComplete) {
+        if (motorComplete) {
             parallelStep = 2;
         }
     }
@@ -174,7 +174,7 @@ void paintingState() {
     updateParallelSequence(parallelSequenceStarted, parallelStep);
     
     //! ************************************************************************
-    //! STEP 0: RETRACT FORK MOTOR AT POSITION 2, START PAINT MOTOR 1.5 REVOLUTIONS
+    //! STEP 0: RETRACT FORK MOTOR AT POSITION 2, START PAINT MOTOR 2 REVOLUTIONS
     //! ************************************************************************
     if (step == 0) {
         motorFork->moveInches(testPos2Fork);
@@ -189,12 +189,12 @@ void paintingState() {
         digitalWrite(PAINT_GUN_PIN, HIGH);
         digitalWrite(SUCTION_PIN, HIGH);
         
-        // Start paint motor 1.5 revolutions immediately after pos2
+        // Start paint motor 2 full revolutions immediately after pos2
         enablePaintRotationMotor();
         if (motorPaintRotation) {
-            paintMotor15RevStepsStart = motorPaintRotation->getCurrentPosition();
-            paintMotor15RevStepsTarget = paintRotationMotorStepsPerRevOutput * 1.5;
-            motorPaintRotation->moveSteps(paintMotor15RevStepsTarget);
+            paintMotor2RevStepsStart = motorPaintRotation->getCurrentPosition();
+            paintMotor2RevStepsTarget = paintRotationMotorStepsPerRevOutput * 2;
+            motorPaintRotation->moveSteps(paintMotor2RevStepsTarget);
         }
         
         CHECK_PAUSE_AND_CANCEL();
