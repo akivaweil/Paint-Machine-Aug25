@@ -310,7 +310,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .arrow-btn {
       background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
+      border: 2px solid var(--border-subtle);
       border-radius: var(--radius-sm);
       font-size: 1.2rem;
       color: var(--text-secondary);
@@ -320,6 +320,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       align-items: center;
       justify-content: center;
       user-select: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .arrow-btn:hover {
@@ -332,6 +333,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .arrow-btn:active {
       transform: scale(0.95);
+      box-shadow: 0 2px 8px var(--accent-glow);
     }
     
     .arrow-btn.up { grid-column: 2; }
@@ -347,7 +349,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .distance-btn {
       background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
+      border: 2px solid var(--border-subtle);
       border-radius: var(--radius-sm);
       padding: 10px 20px;
       color: var(--text-secondary);
@@ -356,17 +358,21 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.9375rem;
       font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .distance-btn.active {
       background: var(--accent-secondary);
       border-color: var(--accent-secondary);
       color: var(--bg-deep);
+      box-shadow: 0 4px 12px var(--accent-green-glow);
     }
     
     .distance-btn:hover:not(.active) {
       border-color: var(--accent-secondary);
       color: var(--accent-secondary);
+      box-shadow: 0 2px 8px rgba(0, 212, 170, 0.2);
+      transform: translateY(-1px);
     }
     
     .toggle-switch {
@@ -429,7 +435,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .home-btn {
       background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
+      border: 2px solid var(--border-subtle);
       border-radius: var(--radius-sm);
       padding: 10px 18px;
       color: var(--text-secondary);
@@ -440,6 +446,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 1px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .home-btn:hover {
@@ -447,12 +454,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       border-color: var(--accent-warning);
       color: var(--bg-deep);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
     }
     
     .home-btn.all {
       background: var(--accent-primary);
-      border-color: var(--accent-primary);
+      border: 2px solid var(--accent-primary);
       color: white;
+      box-shadow: 0 2px 8px var(--accent-glow);
     }
     
     .home-btn.all:hover {
@@ -583,7 +592,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .action-btn {
       background: linear-gradient(135deg, var(--accent-primary) 0%, #ff8f5a 100%);
-      border: none;
+      border: 2px solid var(--accent-primary);
       border-radius: var(--radius-md);
       padding: 14px 30px;
       color: white;
@@ -597,6 +606,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       width: 100%;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
     }
     
     .action-btn::before {
@@ -617,10 +627,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     .action-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 30px var(--accent-glow);
+      border-color: #ff8f5a;
     }
     
     .action-btn:active {
       transform: translateY(0);
+      box-shadow: 0 4px 15px var(--accent-glow);
     }
     
     .button-container {
@@ -631,7 +643,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     .action-btn-secondary {
       background: linear-gradient(135deg, var(--accent-secondary) 0%, #00f5d4 100%);
-      border: none;
+      border: 2px solid var(--accent-secondary);
       border-radius: var(--radius-md);
       padding: 14px 30px;
       color: white;
@@ -644,6 +656,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       letter-spacing: 2px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
     }
     
     .action-btn-secondary::before {
@@ -664,10 +677,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     .action-btn-secondary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 30px var(--accent-green-glow);
+      border-color: #00f5d4;
     }
     
     .action-btn-secondary:active {
       transform: translateY(0);
+      box-shadow: 0 4px 15px var(--accent-green-glow);
     }
     
     .footer {
@@ -890,7 +905,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             </div>
         </div>
       </div>
-    </div>
     
         <div class="card">
           <div class="card-header">

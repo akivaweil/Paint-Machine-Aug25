@@ -26,6 +26,7 @@ extern void updateOTA();
 // State machine function
 extern void setMachineState(int state);
 #define STATE_IDLE 1
+#define STATE_PAINTING 3
 
 // Cycle control flags
 extern bool cyclePaused;
@@ -39,7 +40,6 @@ extern void homeAllAxes(bool resetColumn);
     do { \
         while (cyclePaused && !cycleCancelled) { \
             updateOTA(); \
-            updateParallelSequence(parallelSequenceStarted, parallelStep); \
             delay(10); \
         } \
         if (cycleCancelled) return; \
@@ -67,99 +67,9 @@ extern int testAllCurrentColumnIndex;  // Current column index in the test seque
 //* ************************ TEST STATE ***********************************
 //* ************************************************************************
 
-// Non-blocking servo movement helper
-void updateServoNonBlocking(float targetAngle) {
-    if (!servo) return;
-    
-    const float stepSize = 0.5;  // Step size in degrees
-    const float stepDelayMs = (stepSize / servoSpeed) * 1000.0;  // Delay in milliseconds
-    static unsigned long lastServoUpdate = 0;
-    
-    unsigned long now = millis();
-    if (now - lastServoUpdate >= (unsigned long)stepDelayMs) {
-        float diff = targetAngle - currentServoAngle;
-        
-        if (abs(diff) > stepSize) {
-            float increment = (diff > 0) ? stepSize : -stepSize;
-            currentServoAngle += increment;
-            servo->write(currentServoAngle);
-        } else {
-            currentServoAngle = targetAngle;
-            servo->write(currentServoAngle);
-        }
-        
-        lastServoUpdate = now;
-    }
-}
-
-// Paint motor 360 turn tracking
-static long paintMotor360StepsTarget = 0;
-static long paintMotor360StepsStart = 0;
-
-// Parallel sequence handler (called during wait loops)
-// Handles servo movement and paint gun, paint motor runs independently
-void updateParallelSequence(bool& parallelSequenceStarted, int& parallelStep) {
-    if (!parallelSequenceStarted) return;
-    
-    if (parallelStep == 0) {
-        // Turn on paint gun and start servo to 220
-        digitalWrite(PAINT_GUN_PIN, HIGH);
-        parallelStep = 1;
-    }
-    else if (parallelStep == 1) {
-        // Ensure suction is on while painting motor is rotating
-        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
-            digitalWrite(SUCTION_PIN, HIGH);
-        }
-        
-        // Rotate servo to 220 degrees (non-blocking)
-        updateServoNonBlocking(220.0);
-        
-        // Check if paint motor reached 180 degrees (halfway through 360)
-        if (motorPaintRotation) {
-            long stepsCompleted = motorPaintRotation->getCurrentPosition() - paintMotor360StepsStart;
-            long halfwaySteps = paintRotationMotorStepsPerRevOutput / 2;
-            
-            if (stepsCompleted >= halfwaySteps) {
-                parallelStep = 2;  // Start returning servo
-            }
-        }
-        
-        // Fallback: if motor stops before halfway, still continue
-        if (motorPaintRotation && !motorPaintRotation->isMotorRunning()) {
-            parallelStep = 2;
-        }
-    }
-    else if (parallelStep == 2) {
-        // Ensure suction is on while painting motor is rotating
-        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
-            digitalWrite(SUCTION_PIN, HIGH);
-        }
-        
-        // Rotate servo back to servo home angle
-        updateServoNonBlocking(SERVO_HOME_ANGLE);
-        
-        bool servoComplete = abs(currentServoAngle - SERVO_HOME_ANGLE) < 0.5;
-        bool motorComplete = !motorPaintRotation || !motorPaintRotation->isMotorRunning();
-        
-        if (servoComplete && motorComplete) {
-            parallelStep = 3;
-        }
-    }
-    else if (parallelStep == 3) {
-        // Cleanup: disable motor and turn off paint gun and suction
-        disablePaintRotationMotor();
-        digitalWrite(PAINT_GUN_PIN, LOW);
-        digitalWrite(SUCTION_PIN, LOW);
-        parallelSequenceStarted = false;
-    }
-}
-
 void testState() {
     static int step = 0;
     static bool testStarted = false;
-    static bool parallelSequenceStarted = false;
-    static int parallelStep = 0;
     
     // Check for cancel at start of function
     if (cycleCancelled) {
@@ -184,8 +94,6 @@ void testState() {
         cyclePaused = false;
         testStarted = false;
         step = 0;
-        parallelSequenceStarted = false;
-        parallelStep = 0;
         
         // Return to idle
         setMachineState(STATE_IDLE);
@@ -196,8 +104,6 @@ void testState() {
     if (!testStarted) {
         step = 0;
         testStarted = true;
-        parallelSequenceStarted = false;
-        parallelStep = 0;
         cyclePaused = false;  // Reset pause flag on new test
         cycleCancelled = false;  // Reset cancel flag on new test
         
@@ -215,9 +121,6 @@ void testState() {
             servo->write(SERVO_HOME_ANGLE);
         }
     }
-    
-    // Handle parallel sequence (runs independently)
-    updateParallelSequence(parallelSequenceStarted, parallelStep);
     
     //! ************************************************************************
     //! STEP 1: MOVE TO POSITION 1
@@ -288,7 +191,7 @@ void testState() {
             }
             
             CHECK_PAUSE_AND_CANCEL();
-            step = 18;
+            step = 15;
         } else {
             CHECK_PAUSE_AND_CANCEL();
             step = 2;
@@ -406,102 +309,19 @@ void testState() {
         applyMotorSettings();
         
         CHECK_PAUSE_AND_CANCEL();
+        
+        // Set step to 7 for when we return from painting state
         step = 7;
+        
+        // Transition to painting state
+        setMachineState(STATE_PAINTING);
+        return;
     }
     
     //! ************************************************************************
-    //! STEP 8: RETRACT FORK MOTOR AT POSITION 2, START PAINT MOTOR 360 TURN
+    //! STEP 8: MOVE TO POSITION 3 (after returning from painting)
     //! ************************************************************************
     else if (step == 7) {
-        motorFork->moveInches(testPos2Fork);
-        
-        // Wait for fork motor to finish retracting
-        while (motorFork->isMotorRunning()) {
-            updateOTA();
-            delay(1);
-        }
-        
-        // Start paint motor 360 turn immediately after pos2
-        enablePaintRotationMotor();
-        if (motorPaintRotation) {
-            paintMotor360StepsStart = motorPaintRotation->getCurrentPosition();
-            paintMotor360StepsTarget = paintRotationMotorStepsPerRevOutput;
-            motorPaintRotation->moveSteps(paintMotor360StepsTarget);
-            // Turn on suction when painting motor starts rotating
-            digitalWrite(SUCTION_PIN, HIGH);
-        }
-        
-        CHECK_PAUSE_AND_CANCEL();
-        step = 8;
-    }
-    
-    //! ************************************************************************
-    //! STEP 9: MOVE TO WAITING POSITION (5 INCHES RIGHT OF POSITION 3)
-    //! ************************************************************************
-    else if (step == 8) {
-        // Start parallel sequence when beginning to move to waiting position
-        if (!parallelSequenceStarted) {
-            parallelSequenceStarted = true;
-            parallelStep = 0;
-        }
-        
-        // Get current positions
-        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
-        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
-        
-        // Calculate target absolute positions (5 inches right of pos3, same Y as pos3)
-        // Position 3 is: X = -testPos2X, Y = -testPos2Y + 0.5
-        // Waiting position is: X = -testPos2X + 5, Y = -testPos2Y + 0.5
-        float targetX = -testPos2X + 5.0;  // 5 inches right (more positive)
-        float targetY = -testPos2Y + 0.5;   // Same Y as pos3
-        
-        // Calculate relative movement needed to reach absolute position
-        float moveX = targetX - currentX;
-        float moveY = targetY - currentY;
-        
-        // Move X and Y simultaneously to waiting position
-        motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
-        
-        // Wait for both motors to finish (parallel sequence continues running)
-        while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
-            updateOTA();
-            delay(1);
-        }
-        CHECK_PAUSE_AND_CANCEL();
-        step = 9;
-    }
-    
-    //! ************************************************************************
-    //! STEP 10: WAIT FOR PARALLEL SEQUENCE (SERVO AND PAINTING MOTOR) TO COMPLETE
-    //! ************************************************************************
-    else if (step == 9) {
-        // Wait for parallel sequence to complete
-        while (parallelSequenceStarted) {
-            updateParallelSequence(parallelSequenceStarted, parallelStep);
-            updateOTA();
-            delay(1);
-        }
-        
-        // Safety: Ensure paint rotation motor is stopped and disabled
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
-        
-        // Ensure paint gun and suction are off
-        digitalWrite(PAINT_GUN_PIN, LOW);
-        digitalWrite(SUCTION_PIN, LOW);
-        
-        CHECK_PAUSE_AND_CANCEL();
-        step = 10;
-    }
-    
-    //! ************************************************************************
-    //! STEP 11: MOVE TO POSITION 3
-    //! ************************************************************************
-    else if (step == 10) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -524,13 +344,13 @@ void testState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 11;
+        step = 8;
     }
     
     //! ************************************************************************
-    //! STEP 12: EXTEND FORK MOTOR AT POSITION 3
+    //! STEP 9: EXTEND FORK MOTOR AT POSITION 3
     //! ************************************************************************
-    else if (step == 11) {
+    else if (step == 8) {
         // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -548,13 +368,13 @@ void testState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 12;
+        step = 9;
     }
     
     //! ************************************************************************
-    //! STEP 13: MOVE Y UP 0.5 INCHES AT POSITION 3
+    //! STEP 10: MOVE Y UP 0.5 INCHES AT POSITION 3
     //! ************************************************************************
-    else if (step == 12) {
+    else if (step == 9) {
         // Set speed and acceleration for 0.5 inch movement
         motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
@@ -571,13 +391,13 @@ void testState() {
         applyMotorSettings();
         
         CHECK_PAUSE_AND_CANCEL();
-        step = 13;
+        step = 10;
     }
     
     //! ************************************************************************
-    //! STEP 14: RETRACT FORK MOTOR AT POSITION 3
+    //! STEP 11: RETRACT FORK MOTOR AT POSITION 3
     //! ************************************************************************
-    else if (step == 13) {
+    else if (step == 10) {
         // Get current fork motor position and retract to home
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -589,13 +409,13 @@ void testState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 14;
+        step = 11;
     }
     
     //! ************************************************************************
-    //! STEP 15: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
+    //! STEP 12: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
     //! ************************************************************************
-    else if (step == 14) {
+    else if (step == 11) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -623,13 +443,13 @@ void testState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 15;
+        step = 12;
     }
     
     //! ************************************************************************
-    //! STEP 16: EXTEND FORK MOTOR AT POSITION 4
+    //! STEP 13: EXTEND FORK MOTOR AT POSITION 4
     //! ************************************************************************
-    else if (step == 15) {
+    else if (step == 12) {
         // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -647,13 +467,13 @@ void testState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 16;
+        step = 13;
     }
     
     //! ************************************************************************
-    //! STEP 17: LOWER Y BY 0.5 INCHES AT POSITION 4
+    //! STEP 14: LOWER Y BY 0.5 INCHES AT POSITION 4
     //! ************************************************************************
-    else if (step == 16) {
+    else if (step == 13) {
         // Set speed and acceleration for 0.5 inch movement
         motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
@@ -670,13 +490,13 @@ void testState() {
         applyMotorSettings();
         
         CHECK_PAUSE_AND_CANCEL();
-        step = 17;
+        step = 14;
     }
     
     //! ************************************************************************
-    //! STEP 18: RETRACT FORK MOTOR AT POSITION 4
+    //! STEP 15: RETRACT FORK MOTOR AT POSITION 4
     //! ************************************************************************
-    else if (step == 17) {
+    else if (step == 14) {
         motorFork->moveInches(testPos1Fork);
         
         // Wait for fork motor to finish retracting
@@ -685,16 +505,16 @@ void testState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 18;
+        step = 15;
     }
     
     //! ************************************************************************
-    //! STEP 19: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
+    //! STEP 16: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
     //! ************************************************************************
-    else if (step == 18) {
+    else if (step == 15) {
         // Skip return to 0 if we're in test all mode and have more heights or columns to test
         if (testAllMode && (currentTestAllHeight < 8 || testAllCurrentColumnIndex < testAllColumnCount - 1)) {
-            step = 19;
+            step = 16;
         } else {
             // Get current positions
             float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
@@ -712,14 +532,14 @@ void testState() {
                 delay(1);
             }
             CHECK_PAUSE_AND_CANCEL();
-            step = 19;
+            step = 16;
         }
     }
     
     //! ************************************************************************
-    //! STEP 20: HOME X, Y, AND FORK MOTORS
+    //! STEP 17: HOME X, Y, AND FORK MOTORS
     //! ************************************************************************
-    else if (step == 19) {
+    else if (step == 16) {
         // Safety: Ensure paint rotation motor is stopped and disabled
         if (motorPaintRotation) {
             motorPaintRotation->stopContinuous();
@@ -735,12 +555,8 @@ void testState() {
         
         // Ensure servo is at servo home angle (final position)
         if (servo) {
-            updateServoNonBlocking(SERVO_HOME_ANGLE);
-            // Wait for servo to reach final position
-            while (abs(currentServoAngle - SERVO_HOME_ANGLE) > 0.5) {
-                updateServoNonBlocking(SERVO_HOME_ANGLE);
-                delay(10);
-            }
+            currentServoAngle = SERVO_HOME_ANGLE;
+            servo->write(SERVO_HOME_ANGLE);
         }
         
         // Check if we're in test all mode and need to continue
@@ -754,8 +570,6 @@ void testState() {
                 // Reset test state to restart from step 0
                 testStarted = false;
                 step = 0;
-                parallelSequenceStarted = false;
-                parallelStep = 0;
                 
                 // Return immediately - next loop iteration will restart from step 0
                 return;
@@ -783,8 +597,6 @@ void testState() {
                     // Reset test state to restart from step 0
                     testStarted = false;
                     step = 0;
-                    parallelSequenceStarted = false;
-                    parallelStep = 0;
                     
                     // Return immediately - next loop iteration will restart from step 0
                     return;
