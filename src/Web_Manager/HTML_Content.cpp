@@ -773,8 +773,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <button class="distance-btn" id="heightA7" onclick="setHeight(7)">7</button>
                 <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">8</button>
               </div>
-            </div>
-            <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 20px; justify-content: flex-start;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Pressure Pot:</span>
                 <label class="toggle-switch">
@@ -782,6 +780,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   <span class="toggle-slider"></span>
                 </label>
               </div>
+            </div>
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+              <div style="flex: 1;"></div>
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Square Sensing:</span>
                 <label class="toggle-switch">
@@ -801,6 +802,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <option value="5">5</option>
                 <option value="6">6</option>
               </select>
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: center;">
+              <div class="control-section" style="align-items: center;">
+                <div class="control-label">Pressure Pot</div>
+                <button class="distance-btn" id="pressurePotBtnRunCycle" onclick="togglePressurePot()" style="margin-top: 16px; width: 100px;">OFF</button>
+              </div>
             </div>
             <div class="button-container" id="cycleControlButtons" style="display: none; margin-top: 16px;">
               <button class="action-btn" onclick="togglePause()" id="pauseResumeBtn" style="width: 50%;">Pause</button>
@@ -917,6 +924,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           <div class="control-section" style="align-items: center;">
             <div class="control-label">Paint Gun</div>
             <button class="distance-btn" id="paintGunBtn" onclick="togglePaintGun()" style="margin-top: 16px; width: 100px;">OFF</button>
+          </div>
+          <div class="control-section" style="align-items: center;">
+            <div class="control-label">Pressure Pot</div>
+            <button class="distance-btn" id="pressurePotBtn" onclick="togglePressurePot()" style="margin-top: 16px; width: 100px;">OFF</button>
           </div>
         </div>
       </div>
@@ -1472,14 +1483,22 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     function togglePressurePot() {
-      const toggle = document.getElementById('pressurePotToggle');
-      const enabled = toggle.checked;
-      fetch('/api/pressurepot?state=' + (enabled ? 'on' : 'off'))
+      const btn = document.getElementById('pressurePotBtn');
+      const btnRunCycle = document.getElementById('pressurePotBtnRunCycle');
+      const isOn = btn ? btn.textContent === 'ON' : (btnRunCycle ? btnRunCycle.textContent === 'ON' : false);
+      fetch('/api/pressurepot?state=' + (isOn ? 'off' : 'on'))
         .then(response => response.json())
         .then(data => {
-          console.log('Pressure pot:', data.state === 'on' ? 'ON' : 'OFF');
+          if (btn) {
+            btn.textContent = data.state === 'on' ? 'ON' : 'OFF';
+            btn.classList.toggle('active', data.state === 'on');
+          }
+          if (btnRunCycle) {
+            btnRunCycle.textContent = data.state === 'on' ? 'ON' : 'OFF';
+            btnRunCycle.classList.toggle('active', data.state === 'on');
+          }
         })
-        .catch(error => console.error('Pressure pot toggle error:', error));
+        .catch(error => console.error('Pressure pot error:', error));
     }
     
     // Load suction and paint gun states on page load
@@ -1489,6 +1508,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .then(data => {
           const suctionBtn = document.getElementById('suctionBtn');
           const paintGunBtn = document.getElementById('paintGunBtn');
+          const pressurePotBtn = document.getElementById('pressurePotBtn');
           if (suctionBtn) {
             suctionBtn.textContent = data.suction === 'on' ? 'ON' : 'OFF';
             suctionBtn.classList.toggle('active', data.suction === 'on');
@@ -1496,6 +1516,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           if (paintGunBtn) {
             paintGunBtn.textContent = data.paintGun === 'on' ? 'ON' : 'OFF';
             paintGunBtn.classList.toggle('active', data.paintGun === 'on');
+          }
+          if (pressurePotBtn) {
+            pressurePotBtn.textContent = data.pressurePot === 'on' ? 'ON' : 'OFF';
+            pressurePotBtn.classList.toggle('active', data.pressurePot === 'on');
+          }
+          const pressurePotBtnRunCycle = document.getElementById('pressurePotBtnRunCycle');
+          if (pressurePotBtnRunCycle) {
+            pressurePotBtnRunCycle.textContent = data.pressurePot === 'on' ? 'ON' : 'OFF';
+            pressurePotBtnRunCycle.classList.toggle('active', data.pressurePot === 'on');
           }
         })
         .catch(error => console.error('Error loading device states:', error));

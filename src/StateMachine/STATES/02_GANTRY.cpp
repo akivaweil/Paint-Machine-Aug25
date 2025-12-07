@@ -63,9 +63,6 @@ extern int cycleAllCurrentColumnIndex;  // Current column index in the cycle seq
 // Paint gun pin
 #include "../../config/Pin_Definitions.h"
 
-// External pressure pot state
-extern bool pressurePotState;
-
 //* ************************************************************************
 //* ************************ GANTRY STATE *********************************
 //* ************************************************************************
@@ -85,11 +82,9 @@ void gantryState() {
             disablePaintRotationMotor();
         }
         
-        // Turn off paint gun, suction, and pressure pot
+        // Turn off paint gun and suction
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
-        digitalWrite(PRESSURE_POT_PIN, LOW);
-        pressurePotState = false;
         
         // Home all motors (preserve column position)
         homeAllAxes(false);
@@ -115,6 +110,11 @@ void gantryState() {
         // Apply motor settings from dashboard before starting cycle
         applyMotorSettings();
         
+        // Turn on pressure pot automatically when cycle starts
+        digitalWrite(PRESSURE_POT_PIN, HIGH);
+        extern bool pressurePotState;
+        pressurePotState = true;
+        
         //! ************************************************************************
         //! STEP 0: MOVE STORAGE MOTOR TO SELECTED COLUMN
         //! ************************************************************************
@@ -125,10 +125,6 @@ void gantryState() {
             currentServoAngle = SERVO_HOME_ANGLE;
             servo->write(SERVO_HOME_ANGLE);
         }
-        
-        // Turn on pressure pot when cycle starts
-        digitalWrite(PRESSURE_POT_PIN, HIGH);
-        pressurePotState = true;
     }
     
     //! ************************************************************************
