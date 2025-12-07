@@ -17,15 +17,31 @@
 // Setup all API routes
 void setupAPIRoutes() {
     // Route for root / web page (sensor dashboard)
+    // Use PROGMEM response to avoid loading entire HTML into RAM
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        String html = FPSTR(sensors_html);
-        String stepsValue = String(storageMotorStepsPerClick);
-        html.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
-        String paintRotationStepsValue = String(paintRotationMotorStepsPerClick);
-        html.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", paintRotationStepsValue);
-        String servoHomeAngleValue = String(SERVO_HOME_ANGLE);
-        html.replace("SERVO_HOME_ANGLE_VALUE", servoHomeAngleValue);
-        request->send(200, "text/html", html);
+        AsyncResponseStream *response = request->beginResponseStream("text/html");
+        
+        // Read from PROGMEM and write in chunks to avoid RAM overflow
+        const char* html_P = sensors_html;
+        size_t len = strlen_P(html_P);
+        const size_t CHUNK_SIZE = 512;
+        char buffer[CHUNK_SIZE + 1];
+        
+        for (size_t i = 0; i < len; i += CHUNK_SIZE) {
+            size_t chunkLen = (i + CHUNK_SIZE < len) ? CHUNK_SIZE : (len - i);
+            memcpy_P(buffer, html_P + i, chunkLen);
+            buffer[chunkLen] = '\0';
+            
+            // Replace placeholders
+            String chunk = String(buffer);
+            chunk.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", String(storageMotorStepsPerClick));
+            chunk.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", String(paintRotationMotorStepsPerClick));
+            chunk.replace("SERVO_HOME_ANGLE_VALUE", String(SERVO_HOME_ANGLE));
+            
+            response->print(chunk);
+        }
+        
+        request->send(response);
     });
     
     // API endpoint for sensor states
