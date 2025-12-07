@@ -735,11 +735,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Paint<span>Machine</span></h1>
-      <p>Control Interface</p>
-    </div>
-    
     <div class="main-layout">
       <div class="sensor-panel">
         <div class="panel-label">Sensors</div>
