@@ -909,6 +909,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <div class="control-label">Paint Gun</div>
             <button class="distance-btn" id="paintGunBtn" onclick="togglePaintGun()" style="margin-top: 16px; width: 100px;">OFF</button>
           </div>
+          <div class="control-section" style="align-items: center;">
+            <div class="control-label">Pressure Pot</div>
+            <button class="distance-btn" id="pressurePotBtn" onclick="togglePressurePot()" style="margin-top: 16px; width: 100px;">OFF</button>
+          </div>
         </div>
       </div>
             </div>
@@ -1461,6 +1465,18 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Paint gun error:', error));
     }
     
+    function togglePressurePot() {
+      const btn = document.getElementById('pressurePotBtn');
+      const isOn = btn.textContent === 'ON';
+      fetch('/api/pressurepot?state=' + (isOn ? 'off' : 'on'))
+        .then(response => response.json())
+        .then(data => {
+          btn.textContent = data.state === 'on' ? 'ON' : 'OFF';
+          btn.classList.toggle('active', data.state === 'on');
+        })
+        .catch(error => console.error('Pressure pot error:', error));
+    }
+    
     // Load suction and paint gun states on page load
     function loadDeviceStates() {
       fetch('/api/devices/states')
@@ -1468,6 +1484,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .then(data => {
           const suctionBtn = document.getElementById('suctionBtn');
           const paintGunBtn = document.getElementById('paintGunBtn');
+          const pressurePotBtn = document.getElementById('pressurePotBtn');
           if (suctionBtn) {
             suctionBtn.textContent = data.suction === 'on' ? 'ON' : 'OFF';
             suctionBtn.classList.toggle('active', data.suction === 'on');
@@ -1475,6 +1492,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           if (paintGunBtn) {
             paintGunBtn.textContent = data.paintGun === 'on' ? 'ON' : 'OFF';
             paintGunBtn.classList.toggle('active', data.paintGun === 'on');
+          }
+          if (pressurePotBtn) {
+            pressurePotBtn.textContent = data.pressurePot === 'on' ? 'ON' : 'OFF';
+            pressurePotBtn.classList.toggle('active', data.pressurePot === 'on');
           }
         })
         .catch(error => console.error('Error loading device states:', error));

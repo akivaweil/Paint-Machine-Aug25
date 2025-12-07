@@ -36,6 +36,9 @@
 #define SUCTION_PIN 41
 #define PAINT_GUN_PIN 42
 
+// Pressure Pot
+#define PRESSURE_POT_PIN 39
+
 // Status LEDs
 #define STATUS_LED_PIN 2  // Built-in LED on most ESP32 boards
 #define ERROR_LED_PIN 2   // Using same pin for now

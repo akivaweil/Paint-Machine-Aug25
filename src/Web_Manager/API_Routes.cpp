@@ -501,11 +501,27 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for pressure pot control
+    server.on("/api/pressurepot", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("state")) {
+            String state = request->getParam("state")->value();
+            bool on = (state == "on");
+            digitalWrite(PRESSURE_POT_PIN, on ? HIGH : LOW);
+            pressurePotState = on;
+            String json = "{\"state\":\"" + state + "\"}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Set pressure pot %s\n", on ? "ON" : "OFF");
+        } else {
+            request->send(400, "text/plain", "Missing state parameter");
+        }
+    });
+    
     // API endpoint to get device states
     server.on("/api/devices/states", HTTP_GET, [](AsyncWebServerRequest *request){
         String json = "{";
         json += "\"suction\":\"" + String(suctionState ? "on" : "off") + "\",";
-        json += "\"paintGun\":\"" + String(paintGunState ? "on" : "off") + "\"";
+        json += "\"paintGun\":\"" + String(paintGunState ? "on" : "off") + "\",";
+        json += "\"pressurePot\":\"" + String(pressurePotState ? "on" : "off") + "\"";
         json += "}";
         request->send(200, "application/json", json);
     });

@@ -28,6 +28,7 @@ extern ServoControl* servo;
 extern float currentServoAngle;
 extern bool suctionState;
 extern bool paintGunState;
+extern bool pressurePotState;
 extern float testPos1X;
 extern float testPos1Y;
 extern float testPos1Fork;

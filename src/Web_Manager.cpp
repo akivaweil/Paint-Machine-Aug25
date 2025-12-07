@@ -41,6 +41,7 @@ float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
 // Suction and Paint Gun state
 bool suctionState = false;
 bool paintGunState = false;
+bool pressurePotState = false;
 
 // Test position values
 float testPos1X = 0.0;

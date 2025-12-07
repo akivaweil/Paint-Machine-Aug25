@@ -36,10 +36,13 @@ void initializeSensors() {
     // Initialize Suction and Paint Gun pins as outputs
     pinMode(SUCTION_PIN, OUTPUT);
     pinMode(PAINT_GUN_PIN, OUTPUT);
+    pinMode(PRESSURE_POT_PIN, OUTPUT);
     digitalWrite(SUCTION_PIN, LOW);
     digitalWrite(PAINT_GUN_PIN, LOW);
+    digitalWrite(PRESSURE_POT_PIN, LOW);
     suctionState = false;
     paintGunState = false;
+    pressurePotState = false;
     
     // Initialize HomeSwitch instances (pins configured in begin())
     if (homeSwitchX == nullptr) {
