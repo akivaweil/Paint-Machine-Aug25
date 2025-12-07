@@ -312,13 +312,13 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, TURN ON PAINT GUN AFTER 0.5 SEC DELAY
+    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, TURN ON PAINT GUN AFTER DELAY
     //! ************************************************************************
     else if (step == 2) {
-        // Check if 500ms has elapsed since servo started moving
+        // Check if delay has elapsed since servo started moving
         if (!paintGunTurnedOn && servoStartTime > 0) {
             unsigned long elapsedTime = millis() - servoStartTime;
-            if (elapsedTime >= 500) {
+            if (elapsedTime >= PAINT_GUN_DELAY_MS) {
                 turnOnPaintGun();
                 paintGunTurnedOn = true;
             }

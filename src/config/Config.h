@@ -77,5 +77,8 @@
 // Servo configuration
 #define SERVO_HOME_ANGLE 130.0  // Servo home angle in degrees
 
+// Painting state configuration
+#define PAINT_GUN_DELAY_MS 1500  // Delay in milliseconds before paint gun turns on after servo starts moving
+
 
 #endif // CONFIG_H 
