@@ -25,7 +25,7 @@ extern void updateOTA();
 
 // State machine function
 extern void setMachineState(int state);
-#define STATE_TEST 2
+#define STATE_GANTRY 2
 
 // Cycle control flags
 extern bool cyclePaused;
@@ -183,7 +183,7 @@ void paintingState() {
         step = 0;
         
         // Return to test state
-        setMachineState(STATE_TEST);
+        setMachineState(STATE_GANTRY);
         return;
     }
     
@@ -288,6 +288,6 @@ void paintingState() {
         step = 0;
         
         // Return to test state
-        setMachineState(STATE_TEST);
+        setMachineState(STATE_GANTRY);
     }
 }

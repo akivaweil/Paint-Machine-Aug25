@@ -1,13 +1,13 @@
-#ifndef TEST_STATE_H
-#define TEST_STATE_H
+#ifndef GANTRY_STATE_H
+#define GANTRY_STATE_H
 
 #include <Arduino.h>
 
 //* ************************************************************************
-//* ************************ TEST STATE ***********************************
+//* ************************ GANTRY STATE *********************************
 //* ************************************************************************
 
-void testState();
+void gantryState();
 
-#endif // TEST_STATE_H
+#endif // GANTRY_STATE_H
 

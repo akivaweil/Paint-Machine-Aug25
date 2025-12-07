@@ -8,7 +8,7 @@ extern void updateOTA();
 
 // State machine function
 extern void setMachineState(int state);
-#define STATE_TEST 2
+#define STATE_GANTRY 2
 
 //* ************************************************************************
 //* ************************ IDLE STATE ***********************************
@@ -26,7 +26,7 @@ void idleState() {
         // Button is active HIGH (pulldown), so check for rising edge
         if (lastButtonState == LOW && buttonState == HIGH) {
             // Button pressed - start test cycle
-            setMachineState(STATE_TEST);
+            setMachineState(STATE_GANTRY);
         }
         
         lastButtonState = buttonState;

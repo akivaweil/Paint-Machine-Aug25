@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "StateMachine/STATES/02_TEST.h"
+#include "StateMachine/STATES/02_GANTRY.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
@@ -64,10 +64,10 @@ extern int testAllCurrentColumnIndex;  // Current column index in the test seque
 #include "../../config/Pin_Definitions.h"
 
 //* ************************************************************************
-//* ************************ TEST STATE ***********************************
+//* ************************ GANTRY STATE *********************************
 //* ************************************************************************
 
-void testState() {
+void gantryState() {
     static int step = 0;
     static bool testStarted = false;
     

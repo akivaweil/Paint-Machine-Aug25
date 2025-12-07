@@ -11,14 +11,14 @@ extern void updateWebServer();
 // State functions
 extern void homingState();
 extern void idleState();
-extern void testState();
+extern void gantryState();
 extern void paintingState();
 
 // State machine state
 enum MachineState {
     STATE_HOMING,
     STATE_IDLE,
-    STATE_TEST,
+    STATE_GANTRY,
     STATE_PAINTING
 };
 
@@ -68,8 +68,8 @@ void loop() {
         case STATE_IDLE:
             idleState();
             break;
-        case STATE_TEST:
-            testState();
+        case STATE_GANTRY:
+            gantryState();
             break;
         case STATE_PAINTING:
             paintingState();
