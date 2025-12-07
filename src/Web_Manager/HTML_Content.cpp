@@ -773,6 +773,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <button class="distance-btn" id="heightA7" onclick="setHeight(7)">7</button>
                 <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">8</button>
               </div>
+            </div>
+            <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 20px; justify-content: flex-start;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Pressure Pot:</span>
                 <label class="toggle-switch">
@@ -780,9 +782,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-            </div>
-            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
-              <div style="flex: 1;"></div>
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Square Sensing:</span>
                 <label class="toggle-switch">
