@@ -21,11 +21,11 @@ void idleState() {
     // Check start button (debounced)
     unsigned long currentTime = millis();
     if (currentTime - lastButtonCheck >= 50) {  // Check every 50ms
-        bool buttonState = digitalRead(TEST_BUTTON_PIN);
+        bool buttonState = digitalRead(START_BUTTON_PIN);
         
         // Button is active HIGH (pulldown), so check for rising edge
         if (lastButtonState == LOW && buttonState == HIGH) {
-            // Button pressed - start test cycle
+            // Button pressed - start cycle
             setMachineState(STATE_GANTRY);
         }
         

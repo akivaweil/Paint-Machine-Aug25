@@ -28,20 +28,21 @@ extern ServoControl* servo;
 extern float currentServoAngle;
 extern bool suctionState;
 extern bool paintGunState;
-extern float testPos1X;
-extern float testPos1Y;
-extern float testPos1Fork;
-extern float testPos2X;
-extern float testPos2Y;
-extern float testPos2Fork;
+extern bool pressurePotState;
+extern float pos1X;
+extern float pos1Y;
+extern float pos1Fork;
+extern float pos2X;
+extern float pos2Y;
+extern float pos2Fork;
 extern int selectedPosition1Height;
 extern int currentColumn;  // Current column position (0-5, where 0=A, 5=F)
-extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
-extern bool testAllMode;
-extern int currentTestAllHeight;
-extern int testAllColumnCount;
-extern int testAllStartColumn;
-extern int testAllCurrentColumnIndex;
+extern int selectedColumn;  // Selected column for cycle (0-5, where 0=A, 5=F)
+extern bool cycleAllMode;
+extern int currentCycleAllHeight;
+extern int cycleAllColumnCount;
+extern int cycleAllStartColumn;
+extern int cycleAllCurrentColumnIndex;
 extern bool squareSensingEnabled;
 extern long motorSpeedX;
 extern long motorSpeedY;
@@ -70,8 +71,8 @@ extern void updateWebServer();
 extern void applyMotorSettings();
 
 // Storage functions
-extern void saveTestPositions();
-extern void loadTestPositions();
+extern void savePositions();
+extern void loadPositions();
 extern void saveMotorSettings();
 extern void loadMotorSettings();
 extern void saveSquareSensingState();

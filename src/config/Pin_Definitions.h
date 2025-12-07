@@ -36,12 +36,15 @@
 #define SUCTION_PIN 41
 #define PAINT_GUN_PIN 42
 
+// Pressure Pot (Active HIGH relay)
+#define PRESSURE_POT_PIN 41
+
 // Status LEDs
 #define STATUS_LED_PIN 2  // Built-in LED on most ESP32 boards
 #define ERROR_LED_PIN 2   // Using same pin for now
 
-// Test button
-#define TEST_BUTTON_PIN 17
+// Start button
+#define START_BUTTON_PIN 17
 
 // Storage Position Sensor (Active HIGH with pulldown)
 #define STORAGE_POSITION_SENSOR_PIN 2

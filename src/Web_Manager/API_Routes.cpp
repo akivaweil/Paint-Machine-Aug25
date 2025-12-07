@@ -180,8 +180,8 @@ void setupAPIRoutes() {
         }
     });
     
-    // API endpoint to get/set test position values
-    server.on("/api/test/positions", HTTP_GET, [](AsyncWebServerRequest *request){
+    // API endpoint to get/set position values
+    server.on("/api/cycle/positions", HTTP_GET, [](AsyncWebServerRequest *request){
         // Check if parameters are provided to set values
         if (request->hasParam("pos1X") || request->hasParam("pos1Y") || request->hasParam("pos1Fork") ||
             request->hasParam("pos2X") || request->hasParam("pos2Y") || request->hasParam("pos2Fork") ||
@@ -189,22 +189,22 @@ void setupAPIRoutes() {
             
             // Set position values if provided
             if (request->hasParam("pos1X")) {
-                testPos1X = request->getParam("pos1X")->value().toFloat();
+                pos1X = request->getParam("pos1X")->value().toFloat();
             }
             if (request->hasParam("pos1Y")) {
-                testPos1Y = request->getParam("pos1Y")->value().toFloat();
+                pos1Y = request->getParam("pos1Y")->value().toFloat();
             }
             if (request->hasParam("pos1Fork")) {
-                testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+                pos1Fork = request->getParam("pos1Fork")->value().toFloat();
             }
             if (request->hasParam("pos2X")) {
-                testPos2X = request->getParam("pos2X")->value().toFloat();
+                pos2X = request->getParam("pos2X")->value().toFloat();
             }
             if (request->hasParam("pos2Y")) {
-                testPos2Y = request->getParam("pos2Y")->value().toFloat();
+                pos2Y = request->getParam("pos2Y")->value().toFloat();
             }
             if (request->hasParam("pos2Fork")) {
-                testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+                pos2Fork = request->getParam("pos2Fork")->value().toFloat();
             }
             if (request->hasParam("pos1Height")) {
                 int height = request->getParam("pos1Height")->value().toInt();
@@ -220,95 +220,95 @@ void setupAPIRoutes() {
             }
             
             // Save to persistent storage
-            saveTestPositions();
+            savePositions();
             
             request->send(200, "text/plain", "OK");
-            Serial.println("Web Request: Test positions updated");
+            Serial.println("Web Request: Positions updated");
         } else {
             // Return current values if no parameters provided
             String json = "{";
-            json += "\"pos1X\":" + String(testPos1X) + ",";
-            json += "\"pos1Y\":" + String(testPos1Y) + ",";
-            json += "\"pos1Fork\":" + String(testPos1Fork) + ",";
+            json += "\"pos1X\":" + String(pos1X) + ",";
+            json += "\"pos1Y\":" + String(pos1Y) + ",";
+            json += "\"pos1Fork\":" + String(pos1Fork) + ",";
             json += "\"pos1Height\":" + String(selectedPosition1Height) + ",";
             json += "\"column\":" + String(selectedColumn) + ",";
-            json += "\"pos2X\":" + String(testPos2X) + ",";
-            json += "\"pos2Y\":" + String(testPos2Y) + ",";
-            json += "\"pos2Fork\":" + String(testPos2Fork);
+            json += "\"pos2X\":" + String(pos2X) + ",";
+            json += "\"pos2Y\":" + String(pos2Y) + ",";
+            json += "\"pos2Fork\":" + String(pos2Fork);
             json += "}";
             request->send(200, "application/json", json);
         }
     });
     
-    // API endpoint for test all sequence (runs all 8 heights a1-a8 for selected column)
-    // NOTE: Must be registered BEFORE /api/test to avoid prefix matching issues
-    server.on("/api/test/all", HTTP_GET, [](AsyncWebServerRequest *request){
+    // API endpoint for cycle all sequence (runs all 8 heights a1-a8 for selected column)
+    // NOTE: Must be registered BEFORE /api/cycle to avoid prefix matching issues
+    server.on("/api/cycle/all", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
             request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
             
-            // Set test all mode and start at height 1 (a1)
-            testAllMode = true;
-            currentTestAllHeight = 1;
+            // Set cycle all mode and start at height 1 (a1)
+            cycleAllMode = true;
+            currentCycleAllHeight = 1;
             
             // Get position values from request
-            testPos1X = request->getParam("pos1X")->value().toFloat();
-            testPos1Y = request->getParam("pos1Y")->value().toFloat();
-            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
-            testPos2X = request->getParam("pos2X")->value().toFloat();
-            testPos2Y = request->getParam("pos2Y")->value().toFloat();
-            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            pos1X = request->getParam("pos1X")->value().toFloat();
+            pos1Y = request->getParam("pos1Y")->value().toFloat();
+            pos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            pos2X = request->getParam("pos2X")->value().toFloat();
+            pos2Y = request->getParam("pos2Y")->value().toFloat();
+            pos2Fork = request->getParam("pos2Fork")->value().toFloat();
             
             // Get column count (1-6, default to 1)
             if (request->hasParam("columnCount")) {
                 int count = request->getParam("columnCount")->value().toInt();
                 if (count >= 1 && count <= 6) {
-                    testAllColumnCount = count;
+                    cycleAllColumnCount = count;
                 } else {
-                    testAllColumnCount = 1;  // Default to 1
+                    cycleAllColumnCount = 1;  // Default to 1
                 }
             } else {
-                testAllColumnCount = 1;  // Default to 1
+                cycleAllColumnCount = 1;  // Default to 1
             }
             
             // Start from current physical column position
             extern int currentColumn;
-            testAllStartColumn = currentColumn;
-            testAllCurrentColumnIndex = 0;
+            cycleAllStartColumn = currentColumn;
+            cycleAllCurrentColumnIndex = 0;
             selectedColumn = currentColumn;  // Use physical position as starting column
             
             // Set position 1 height to 1 (a1, highest)
             selectedPosition1Height = 1;
             
             // Save values to persistent storage
-            saveTestPositions();
+            savePositions();
             
             // Start gantry state (STATE_GANTRY = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.printf("Web Request: Start test all sequence (a1-a8) for %d columns starting at column %c\n", 
-                         testAllColumnCount, 'A' + selectedColumn);
+            Serial.printf("Web Request: Start cycle all sequence (a1-a8) for %d columns starting at column %c\n", 
+                         cycleAllColumnCount, 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
     });
     
-    // API endpoint for single test sequence
-    server.on("/api/test", HTTP_GET, [](AsyncWebServerRequest *request){
+    // API endpoint for single cycle sequence
+    server.on("/api/cycle", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
             request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
             
-            // Ensure test all mode is OFF for single test
-            testAllMode = false;
+            // Ensure cycle all mode is OFF for single cycle
+            cycleAllMode = false;
             
             // Get position values from request
-            testPos1X = request->getParam("pos1X")->value().toFloat();
-            testPos1Y = request->getParam("pos1Y")->value().toFloat();
-            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
-            testPos2X = request->getParam("pos2X")->value().toFloat();
-            testPos2Y = request->getParam("pos2Y")->value().toFloat();
-            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            pos1X = request->getParam("pos1X")->value().toFloat();
+            pos1Y = request->getParam("pos1Y")->value().toFloat();
+            pos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            pos2X = request->getParam("pos2X")->value().toFloat();
+            pos2Y = request->getParam("pos2Y")->value().toFloat();
+            pos2Fork = request->getParam("pos2Fork")->value().toFloat();
             
             // Get position 1 height selection (default to 8 if not provided)
             if (request->hasParam("pos1Height")) {
@@ -339,14 +339,14 @@ void setupAPIRoutes() {
             }
             
             // Save values to persistent storage
-            saveTestPositions();
+            savePositions();
             
             // Start gantry state (STATE_GANTRY = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.printf("Web Request: Start test sequence for column %c\n", 'A' + selectedColumn);
+            Serial.printf("Web Request: Start cycle sequence for column %c\n", 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
@@ -501,11 +501,27 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for pressure pot control
+    server.on("/api/pressurepot", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("state")) {
+            String state = request->getParam("state")->value();
+            bool on = (state == "on");
+            digitalWrite(PRESSURE_POT_PIN, on ? HIGH : LOW);
+            pressurePotState = on;
+            String json = "{\"state\":\"" + state + "\"}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Set pressure pot %s\n", on ? "ON" : "OFF");
+        } else {
+            request->send(400, "text/plain", "Missing state parameter");
+        }
+    });
+    
     // API endpoint to get device states
     server.on("/api/devices/states", HTTP_GET, [](AsyncWebServerRequest *request){
         String json = "{";
         json += "\"suction\":\"" + String(suctionState ? "on" : "off") + "\",";
-        json += "\"paintGun\":\"" + String(paintGunState ? "on" : "off") + "\"";
+        json += "\"paintGun\":\"" + String(paintGunState ? "on" : "off") + "\",";
+        json += "\"pressurePot\":\"" + String(pressurePotState ? "on" : "off") + "\"";
         json += "}";
         request->send(200, "application/json", json);
     });

@@ -14,8 +14,8 @@
 void initializeSensors() {
     if (sensorsInitialized) return;
     
-    // Initialize test button (active HIGH with pulldown)
-    pinMode(TEST_BUTTON_PIN, INPUT_PULLDOWN);
+    // Initialize start button (active HIGH with pulldown)
+    pinMode(START_BUTTON_PIN, INPUT_PULLDOWN);
     
     // Initialize Storage Position Sensor (active HIGH with pulldown, 5ms debounce)
     storagePositionSensor.attach(STORAGE_POSITION_SENSOR_PIN, INPUT_PULLDOWN);
@@ -40,6 +40,11 @@ void initializeSensors() {
     digitalWrite(PAINT_GUN_PIN, LOW);
     suctionState = false;
     paintGunState = false;
+    
+    // Initialize Pressure Pot pin as output (active HIGH relay)
+    pinMode(PRESSURE_POT_PIN, OUTPUT);
+    digitalWrite(PRESSURE_POT_PIN, LOW);
+    pressurePotState = false;
     
     // Initialize HomeSwitch instances (pins configured in begin())
     if (homeSwitchX == nullptr) {
@@ -141,7 +146,7 @@ String getSensorStatesJSON() {
     // Read Y and Fork using HomeSwitch instances
     bool yHome = homeSwitchY ? homeSwitchY->read() : false;
     bool forkHome = homeSwitchFork ? homeSwitchFork->read() : false;
-    bool testButton = digitalRead(TEST_BUTTON_PIN); // Active HIGH
+    bool startButton = digitalRead(START_BUTTON_PIN); // Active HIGH
     bool storagePosition = storagePositionSensor.read(); // Active HIGH
     bool squarePresent = !digitalRead(SQUARE_PRESENT_SENSOR_PIN); // Active LOW, invert so true = present
     
@@ -150,7 +155,7 @@ String getSensorStatesJSON() {
     json += "\"xHome2\":" + String(xHome2 ? "true" : "false") + ",";
     json += "\"yHome\":" + String(yHome ? "true" : "false") + ",";
     json += "\"forkHome\":" + String(forkHome ? "true" : "false") + ",";
-    json += "\"testButton\":" + String(testButton ? "true" : "false") + ",";
+    json += "\"startButton\":" + String(startButton ? "true" : "false") + ",";
     json += "\"storagePosition\":" + String(storagePosition ? "true" : "false") + ",";
     json += "\"squarePresent\":" + String(squarePresent ? "true" : "false");
     json += "}";

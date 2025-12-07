@@ -774,6 +774,16 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 <button class="distance-btn active" id="heightA8" onclick="setHeight(8)">8</button>
               </div>
               <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Pressure Pot:</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="pressurePotToggle" onchange="togglePressurePot()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+              <div style="flex: 1;"></div>
+              <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Square Sensing:</span>
                 <label class="toggle-switch">
                   <input type="checkbox" id="squareSensingToggle" onchange="toggleSquareSensing()">
@@ -782,8 +792,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               </div>
             </div>
             <div class="button-container">
-              <button class="action-btn" onclick="startTest()" style="width: 60%;" id="runTestBtn">Run Cycle</button>
-              <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;" id="testAllBtn">Cycle All</button>
+              <button class="action-btn" onclick="startCycle()" style="width: 60%;" id="runCycleBtn">Run Cycle</button>
+              <button class="action-btn-secondary" onclick="startCycleAll()" style="width: 25%;" id="cycleAllBtn">Cycle All</button>
               <select id="columnCountSelect" style="width: 15%; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 12px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease;">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -1072,7 +1082,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'xHome2', name: 'X Home 2' },
       { id: 'yHome', name: 'Y Home' },
       { id: 'forkHome', name: 'Fork Home' },
-      { id: 'testButton', name: 'Cycle Btn' },
+      { id: 'startButton', name: 'Start Btn' },
       { id: 'storagePosition', name: 'Storage Position' },
       { id: 'squarePresent', name: 'Square Present' }
     ];
@@ -1172,8 +1182,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     setInterval(checkConnection, 200);
     
     // Load saved cycle positions on page load
-    function loadTestPositions() {
-      fetch('/api/test/positions')
+    function loadPositions() {
+      fetch('/api/cycle/positions')
         .then(response => response.json())
         .then(data => {
           document.getElementById('pos1X').value = data.pos1X || 0;
@@ -1292,9 +1302,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     // Load positions and settings when page loads
-    loadTestPositions();
+    loadPositions();
     loadMotorSettings();
     loadDeviceStates();
+    loadPressurePotState();
     loadSquareSensingState();
     
     // Cycle control state polling
@@ -1307,14 +1318,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           const cycleControlButtons = document.getElementById('cycleControlButtons');
           const pauseResumeBtn = document.getElementById('pauseResumeBtn');
           const cancelBtn = document.getElementById('cancelBtn');
-          const runTestBtn = document.getElementById('runTestBtn');
-          const testAllBtn = document.getElementById('testAllBtn');
+          const runCycleBtn = document.getElementById('runCycleBtn');
+          const cycleAllBtn = document.getElementById('cycleAllBtn');
           
           if (data.state === 'GANTRY') {
             // Show cycle control buttons during cycle
             cycleControlButtons.style.display = 'flex';
-            runTestBtn.style.display = 'none';
-            testAllBtn.style.display = 'none';
+            runCycleBtn.style.display = 'none';
+            cycleAllBtn.style.display = 'none';
             
             // Update pause/resume button
             if (data.paused) {
@@ -1327,8 +1338,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           } else {
             // Hide cycle control buttons when not in cycle
             cycleControlButtons.style.display = 'none';
-            runTestBtn.style.display = 'block';
-            testAllBtn.style.display = 'block';
+            runCycleBtn.style.display = 'block';
+            cycleAllBtn.style.display = 'block';
           }
         })
         .catch(error => {
@@ -1461,6 +1472,17 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Paint gun error:', error));
     }
     
+    function togglePressurePot() {
+      const toggle = document.getElementById('pressurePotToggle');
+      const enabled = toggle.checked;
+      fetch('/api/pressurepot?state=' + (enabled ? 'on' : 'off'))
+        .then(response => response.json())
+        .then(data => {
+          console.log('Pressure pot:', data.state === 'on' ? 'ON' : 'OFF');
+        })
+        .catch(error => console.error('Pressure pot toggle error:', error));
+    }
+    
     // Load suction and paint gun states on page load
     function loadDeviceStates() {
       fetch('/api/devices/states')
@@ -1478,6 +1500,19 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           }
         })
         .catch(error => console.error('Error loading device states:', error));
+    }
+    
+    // Load pressure pot toggle state on page load
+    function loadPressurePotState() {
+      fetch('/api/devices/states')
+        .then(response => response.json())
+        .then(data => {
+          const toggle = document.getElementById('pressurePotToggle');
+          if (toggle) {
+            toggle.checked = data.pressurePot === 'on';
+          }
+        })
+        .catch(error => console.error('Error loading pressure pot state:', error));
     }
     
     function stopMove() {
@@ -1521,7 +1556,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Home error:', error));
     }
     
-    function startTest() {
+    function startCycle() {
       const pos1X = parseFloat(document.getElementById('pos1X').value) || 0;
       const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
       const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
@@ -1531,7 +1566,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos2Y = parseFloat(document.getElementById('pos2Y').value) || 0;
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
       
-      const url = '/api/test?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
+      const url = '/api/cycle?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
                   '&pos1Height=' + pos1Height + '&column=' + column +
                   '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork;
       
@@ -1543,7 +1578,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Cycle error:', error));
     }
     
-    function startTestAll() {
+    function startCycleAll() {
       const pos1X = parseFloat(document.getElementById('pos1X').value) || 0;
       const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
       const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
@@ -1553,7 +1588,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
       const columnCount = parseInt(document.getElementById('columnCountSelect').value) || 1;
       
-      const url = '/api/test/all?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
+      const url = '/api/cycle/all?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
                   '&column=' + column +
                   '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork +
                   '&columnCount=' + columnCount;
@@ -1614,12 +1649,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function downloadSettings() {
       Promise.all([
         fetch('/api/motor/settings').then(r => r.json()),
-        fetch('/api/test/positions').then(r => r.json()),
+        fetch('/api/cycle/positions').then(r => r.json()),
         fetch('/api/squareSensing').then(r => r.json())
-      ]).then(([motorSettings, testPositions, squareSensing]) => {
+      ]).then(([motorSettings, cyclePositions, squareSensing]) => {
         const allSettings = {
           motor: motorSettings,
-          testPositions: testPositions,
+          cyclePositions: cyclePositions,
           squareSensing: squareSensing.enabled
         };
         
@@ -1683,9 +1718,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           }
           
           // Upload cycle positions
-          if (settings.testPositions) {
-            const tp = settings.testPositions;
-            const url = '/api/test/positions?pos1X=' + (tp.pos1X || 0) +
+          if (settings.cyclePositions) {
+            const tp = settings.cyclePositions;
+            const url = '/api/cycle/positions?pos1X=' + (tp.pos1X || 0) +
                         '&pos1Y=' + (tp.pos1Y || 0) +
                         '&pos1Fork=' + (tp.pos1Fork || 0) +
                         '&pos1Height=' + (tp.pos1Height || 8) +
@@ -1697,7 +1732,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             fetch(url)
               .then(() => {
                 // Reload cycle positions to update UI
-                loadTestPositions();
+                loadPositions();
               });
           }
           
