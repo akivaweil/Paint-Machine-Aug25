@@ -25,7 +25,7 @@ void idleState() {
         
         // Button is active HIGH (pulldown), so check for rising edge
         if (lastButtonState == LOW && buttonState == HIGH) {
-            // Button pressed - start test cycle
+            // Button pressed - start cycle
             setMachineState(STATE_GANTRY);
         }
         

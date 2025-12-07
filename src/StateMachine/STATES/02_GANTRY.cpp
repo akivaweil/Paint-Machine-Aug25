@@ -45,20 +45,20 @@ extern void homeAllAxes(bool resetColumn);
         if (cycleCancelled) return; \
     } while(0)
 
-// Test position values (set from web interface)
-extern float testPos1X;
-extern float testPos1Y;
-extern float testPos1Fork;
-extern float testPos2X;
-extern float testPos2Y;
-extern float testPos2Fork;
+// Cycle position values (set from web interface)
+extern float cyclePos1X;
+extern float cyclePos1Y;
+extern float cyclePos1Fork;
+extern float cyclePos2X;
+extern float cyclePos2Y;
+extern float cyclePos2Fork;
 extern int selectedPosition1Height;  // Position 1 height selection (1-8, where 8 = a8/lowest)
-extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
-extern bool testAllMode;  // Flag to track if we're in "test all" mode
-extern int currentTestAllHeight;  // Track which height we're currently testing (1-8)
-extern int testAllColumnCount;  // Number of columns to test (1-6)
-extern int testAllStartColumn;  // Starting column position (from physical position)
-extern int testAllCurrentColumnIndex;  // Current column index in the test sequence (0 to testAllColumnCount-1)
+extern int selectedColumn;  // Selected column for cycle (0-5, where 0=A, 5=F)
+extern bool cycleAllMode;  // Flag to track if we're in "cycle all" mode
+extern int currentCycleAllHeight;  // Track which height we're currently cycling (1-8)
+extern int cycleAllColumnCount;  // Number of columns to cycle (1-6)
+extern int cycleAllStartColumn;  // Starting column position (from physical position)
+extern int cycleAllCurrentColumnIndex;  // Current column index in the cycle sequence (0 to cycleAllColumnCount-1)
 
 // Paint gun pin
 #include "../../config/Pin_Definitions.h"
@@ -69,7 +69,7 @@ extern int testAllCurrentColumnIndex;  // Current column index in the test seque
 
 void gantryState() {
     static int step = 0;
-    static bool testStarted = false;
+    static bool cycleStarted = false;
     
     // Check for cancel at start of function
     if (cycleCancelled) {
@@ -92,7 +92,7 @@ void gantryState() {
         // Reset flags and state
         cycleCancelled = false;
         cyclePaused = false;
-        testStarted = false;
+        cycleStarted = false;
         step = 0;
         
         // Return to idle
@@ -101,13 +101,13 @@ void gantryState() {
     }
     
     // Initialize on first entry
-    if (!testStarted) {
+    if (!cycleStarted) {
         step = 0;
-        testStarted = true;
-        cyclePaused = false;  // Reset pause flag on new test
-        cycleCancelled = false;  // Reset cancel flag on new test
+        cycleStarted = true;
+        cyclePaused = false;  // Reset pause flag on new cycle
+        cycleCancelled = false;  // Reset cancel flag on new cycle
         
-        // Apply motor settings from dashboard before starting test
+        // Apply motor settings from dashboard before starting cycle
         applyMotorSettings();
         
         //! ************************************************************************
@@ -131,12 +131,12 @@ void gantryState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate actual Y position based on selected height (a1-a8)
-        // a8 (selectedPosition1Height = 8) = testPos1Y (lowest, no offset)
-        // a1 (selectedPosition1Height = 1) = testPos1Y + 7 * spacing (highest)
-        float actualPos1Y = testPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
+        // a8 (selectedPosition1Height = 8) = cyclePos1Y (lowest, no offset)
+        // a1 (selectedPosition1Height = 1) = cyclePos1Y + 7 * spacing (highest)
+        float actualPos1Y = cyclePos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
         
         // Calculate target absolute positions (negate because positive direction moves toward home switches)
-        float targetX = -testPos1X;
+        float targetX = -cyclePos1X;
         float targetY = -actualPos1Y;
         
         // Calculate relative movement needed to reach absolute position
@@ -164,7 +164,7 @@ void gantryState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos1Fork;
+        float targetFork = -cyclePos1Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -182,7 +182,7 @@ void gantryState() {
         extern bool squareSensingEnabled;
         if (squareSensingEnabled && digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
             // Retract fork before skipping
-            motorFork->moveInches(testPos1Fork);
+            motorFork->moveInches(cyclePos1Fork);
             
             // Wait for fork motor to finish retracting
             while (motorFork->isMotorRunning()) {
@@ -203,8 +203,8 @@ void gantryState() {
     //! ************************************************************************
     else if (step == 2) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(CYCLE_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(CYCLE_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);
         
@@ -225,7 +225,7 @@ void gantryState() {
     //! STEP 4: RETRACT FORK MOTOR AT POSITION 1
     //! ************************************************************************
     else if (step == 3) {
-        motorFork->moveInches(testPos1Fork);
+            motorFork->moveInches(cyclePos1Fork);
         
         // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
@@ -245,8 +245,8 @@ void gantryState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate target absolute positions (negate because positive direction moves toward home switches)
-        float targetX = -testPos2X;
-        float targetY = -testPos2Y;
+        float targetX = -cyclePos2X;
+        float targetY = -cyclePos2Y;
         
         // Calculate relative movement needed to reach absolute position
         float moveX = targetX - currentX;
@@ -273,7 +273,7 @@ void gantryState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos2Fork;
+        float targetFork = -cyclePos2Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -294,8 +294,8 @@ void gantryState() {
     //! ************************************************************************
     else if (step == 6) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(CYCLE_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(CYCLE_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(0.5);
         
@@ -327,8 +327,8 @@ void gantryState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate target absolute positions (pos2 but Y is 0.5 lower)
-        float targetX = -testPos2X;
-        float targetY = -testPos2Y + 0.5;  // 0.5 lower means less negative (add 0.5)
+        float targetX = -cyclePos2X;
+        float targetY = -cyclePos2Y + 0.5;  // 0.5 lower means less negative (add 0.5)
         
         // Calculate relative movement needed to reach absolute position
         float moveX = targetX - currentX;
@@ -355,7 +355,7 @@ void gantryState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos2Fork;
+        float targetFork = -cyclePos2Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -376,8 +376,8 @@ void gantryState() {
     //! ************************************************************************
     else if (step == 9) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(CYCLE_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(CYCLE_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);  // Negative moves away from home (up)
         
@@ -421,12 +421,12 @@ void gantryState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate actual Y position based on selected height (a1-a8)
-        // a8 (selectedPosition1Height = 8) = testPos1Y (lowest, no offset)
-        // a1 (selectedPosition1Height = 1) = testPos1Y + 7 * spacing (highest)
-        float actualPos1Y = testPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
+        // a8 (selectedPosition1Height = 8) = cyclePos1Y (lowest, no offset)
+        // a1 (selectedPosition1Height = 1) = cyclePos1Y + 7 * spacing (highest)
+        float actualPos1Y = cyclePos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
         
         // Calculate target absolute positions (pos1 but Y is 0.5 higher)
-        float targetX = -testPos1X;
+        float targetX = -cyclePos1X;
         float targetY = -actualPos1Y - 0.5;  // 0.5 higher means more negative (subtract 0.5)
         
         // Calculate relative movement needed to reach absolute position
@@ -454,7 +454,7 @@ void gantryState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos1Fork;
+        float targetFork = -cyclePos1Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -475,8 +475,8 @@ void gantryState() {
     //! ************************************************************************
     else if (step == 13) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(CYCLE_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(CYCLE_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(0.5);
         
@@ -497,7 +497,7 @@ void gantryState() {
     //! STEP 15: RETRACT FORK MOTOR AT POSITION 4
     //! ************************************************************************
     else if (step == 14) {
-        motorFork->moveInches(testPos1Fork);
+            motorFork->moveInches(cyclePos1Fork);
         
         // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
@@ -512,8 +512,8 @@ void gantryState() {
     //! STEP 16: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
     //! ************************************************************************
     else if (step == 15) {
-        // Skip return to 0 if we're in test all mode and have more heights or columns to test
-        if (testAllMode && (currentTestAllHeight < 8 || testAllCurrentColumnIndex < testAllColumnCount - 1)) {
+        // Skip return to 0 if we're in cycle all mode and have more heights or columns to cycle
+        if (cycleAllMode && (currentCycleAllHeight < 8 || cycleAllCurrentColumnIndex < cycleAllColumnCount - 1)) {
             step = 16;
         } else {
             // Get current positions
@@ -559,43 +559,43 @@ void gantryState() {
             servo->write(SERVO_HOME_ANGLE);
         }
         
-        // Check if we're in test all mode and need to continue
-        if (testAllMode) {
+        // Check if we're in cycle all mode and need to continue
+        if (cycleAllMode) {
             // Check if we've completed all heights for current column
-            if (currentTestAllHeight < 8) {
+            if (currentCycleAllHeight < 8) {
                 // Increment to next height
-                currentTestAllHeight++;
-                selectedPosition1Height = currentTestAllHeight;
+                currentCycleAllHeight++;
+                selectedPosition1Height = currentCycleAllHeight;
                 
-                // Reset test state to restart from step 0
-                testStarted = false;
+                // Reset cycle state to restart from step 0
+                cycleStarted = false;
                 step = 0;
                 
                 // Return immediately - next loop iteration will restart from step 0
                 return;
             } else {
                 // All heights completed for current column
-                // Check if there are more columns to test
-                if (testAllCurrentColumnIndex < testAllColumnCount - 1) {
+                // Check if there are more columns to cycle
+                if (cycleAllCurrentColumnIndex < cycleAllColumnCount - 1) {
                     // Home X, Y, and Fork axes before moving to next column (preserve column position)
                     homeAllAxes(false);  // false = don't reset column position
                     
                     // Move to next column
-                    testAllCurrentColumnIndex++;
+                    cycleAllCurrentColumnIndex++;
                     
                     // Calculate next column with wrap-around (0-5)
-                    int nextColumn = (testAllStartColumn + testAllCurrentColumnIndex) % 6;
+                    int nextColumn = (cycleAllStartColumn + cycleAllCurrentColumnIndex) % 6;
                     selectedColumn = nextColumn;
                     
                     // Move storage motor to next column
                     moveToColumn(nextColumn);
                     
                     // Reset height to 1 for new column
-                    currentTestAllHeight = 1;
+                    currentCycleAllHeight = 1;
                     selectedPosition1Height = 1;
                     
-                    // Reset test state to restart from step 0
-                    testStarted = false;
+                    // Reset cycle state to restart from step 0
+                    cycleStarted = false;
                     step = 0;
                     
                     // Return immediately - next loop iteration will restart from step 0
@@ -605,25 +605,25 @@ void gantryState() {
                     // Home all axes (X, Y, and Fork) but preserve column position
                     homeAllAxes(false);  // false = don't reset column position
                     
-                    // Reset test all mode
-                    testAllMode = false;
-                    currentTestAllHeight = 1;
-                    testAllColumnCount = 1;
-                    testAllStartColumn = 0;
-                    testAllCurrentColumnIndex = 0;
+                    // Reset cycle all mode
+                    cycleAllMode = false;
+                    currentCycleAllHeight = 1;
+                    cycleAllColumnCount = 1;
+                    cycleAllStartColumn = 0;
+                    cycleAllCurrentColumnIndex = 0;
                     
                     // Return to idle
-                    testStarted = false;
+                    cycleStarted = false;
                     setMachineState(STATE_IDLE);
                 }
             }
         } else {
-            // Single test complete - now do cleanup (homing only happens at the end)
+            // Single cycle complete - now do cleanup (homing only happens at the end)
             // Home all axes (X, Y, and Fork) but preserve column position
             homeAllAxes(false);  // false = don't reset column position
             
             // Return to idle
-            testStarted = false;
+            cycleStarted = false;
             setMachineState(STATE_IDLE);
         }
     }

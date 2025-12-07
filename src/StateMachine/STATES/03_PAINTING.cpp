@@ -31,10 +31,10 @@ extern void setMachineState(int state);
 extern bool cyclePaused;
 extern bool cycleCancelled;
 
-// Test position values (set from web interface)
-extern float testPos2X;
-extern float testPos2Y;
-extern float testPos2Fork;
+// Cycle position values (set from web interface)
+extern float cyclePos2X;
+extern float cyclePos2Y;
+extern float cyclePos2Fork;
 
 // Paint rotation motor steps per revolution
 extern long paintRotationMotorStepsPerRevOutput;
@@ -105,7 +105,7 @@ void turnOffSuction() {
 // Retract fork to position 2
 void retractForkToPosition2() {
     if (motorFork) {
-        motorFork->moveInches(testPos2Fork);
+        motorFork->moveInches(cyclePos2Fork);
         waitForMotor(motorFork);
     }
 }
@@ -131,9 +131,9 @@ void moveToWaitingPosition() {
     float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
     
     // Calculate target position (5 inches right of pos3)
-    // Position 3 is: X = -testPos2X, Y = -testPos2Y + 0.5
-    float targetX = -testPos2X + 5.0;
-    float targetY = -testPos2Y + 0.5;
+    // Position 3 is: X = -cyclePos2X, Y = -cyclePos2Y + 0.5
+    float targetX = -cyclePos2X + 5.0;
+    float targetY = -cyclePos2Y + 0.5;
     
     // Calculate movement needed
     float moveX = targetX - currentX;
@@ -182,7 +182,7 @@ void paintingState() {
         paintingStarted = false;
         step = 0;
         
-        // Return to test state
+        // Return to gantry state
         setMachineState(STATE_GANTRY);
         return;
     }
@@ -287,7 +287,7 @@ void paintingState() {
         paintingStarted = false;
         step = 0;
         
-        // Return to test state
+        // Return to gantry state
         setMachineState(STATE_GANTRY);
     }
 }

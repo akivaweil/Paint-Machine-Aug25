@@ -66,13 +66,13 @@
 // Timing settings
 #define MOTOR_TIMEOUT_MS 30000     // Motor operation timeout in milliseconds
 
-// Test sequence position height spacing
+// Cycle sequence position height spacing
 #define POSITION_HEIGHT_SPACING_MM 49.0
 #define POSITION_HEIGHT_SPACING_INCHES (POSITION_HEIGHT_SPACING_MM / 25.4)
 
-// Test cycle Y-axis movement when fork is extended
-#define TEST_Y_SPEED_FORK_EXTENDED 15000      // Y-axis speed when fork is extended (steps per second)
-#define TEST_Y_ACCEL_FORK_EXTENDED 15000      // Y-axis acceleration when fork is extended (steps per second squared)
+// Cycle Y-axis movement when fork is extended
+#define CYCLE_Y_SPEED_FORK_EXTENDED 15000      // Y-axis speed when fork is extended (steps per second)
+#define CYCLE_Y_ACCEL_FORK_EXTENDED 15000      // Y-axis acceleration when fork is extended (steps per second squared)
 
 // Servo configuration
 #define SERVO_HOME_ANGLE 130.0  // Servo home angle in degrees

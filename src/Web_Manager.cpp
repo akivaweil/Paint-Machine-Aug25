@@ -42,29 +42,29 @@ float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
 bool suctionState = false;
 bool paintGunState = false;
 
-// Test position values
-float testPos1X = 0.0;
-float testPos1Y = 0.0;
-float testPos1Fork = 0.0;
-float testPos2X = 0.0;
-float testPos2Y = 0.0;
-float testPos2Fork = 0.0;
+// Cycle position values
+float cyclePos1X = 0.0;
+float cyclePos1Y = 0.0;
+float cyclePos1Fork = 0.0;
+float cyclePos2X = 0.0;
+float cyclePos2Y = 0.0;
+float cyclePos2Fork = 0.0;
 
 // Position 1 height selection (1-8, where 8 = a8/lowest, 1 = a1/highest)
 int selectedPosition1Height = 8;  // Default to a8 (lowest position)
 
 // Column tracking (0-5, where 0 = column A, 5 = column F)
 int currentColumn = 0;  // Current column position (set during homing)
-int selectedColumn = 0;  // Selected column for test cycle (default: column A)
+int selectedColumn = 0;  // Selected column for cycle (default: column A)
 
-// Test All mode tracking
-bool testAllMode = false;  // Flag to track if we're in "test all" mode
-int currentTestAllHeight = 1;  // Track which height we're currently testing (1-8)
-int testAllColumnCount = 1;  // Number of columns to test (1-6)
-int testAllStartColumn = 0;  // Starting column position (from physical position)
-int testAllCurrentColumnIndex = 0;  // Current column index in the test sequence (0 to testAllColumnCount-1)
+// Cycle All mode tracking
+bool cycleAllMode = false;  // Flag to track if we're in "cycle all" mode
+int currentCycleAllHeight = 1;  // Track which height we're currently cycling (1-8)
+int cycleAllColumnCount = 1;  // Number of columns to cycle (1-6)
+int cycleAllStartColumn = 0;  // Starting column position (from physical position)
+int cycleAllCurrentColumnIndex = 0;  // Current column index in the cycle sequence (0 to cycleAllColumnCount-1)
 
-// Square sensing toggle (enables/disables wood_present_sensor check during test cycle)
+// Square sensing toggle (enables/disables wood_present_sensor check during cycle)
 bool squareSensingEnabled = true;  // Default to enabled
 
 // Cycle control state
@@ -114,7 +114,7 @@ void applyMotorSettings() {
 
 void initializeWebServer() {
     // Load saved test position values
-    loadTestPositions();
+    loadCyclePositions();
     
     // Load saved motor settings
     loadMotorSettings();
