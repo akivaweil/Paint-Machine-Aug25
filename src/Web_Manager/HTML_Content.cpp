@@ -731,52 +731,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         grid-template-columns: 1fr;
       }
     }
-    
-    @media (min-width: 768px) and (max-width: 1024px) {
-      .tablet-hide {
-        display: none !important;
-      }
-      
-      .main-layout {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      
-      .sensor-panel {
-        position: static;
-      }
-      
-      .sensor-grid {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-      
-      .sensor-card {
-        flex: 1;
-        min-width: 140px;
-        padding: 16px 18px;
-      }
-      
-      .tablet-home-buttons {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        margin-top: 24px;
-        padding-top: 24px;
-        border-top: 1px solid var(--border-subtle);
-      }
-      
-      .tablet-home-buttons .home-btn {
-        flex: 1;
-        padding: 14px 20px;
-        font-size: 0.75rem;
-      }
-    }
-    
-    .tablet-home-buttons {
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -848,16 +802,30 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <button class="action-btn" onclick="togglePause()" id="pauseResumeBtn" style="width: 50%;">Pause</button>
               <button class="action-btn-secondary" onclick="cancelCycle()" id="cancelBtn" style="width: 50%; display: none; background: linear-gradient(135deg, var(--accent-danger) 0%, #ff6b7a 100%);">Cancel Cycle</button>
             </div>
-            <div class="tablet-home-buttons">
+          </div>
+    </div>
+    
+        <div class="card">
+      <div class="collapsible-header active" id="homingHeader" onclick="toggleHoming()">
+            <div class="card-header-content">
+              <div class="card-icon">⌂</div>
+              <span class="card-title">Homing</span>
+            </div>
+            <span class="chevron">&darr;</span>
+      </div>
+      <div class="collapsible-content expanded" id="homingContent">
+            <div class="card-body">
+            <div class="home-buttons">
               <button class="home-btn" onclick="homeAxis('x')">Home X</button>
               <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
               <button class="home-btn" onclick="homeAxis('fork')">Home Fork Motor</button>
               <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
             </div>
-          </div>
-    </div>
+            </div>
+        </div>
+      </div>
     
-        <div class="card tablet-hide">
+        <div class="card">
       <div class="collapsible-header" id="manualControlsHeader" onclick="toggleManualControls()">
             <div class="card-header-content">
               <div class="card-icon">&oplus;</div>
@@ -867,12 +835,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       </div>
       <div class="collapsible-content" id="manualControlsContent">
             <div class="card-body">
-            <div class="home-buttons">
-              <button class="home-btn" onclick="homeAxis('x')">Home X</button>
-              <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
-              <button class="home-btn" onclick="homeAxis('fork')">Home Fork Motor</button>
-              <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
-            </div>
             <div class="controls-grid">
               <div class="control-section">
                 <div class="control-label">Gantry X/Y</div>
@@ -958,7 +920,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         </div>
       </div>
     
-        <div class="card tablet-hide">
+        <div class="card">
           <div class="card-header">
             <div class="card-icon">&raquo;</div>
             <span class="card-title">Test Sequence</span>
@@ -999,7 +961,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
     </div>
     
-        <div class="card tablet-hide">
+        <div class="card">
       <div class="collapsible-header active" id="motorSettingsHeader" onclick="toggleMotorSettings()">
             <div class="card-header-content">
               <div class="card-icon" style="background: linear-gradient(135deg, #666 0%, #888 100%);">*</div>
@@ -1101,7 +1063,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     
     <div class="footer">
       <div class="footer-text">Paint Machine Control System</div>
-      <div class="tablet-hide" style="display: flex; gap: 10px; justify-content: center; margin-top: 16px;">
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 16px;">
         <button class="action-btn-secondary" onclick="downloadSettings()" style="width: auto; padding: 10px 20px; font-size: 0.7rem;">Download Settings</button>
         <button class="action-btn-secondary" onclick="document.getElementById('settingsFileInput').click()" style="width: auto; padding: 10px 20px; font-size: 0.7rem;">Upload Settings</button>
         <input type="file" id="settingsFileInput" accept=".json" style="display: none;" onchange="uploadSettings(event)">
@@ -1110,23 +1072,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
   </div>
   
   <script>
-    // Tablet detection
-    function detectTablet() {
-      const width = window.innerWidth;
-      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isTablet = width >= 768 && width <= 1024 && hasTouch;
-      
-      if (isTablet) {
-        document.body.classList.add('tablet');
-      } else {
-        document.body.classList.remove('tablet');
-      }
-    }
-    
-    // Detect on load and resize
-    detectTablet();
-    window.addEventListener('resize', detectTablet);
-    
     const sensors = [
       { id: 'xHome1', name: 'X Home 1' },
       { id: 'xHome2', name: 'X Home 2' },
@@ -1548,6 +1493,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function toggleMotorSettings() {
       const content = document.getElementById('motorSettingsContent');
       const header = document.getElementById('motorSettingsHeader');
+      if (content && header) {
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+      }
+    }
+    
+    function toggleHoming() {
+      const content = document.getElementById('homingContent');
+      const header = document.getElementById('homingHeader');
       if (content && header) {
         content.classList.toggle('expanded');
         header.classList.toggle('active');
