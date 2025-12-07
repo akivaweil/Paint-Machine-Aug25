@@ -5,7 +5,7 @@
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
-#include "StateMachine/STATES/02_RUN.h"
+#include "StateMachine/STATES/02_GANTRY.h"
 
 // Include HTML content (needed for sensors_html)
 #include "Web_Manager/HTML_Content.cpp"
@@ -282,7 +282,7 @@ void setupAPIRoutes() {
             // Save values to persistent storage
             saveRunPositions();
             
-            // Start run state (STATE_RUN = 2)
+            // Start gantry state (STATE_GANTRY = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
@@ -341,7 +341,7 @@ void setupAPIRoutes() {
             // Save values to persistent storage
             saveRunPositions();
             
-            // Start run state (STATE_RUN = 2)
+            // Start gantry state (STATE_GANTRY = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
@@ -532,7 +532,7 @@ void setupAPIRoutes() {
         int state = getMachineState();
         String stateStr = "IDLE";
         if (state == 0) stateStr = "HOMING";
-        else if (state == 2) stateStr = "RUN";
+        else if (state == 2) stateStr = "GANTRY";
         
         String json = "{";
         json += "\"state\":\"" + stateStr + "\",";

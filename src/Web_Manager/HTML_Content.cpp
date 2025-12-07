@@ -1310,7 +1310,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           const runCycleBtn = document.getElementById('runCycleBtn');
           const runAllBtn = document.getElementById('runAllBtn');
           
-          if (data.state === 'RUN') {
+          if (data.state === 'GANTRY') {
             // Show cycle control buttons during run cycle
             cycleControlButtons.style.display = 'flex';
             runCycleBtn.style.display = 'none';

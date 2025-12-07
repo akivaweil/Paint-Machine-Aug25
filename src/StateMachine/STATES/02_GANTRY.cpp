@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "StateMachine/STATES/02_RUN.h"
+#include "StateMachine/STATES/02_GANTRY.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
@@ -64,10 +64,10 @@ extern int runAllCurrentColumnIndex;  // Current column index in the run sequenc
 #include "../../config/Pin_Definitions.h"
 
 //* ************************************************************************
-//* ************************ RUN STATE ***********************************
+//* ************************ GANTRY STATE ***********************************
 //* ************************************************************************
 
-void runState() {
+void gantryState() {
     static int step = 0;
     static bool runStarted = false;
     

@@ -1,13 +1,13 @@
-#ifndef RUN_STATE_H
-#define RUN_STATE_H
+#ifndef GANTRY_STATE_H
+#define GANTRY_STATE_H
 
 #include <Arduino.h>
 
 //* ************************************************************************
-//* ************************ RUN STATE ***********************************
+//* ************************ GANTRY STATE ***********************************
 //* ************************************************************************
 
-void runState();
+void gantryState();
 
-#endif // RUN_STATE_H
+#endif // GANTRY_STATE_H
 

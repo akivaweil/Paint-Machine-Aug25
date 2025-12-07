@@ -24,7 +24,7 @@ extern void updateOTA();
 
 // State machine function
 extern void setMachineState(int state);
-#define STATE_RUN 2
+#define STATE_GANTRY 2
 
 // Cycle control flags
 extern bool cyclePaused;
@@ -155,8 +155,8 @@ void paintingState() {
         parallelSequenceStarted = false;
         parallelStep = 0;
         
-        // Return to run state (run state will handle further cleanup)
-        setMachineState(STATE_RUN);
+        // Return to gantry state (gantry state will handle further cleanup)
+        setMachineState(STATE_GANTRY);
         return;
     }
     
@@ -268,8 +268,8 @@ void paintingState() {
         parallelSequenceStarted = false;
         parallelStep = 0;
         
-        // Return to run state to continue with remaining steps
-        setMachineState(STATE_RUN);
+        // Return to gantry state to continue with remaining steps
+        setMachineState(STATE_GANTRY);
     }
 }
 
