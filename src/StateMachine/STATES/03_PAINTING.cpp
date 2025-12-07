@@ -210,11 +210,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: TURN ON PAINT GUN AND SUCTION
+    //! STEP 2: TURN ON PAINT GUN AND SUCTION, MOVE SERVO TO 220 DEGREES
     //! ************************************************************************
     else if (step == 1) {
         turnOnPaintGun();
         turnOnSuction();
+        moveServoToAngle(220.0);
         step = 2;
     }
     
@@ -236,15 +237,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: WAIT FOR 1.5 REVOLUTIONS, THEN MOVE SERVO TO 220 DEGREES
+    //! STEP 5: WAIT FOR 1.5 REVOLUTIONS
     //! ************************************************************************
     else if (step == 4) {
         // Wait for 1.5 revolutions from start
         waitForPaintRotationRevolutions(paintMotorStartPosition, 1.5);
         if (cycleCancelled) return;
-        
-        // Move servo to 220 degrees
-        moveServoToAngle(220.0);
         
         step = 5;
     }

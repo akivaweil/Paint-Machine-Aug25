@@ -110,6 +110,10 @@ void gantryState() {
         // Apply motor settings from dashboard before starting test
         applyMotorSettings();
         
+        // Turn on pressure pot when starting run cycle
+        digitalWrite(PRESSURE_POT_PIN, HIGH);
+        pressurePotState = true;
+        
         //! ************************************************************************
         //! STEP 0: MOVE STORAGE MOTOR TO SELECTED COLUMN
         //! ************************************************************************
