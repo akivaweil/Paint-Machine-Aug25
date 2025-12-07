@@ -747,7 +747,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <div class="card-header">
             <div class="card-icon">↕</div>
-            <span class="card-title">Run Test Cycle</span>
+            <span class="card-title">Run Cycle</span>
           </div>
           <div class="card-body">
             <div class="panel-label" style="margin-bottom: 16px;">Column (a-f)</div>
@@ -782,8 +782,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               </div>
             </div>
             <div class="button-container">
-              <button class="action-btn" onclick="startTest()" style="width: 60%;" id="runTestBtn">Run Test</button>
-              <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;" id="testAllBtn">Test All</button>
+              <button class="action-btn" onclick="startTest()" style="width: 60%;" id="runTestBtn">Run Cycle</button>
+              <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;" id="testAllBtn">Cycle All</button>
               <select id="columnCountSelect" style="width: 15%; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 12px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease;">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -918,7 +918,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <div class="card-header">
             <div class="card-icon">&raquo;</div>
-            <span class="card-title">Test Sequence</span>
+            <span class="card-title">Cycle Sequence</span>
           </div>
           <div class="card-body">
       <div class="position-group">
@@ -1072,7 +1072,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'xHome2', name: 'X Home 2' },
       { id: 'yHome', name: 'Y Home' },
       { id: 'forkHome', name: 'Fork Home' },
-      { id: 'testButton', name: 'Test Btn' },
+      { id: 'testButton', name: 'Cycle Btn' },
       { id: 'storagePosition', name: 'Storage Position' },
       { id: 'squarePresent', name: 'Square Present' }
     ];
@@ -1171,7 +1171,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     // Check connection every 200ms
     setInterval(checkConnection, 200);
     
-    // Load saved test positions on page load
+    // Load saved cycle positions on page load
     function loadTestPositions() {
       fetch('/api/test/positions')
         .then(response => response.json())
@@ -1188,7 +1188,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('pos2Fork').value = data.pos2Fork || 0;
         })
         .catch(error => {
-          console.error('Error loading test positions:', error);
+          console.error('Error loading cycle positions:', error);
         });
     }
     
@@ -1311,7 +1311,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           const testAllBtn = document.getElementById('testAllBtn');
           
           if (data.state === 'GANTRY') {
-            // Show cycle control buttons during test
+            // Show cycle control buttons during cycle
             cycleControlButtons.style.display = 'flex';
             runTestBtn.style.display = 'none';
             testAllBtn.style.display = 'none';
@@ -1325,7 +1325,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               cancelBtn.style.display = 'none';
             }
           } else {
-            // Hide cycle control buttons when not in test
+            // Hide cycle control buttons when not in cycle
             cycleControlButtons.style.display = 'none';
             runTestBtn.style.display = 'block';
             testAllBtn.style.display = 'block';
@@ -1538,9 +1538,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       fetch(url)
         .then(response => response.text())
         .then(data => {
-          console.log('Test started:', data);
+          console.log('Cycle started:', data);
         })
-        .catch(error => console.error('Test error:', error));
+        .catch(error => console.error('Cycle error:', error));
     }
     
     function startTestAll() {
@@ -1561,9 +1561,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       fetch(url)
         .then(response => response.text())
         .then(data => {
-          console.log('Test All started:', data);
+          console.log('Cycle All started:', data);
         })
-        .catch(error => console.error('Test All error:', error));
+        .catch(error => console.error('Cycle All error:', error));
     }
     
     function toggleSquareSensing() {
@@ -1682,7 +1682,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               });
           }
           
-          // Upload test positions
+          // Upload cycle positions
           if (settings.testPositions) {
             const tp = settings.testPositions;
             const url = '/api/test/positions?pos1X=' + (tp.pos1X || 0) +
@@ -1696,7 +1696,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             
             fetch(url)
               .then(() => {
-                // Reload test positions to update UI
+                // Reload cycle positions to update UI
                 loadTestPositions();
               });
           }
