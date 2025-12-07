@@ -70,9 +70,9 @@
 #define POSITION_HEIGHT_SPACING_MM 49.0
 #define POSITION_HEIGHT_SPACING_INCHES (POSITION_HEIGHT_SPACING_MM / 25.4)
 
-// Test cycle Y-axis movement when fork is extended
-#define TEST_Y_SPEED_FORK_EXTENDED 15000      // Y-axis speed when fork is extended (steps per second)
-#define TEST_Y_ACCEL_FORK_EXTENDED 15000      // Y-axis acceleration when fork is extended (steps per second squared)
+// Run cycle Y-axis movement when fork is extended
+#define RUN_Y_SPEED_FORK_EXTENDED 15000      // Y-axis speed when fork is extended (steps per second)
+#define RUN_Y_ACCEL_FORK_EXTENDED 15000      // Y-axis acceleration when fork is extended (steps per second squared)
 
 // Servo configuration
 #define SERVO_HOME_ANGLE 130.0  // Servo home angle in degrees

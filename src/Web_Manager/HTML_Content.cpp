@@ -747,7 +747,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <div class="card-header">
             <div class="card-icon">↕</div>
-            <span class="card-title">Run Test Cycle</span>
+            <span class="card-title">Run Cycle</span>
           </div>
           <div class="card-body">
             <div class="panel-label" style="margin-bottom: 16px;">Column (a-f)</div>
@@ -782,8 +782,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               </div>
             </div>
             <div class="button-container">
-              <button class="action-btn" onclick="startTest()" style="width: 60%;" id="runTestBtn">Run Test</button>
-              <button class="action-btn-secondary" onclick="startTestAll()" style="width: 25%;" id="testAllBtn">Test All</button>
+              <button class="action-btn" onclick="startRun()" style="width: 60%;" id="runCycleBtn">Run Cycle</button>
+              <button class="action-btn-secondary" onclick="startRunAll()" style="width: 25%;" id="runAllBtn">Run All</button>
               <select id="columnCountSelect" style="width: 15%; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 12px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease;">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -918,7 +918,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         <div class="card">
           <div class="card-header">
             <div class="card-icon">&raquo;</div>
-            <span class="card-title">Test Sequence</span>
+            <span class="card-title">Run Sequence</span>
           </div>
           <div class="card-body">
       <div class="position-group">
@@ -1072,7 +1072,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'xHome2', name: 'X Home 2' },
       { id: 'yHome', name: 'Y Home' },
       { id: 'forkHome', name: 'Fork Home' },
-      { id: 'testButton', name: 'Test Btn' },
+      { id: 'startButton', name: 'Start Btn' },
       { id: 'storagePosition', name: 'Storage Position' },
       { id: 'squarePresent', name: 'Square Present' }
     ];
@@ -1171,9 +1171,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     // Check connection every 200ms
     setInterval(checkConnection, 200);
     
-    // Load saved test positions on page load
-    function loadTestPositions() {
-      fetch('/api/test/positions')
+    // Load saved run cycle positions on page load
+    function loadRunPositions() {
+      fetch('/api/run/positions')
         .then(response => response.json())
         .then(data => {
           document.getElementById('pos1X').value = data.pos1X || 0;
@@ -1188,7 +1188,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('pos2Fork').value = data.pos2Fork || 0;
         })
         .catch(error => {
-          console.error('Error loading test positions:', error);
+          console.error('Error loading run cycle positions:', error);
         });
     }
     
@@ -1292,7 +1292,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     }
     
     // Load positions and settings when page loads
-    loadTestPositions();
+    loadRunPositions();
     loadMotorSettings();
     loadDeviceStates();
     loadSquareSensingState();
@@ -1307,14 +1307,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           const cycleControlButtons = document.getElementById('cycleControlButtons');
           const pauseResumeBtn = document.getElementById('pauseResumeBtn');
           const cancelBtn = document.getElementById('cancelBtn');
-          const runTestBtn = document.getElementById('runTestBtn');
-          const testAllBtn = document.getElementById('testAllBtn');
+          const runCycleBtn = document.getElementById('runCycleBtn');
+          const runAllBtn = document.getElementById('runAllBtn');
           
-          if (data.state === 'TEST') {
-            // Show cycle control buttons during test
+          if (data.state === 'RUN') {
+            // Show cycle control buttons during run cycle
             cycleControlButtons.style.display = 'flex';
-            runTestBtn.style.display = 'none';
-            testAllBtn.style.display = 'none';
+            runCycleBtn.style.display = 'none';
+            runAllBtn.style.display = 'none';
             
             // Update pause/resume button
             if (data.paused) {
@@ -1325,10 +1325,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               cancelBtn.style.display = 'none';
             }
           } else {
-            // Hide cycle control buttons when not in test
+            // Hide cycle control buttons when not in run cycle
             cycleControlButtons.style.display = 'none';
-            runTestBtn.style.display = 'block';
-            testAllBtn.style.display = 'block';
+            runCycleBtn.style.display = 'block';
+            runAllBtn.style.display = 'block';
           }
         })
         .catch(error => {
@@ -1521,7 +1521,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Home error:', error));
     }
     
-    function startTest() {
+    function startRun() {
       const pos1X = parseFloat(document.getElementById('pos1X').value) || 0;
       const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
       const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
@@ -1531,19 +1531,19 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos2Y = parseFloat(document.getElementById('pos2Y').value) || 0;
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
       
-      const url = '/api/test?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
+      const url = '/api/run?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
                   '&pos1Height=' + pos1Height + '&column=' + column +
                   '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork;
       
       fetch(url)
         .then(response => response.text())
         .then(data => {
-          console.log('Test started:', data);
+          console.log('Run cycle started:', data);
         })
-        .catch(error => console.error('Test error:', error));
+        .catch(error => console.error('Run cycle error:', error));
     }
     
-    function startTestAll() {
+    function startRunAll() {
       const pos1X = parseFloat(document.getElementById('pos1X').value) || 0;
       const pos1Y = parseFloat(document.getElementById('pos1Y').value) || 0;
       const pos1Fork = parseFloat(document.getElementById('pos1Fork').value) || 0;
@@ -1553,7 +1553,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const pos2Fork = parseFloat(document.getElementById('pos2Fork').value) || 0;
       const columnCount = parseInt(document.getElementById('columnCountSelect').value) || 1;
       
-      const url = '/api/test/all?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
+      const url = '/api/run/all?pos1X=' + pos1X + '&pos1Y=' + pos1Y + '&pos1Fork=' + pos1Fork +
                   '&column=' + column +
                   '&pos2X=' + pos2X + '&pos2Y=' + pos2Y + '&pos2Fork=' + pos2Fork +
                   '&columnCount=' + columnCount;
@@ -1561,9 +1561,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       fetch(url)
         .then(response => response.text())
         .then(data => {
-          console.log('Test All started:', data);
+          console.log('Run All started:', data);
         })
-        .catch(error => console.error('Test All error:', error));
+        .catch(error => console.error('Run All error:', error));
     }
     
     function toggleSquareSensing() {
@@ -1614,12 +1614,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function downloadSettings() {
       Promise.all([
         fetch('/api/motor/settings').then(r => r.json()),
-        fetch('/api/test/positions').then(r => r.json()),
+        fetch('/api/run/positions').then(r => r.json()),
         fetch('/api/squareSensing').then(r => r.json())
-      ]).then(([motorSettings, testPositions, squareSensing]) => {
+      ]).then(([motorSettings, runPositions, squareSensing]) => {
         const allSettings = {
           motor: motorSettings,
-          testPositions: testPositions,
+          runPositions: runPositions,
           squareSensing: squareSensing.enabled
         };
         
@@ -1682,10 +1682,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               });
           }
           
-          // Upload test positions
-          if (settings.testPositions) {
-            const tp = settings.testPositions;
-            const url = '/api/test/positions?pos1X=' + (tp.pos1X || 0) +
+          // Upload run cycle positions
+          if (settings.runPositions || settings.testPositions) {
+            const tp = settings.runPositions || settings.testPositions;  // Support old format for backward compatibility
+            const url = '/api/run/positions?pos1X=' + (tp.pos1X || 0) +
                         '&pos1Y=' + (tp.pos1Y || 0) +
                         '&pos1Fork=' + (tp.pos1Fork || 0) +
                         '&pos1Height=' + (tp.pos1Height || 8) +
@@ -1696,8 +1696,8 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             
             fetch(url)
               .then(() => {
-                // Reload test positions to update UI
-                loadTestPositions();
+                // Reload run cycle positions to update UI
+                loadRunPositions();
               });
           }
           

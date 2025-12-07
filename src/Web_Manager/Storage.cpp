@@ -7,32 +7,32 @@
 //* ************************ STORAGE **************************************
 //* ************************************************************************
 
-// Preferences namespace for test sequence persistence
+// Preferences namespace for run cycle persistence
 Preferences preferences;
 
-// Save test position values to non-volatile storage
-void saveTestPositions() {
-    preferences.begin("testSeq", false);
-    preferences.putFloat("pos1X", testPos1X);
-    preferences.putFloat("pos1Y", testPos1Y);
-    preferences.putFloat("pos1Fork", testPos1Fork);
-    preferences.putFloat("pos2X", testPos2X);
-    preferences.putFloat("pos2Y", testPos2Y);
-    preferences.putFloat("pos2Fork", testPos2Fork);
+// Save run cycle position values to non-volatile storage
+void saveRunPositions() {
+    preferences.begin("runSeq", false);
+    preferences.putFloat("pos1X", runPos1X);
+    preferences.putFloat("pos1Y", runPos1Y);
+    preferences.putFloat("pos1Fork", runPos1Fork);
+    preferences.putFloat("pos2X", runPos2X);
+    preferences.putFloat("pos2Y", runPos2Y);
+    preferences.putFloat("pos2Fork", runPos2Fork);
     preferences.putInt("pos1Height", selectedPosition1Height);
     preferences.putInt("selectedColumn", selectedColumn);
     preferences.end();
 }
 
-// Load test position values from non-volatile storage
-void loadTestPositions() {
-    preferences.begin("testSeq", true);
-    testPos1X = preferences.getFloat("pos1X", 0.0);
-    testPos1Y = preferences.getFloat("pos1Y", 0.0);
-    testPos1Fork = preferences.getFloat("pos1Fork", 0.0);
-    testPos2X = preferences.getFloat("pos2X", 0.0);
-    testPos2Y = preferences.getFloat("pos2Y", 0.0);
-    testPos2Fork = preferences.getFloat("pos2Fork", 0.0);
+// Load run cycle position values from non-volatile storage
+void loadRunPositions() {
+    preferences.begin("runSeq", true);
+    runPos1X = preferences.getFloat("pos1X", 0.0);
+    runPos1Y = preferences.getFloat("pos1Y", 0.0);
+    runPos1Fork = preferences.getFloat("pos1Fork", 0.0);
+    runPos2X = preferences.getFloat("pos2X", 0.0);
+    runPos2Y = preferences.getFloat("pos2Y", 0.0);
+    runPos2Fork = preferences.getFloat("pos2Fork", 0.0);
     selectedPosition1Height = preferences.getInt("pos1Height", 8);
     selectedColumn = preferences.getInt("selectedColumn", 0);  // Default to column A
     preferences.end();
@@ -87,14 +87,14 @@ void loadMotorSettings() {
 
 // Save square sensing toggle state to non-volatile storage
 void saveSquareSensingState() {
-    preferences.begin("testSeq", false);
+    preferences.begin("runSeq", false);
     preferences.putBool("squareSensing", squareSensingEnabled);
     preferences.end();
 }
 
 // Load square sensing toggle state from non-volatile storage
 void loadSquareSensingState() {
-    preferences.begin("testSeq", true);
+    preferences.begin("runSeq", true);
     squareSensingEnabled = preferences.getBool("squareSensing", true);  // Default to enabled
     preferences.end();
 }

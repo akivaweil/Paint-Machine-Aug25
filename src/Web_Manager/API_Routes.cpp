@@ -5,7 +5,7 @@
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
-#include "StateMachine/STATES/02_TEST.h"
+#include "StateMachine/STATES/02_RUN.h"
 
 // Include HTML content (needed for sensors_html)
 #include "Web_Manager/HTML_Content.cpp"
@@ -180,8 +180,8 @@ void setupAPIRoutes() {
         }
     });
     
-    // API endpoint to get/set test position values
-    server.on("/api/test/positions", HTTP_GET, [](AsyncWebServerRequest *request){
+    // API endpoint to get/set run cycle position values
+    server.on("/api/run/positions", HTTP_GET, [](AsyncWebServerRequest *request){
         // Check if parameters are provided to set values
         if (request->hasParam("pos1X") || request->hasParam("pos1Y") || request->hasParam("pos1Fork") ||
             request->hasParam("pos2X") || request->hasParam("pos2Y") || request->hasParam("pos2Fork") ||
@@ -189,22 +189,22 @@ void setupAPIRoutes() {
             
             // Set position values if provided
             if (request->hasParam("pos1X")) {
-                testPos1X = request->getParam("pos1X")->value().toFloat();
+                runPos1X = request->getParam("pos1X")->value().toFloat();
             }
             if (request->hasParam("pos1Y")) {
-                testPos1Y = request->getParam("pos1Y")->value().toFloat();
+                runPos1Y = request->getParam("pos1Y")->value().toFloat();
             }
             if (request->hasParam("pos1Fork")) {
-                testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+                runPos1Fork = request->getParam("pos1Fork")->value().toFloat();
             }
             if (request->hasParam("pos2X")) {
-                testPos2X = request->getParam("pos2X")->value().toFloat();
+                runPos2X = request->getParam("pos2X")->value().toFloat();
             }
             if (request->hasParam("pos2Y")) {
-                testPos2Y = request->getParam("pos2Y")->value().toFloat();
+                runPos2Y = request->getParam("pos2Y")->value().toFloat();
             }
             if (request->hasParam("pos2Fork")) {
-                testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+                runPos2Fork = request->getParam("pos2Fork")->value().toFloat();
             }
             if (request->hasParam("pos1Height")) {
                 int height = request->getParam("pos1Height")->value().toInt();
@@ -220,95 +220,95 @@ void setupAPIRoutes() {
             }
             
             // Save to persistent storage
-            saveTestPositions();
+            saveRunPositions();
             
             request->send(200, "text/plain", "OK");
-            Serial.println("Web Request: Test positions updated");
+            Serial.println("Web Request: Run cycle positions updated");
         } else {
             // Return current values if no parameters provided
             String json = "{";
-            json += "\"pos1X\":" + String(testPos1X) + ",";
-            json += "\"pos1Y\":" + String(testPos1Y) + ",";
-            json += "\"pos1Fork\":" + String(testPos1Fork) + ",";
+            json += "\"pos1X\":" + String(runPos1X) + ",";
+            json += "\"pos1Y\":" + String(runPos1Y) + ",";
+            json += "\"pos1Fork\":" + String(runPos1Fork) + ",";
             json += "\"pos1Height\":" + String(selectedPosition1Height) + ",";
             json += "\"column\":" + String(selectedColumn) + ",";
-            json += "\"pos2X\":" + String(testPos2X) + ",";
-            json += "\"pos2Y\":" + String(testPos2Y) + ",";
-            json += "\"pos2Fork\":" + String(testPos2Fork);
+            json += "\"pos2X\":" + String(runPos2X) + ",";
+            json += "\"pos2Y\":" + String(runPos2Y) + ",";
+            json += "\"pos2Fork\":" + String(runPos2Fork);
             json += "}";
             request->send(200, "application/json", json);
         }
     });
     
-    // API endpoint for test all sequence (runs all 8 heights a1-a8 for selected column)
-    // NOTE: Must be registered BEFORE /api/test to avoid prefix matching issues
-    server.on("/api/test/all", HTTP_GET, [](AsyncWebServerRequest *request){
+    // API endpoint for run all sequence (runs all 8 heights a1-a8 for selected column)
+    // NOTE: Must be registered BEFORE /api/run to avoid prefix matching issues
+    server.on("/api/run/all", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
             request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
             
-            // Set test all mode and start at height 1 (a1)
-            testAllMode = true;
-            currentTestAllHeight = 1;
+            // Set run all mode and start at height 1 (a1)
+            runAllMode = true;
+            currentRunAllHeight = 1;
             
             // Get position values from request
-            testPos1X = request->getParam("pos1X")->value().toFloat();
-            testPos1Y = request->getParam("pos1Y")->value().toFloat();
-            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
-            testPos2X = request->getParam("pos2X")->value().toFloat();
-            testPos2Y = request->getParam("pos2Y")->value().toFloat();
-            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            runPos1X = request->getParam("pos1X")->value().toFloat();
+            runPos1Y = request->getParam("pos1Y")->value().toFloat();
+            runPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            runPos2X = request->getParam("pos2X")->value().toFloat();
+            runPos2Y = request->getParam("pos2Y")->value().toFloat();
+            runPos2Fork = request->getParam("pos2Fork")->value().toFloat();
             
             // Get column count (1-6, default to 1)
             if (request->hasParam("columnCount")) {
                 int count = request->getParam("columnCount")->value().toInt();
                 if (count >= 1 && count <= 6) {
-                    testAllColumnCount = count;
+                    runAllColumnCount = count;
                 } else {
-                    testAllColumnCount = 1;  // Default to 1
+                    runAllColumnCount = 1;  // Default to 1
                 }
             } else {
-                testAllColumnCount = 1;  // Default to 1
+                runAllColumnCount = 1;  // Default to 1
             }
             
             // Start from current physical column position
             extern int currentColumn;
-            testAllStartColumn = currentColumn;
-            testAllCurrentColumnIndex = 0;
+            runAllStartColumn = currentColumn;
+            runAllCurrentColumnIndex = 0;
             selectedColumn = currentColumn;  // Use physical position as starting column
             
             // Set position 1 height to 1 (a1, highest)
             selectedPosition1Height = 1;
             
             // Save values to persistent storage
-            saveTestPositions();
+            saveRunPositions();
             
-            // Start test state (STATE_TEST = 2)
+            // Start run state (STATE_RUN = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.printf("Web Request: Start test all sequence (a1-a8) for %d columns starting at column %c\n", 
-                         testAllColumnCount, 'A' + selectedColumn);
+            Serial.printf("Web Request: Start run all sequence (a1-a8) for %d columns starting at column %c\n", 
+                         runAllColumnCount, 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
     });
     
-    // API endpoint for single test sequence
-    server.on("/api/test", HTTP_GET, [](AsyncWebServerRequest *request){
+    // API endpoint for single run cycle
+    server.on("/api/run", HTTP_GET, [](AsyncWebServerRequest *request){
         if (request->hasParam("pos1X") && request->hasParam("pos1Y") && request->hasParam("pos1Fork") &&
             request->hasParam("pos2X") && request->hasParam("pos2Y") && request->hasParam("pos2Fork")) {
             
-            // Ensure test all mode is OFF for single test
-            testAllMode = false;
+            // Ensure run all mode is OFF for single run cycle
+            runAllMode = false;
             
             // Get position values from request
-            testPos1X = request->getParam("pos1X")->value().toFloat();
-            testPos1Y = request->getParam("pos1Y")->value().toFloat();
-            testPos1Fork = request->getParam("pos1Fork")->value().toFloat();
-            testPos2X = request->getParam("pos2X")->value().toFloat();
-            testPos2Y = request->getParam("pos2Y")->value().toFloat();
-            testPos2Fork = request->getParam("pos2Fork")->value().toFloat();
+            runPos1X = request->getParam("pos1X")->value().toFloat();
+            runPos1Y = request->getParam("pos1Y")->value().toFloat();
+            runPos1Fork = request->getParam("pos1Fork")->value().toFloat();
+            runPos2X = request->getParam("pos2X")->value().toFloat();
+            runPos2Y = request->getParam("pos2Y")->value().toFloat();
+            runPos2Fork = request->getParam("pos2Fork")->value().toFloat();
             
             // Get position 1 height selection (default to 8 if not provided)
             if (request->hasParam("pos1Height")) {
@@ -339,14 +339,14 @@ void setupAPIRoutes() {
             }
             
             // Save values to persistent storage
-            saveTestPositions();
+            saveRunPositions();
             
-            // Start test state (STATE_TEST = 2)
+            // Start run state (STATE_RUN = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
             request->send(200, "text/plain", "OK");
-            Serial.printf("Web Request: Start test sequence for column %c\n", 'A' + selectedColumn);
+            Serial.printf("Web Request: Start run cycle for column %c\n", 'A' + selectedColumn);
         } else {
             request->send(400, "text/plain", "Missing position parameters");
         }
@@ -532,7 +532,7 @@ void setupAPIRoutes() {
         int state = getMachineState();
         String stateStr = "IDLE";
         if (state == 0) stateStr = "HOMING";
-        else if (state == 2) stateStr = "TEST";
+        else if (state == 2) stateStr = "RUN";
         
         String json = "{";
         json += "\"state\":\"" + stateStr + "\",";

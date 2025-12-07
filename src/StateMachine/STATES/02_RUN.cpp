@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "StateMachine/STATES/02_TEST.h"
+#include "StateMachine/STATES/02_RUN.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
@@ -45,31 +45,31 @@ extern void homeAllAxes(bool resetColumn);
         if (cycleCancelled) return; \
     } while(0)
 
-// Test position values (set from web interface)
-extern float testPos1X;
-extern float testPos1Y;
-extern float testPos1Fork;
-extern float testPos2X;
-extern float testPos2Y;
-extern float testPos2Fork;
+// Run cycle position values (set from web interface)
+extern float runPos1X;
+extern float runPos1Y;
+extern float runPos1Fork;
+extern float runPos2X;
+extern float runPos2Y;
+extern float runPos2Fork;
 extern int selectedPosition1Height;  // Position 1 height selection (1-8, where 8 = a8/lowest)
-extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
-extern bool testAllMode;  // Flag to track if we're in "test all" mode
-extern int currentTestAllHeight;  // Track which height we're currently testing (1-8)
-extern int testAllColumnCount;  // Number of columns to test (1-6)
-extern int testAllStartColumn;  // Starting column position (from physical position)
-extern int testAllCurrentColumnIndex;  // Current column index in the test sequence (0 to testAllColumnCount-1)
+extern int selectedColumn;  // Selected column for run cycle (0-5, where 0=A, 5=F)
+extern bool runAllMode;  // Flag to track if we're in "run all" mode
+extern int currentRunAllHeight;  // Track which height we're currently running (1-8)
+extern int runAllColumnCount;  // Number of columns to run (1-6)
+extern int runAllStartColumn;  // Starting column position (from physical position)
+extern int runAllCurrentColumnIndex;  // Current column index in the run sequence (0 to runAllColumnCount-1)
 
 // Paint gun pin
 #include "../../config/Pin_Definitions.h"
 
 //* ************************************************************************
-//* ************************ TEST STATE ***********************************
+//* ************************ RUN STATE ***********************************
 //* ************************************************************************
 
-void testState() {
+void runState() {
     static int step = 0;
-    static bool testStarted = false;
+    static bool runStarted = false;
     
     // Check for cancel at start of function
     if (cycleCancelled) {
@@ -92,7 +92,7 @@ void testState() {
         // Reset flags and state
         cycleCancelled = false;
         cyclePaused = false;
-        testStarted = false;
+        runStarted = false;
         step = 0;
         
         // Return to idle
@@ -101,13 +101,13 @@ void testState() {
     }
     
     // Initialize on first entry
-    if (!testStarted) {
+    if (!runStarted) {
         step = 0;
-        testStarted = true;
-        cyclePaused = false;  // Reset pause flag on new test
-        cycleCancelled = false;  // Reset cancel flag on new test
+        runStarted = true;
+        cyclePaused = false;  // Reset pause flag on new run cycle
+        cycleCancelled = false;  // Reset cancel flag on new run cycle
         
-        // Apply motor settings from dashboard before starting test
+        // Apply motor settings from dashboard before starting run cycle
         applyMotorSettings();
         
         //! ************************************************************************
@@ -131,12 +131,12 @@ void testState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate actual Y position based on selected height (a1-a8)
-        // a8 (selectedPosition1Height = 8) = testPos1Y (lowest, no offset)
-        // a1 (selectedPosition1Height = 1) = testPos1Y + 7 * spacing (highest)
-        float actualPos1Y = testPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
+        // a8 (selectedPosition1Height = 8) = runPos1Y (lowest, no offset)
+        // a1 (selectedPosition1Height = 1) = runPos1Y + 7 * spacing (highest)
+        float actualPos1Y = runPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
         
         // Calculate target absolute positions (negate because positive direction moves toward home switches)
-        float targetX = -testPos1X;
+        float targetX = -runPos1X;
         float targetY = -actualPos1Y;
         
         // Calculate relative movement needed to reach absolute position
@@ -164,7 +164,7 @@ void testState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos1Fork;
+        float targetFork = -runPos1Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -182,7 +182,7 @@ void testState() {
         extern bool squareSensingEnabled;
         if (squareSensingEnabled && digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
             // Retract fork before skipping
-            motorFork->moveInches(testPos1Fork);
+            motorFork->moveInches(runPos1Fork);
             
             // Wait for fork motor to finish retracting
             while (motorFork->isMotorRunning()) {
@@ -203,8 +203,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 2) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(RUN_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(RUN_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);
         
@@ -225,7 +225,7 @@ void testState() {
     //! STEP 4: RETRACT FORK MOTOR AT POSITION 1
     //! ************************************************************************
     else if (step == 3) {
-        motorFork->moveInches(testPos1Fork);
+        motorFork->moveInches(runPos1Fork);
         
         // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
@@ -245,8 +245,8 @@ void testState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate target absolute positions (negate because positive direction moves toward home switches)
-        float targetX = -testPos2X;
-        float targetY = -testPos2Y;
+        float targetX = -runPos2X;
+        float targetY = -runPos2Y;
         
         // Calculate relative movement needed to reach absolute position
         float moveX = targetX - currentX;
@@ -273,7 +273,7 @@ void testState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos2Fork;
+        float targetFork = -runPos2Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -294,8 +294,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 6) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(RUN_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(RUN_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(0.5);
         
@@ -327,8 +327,8 @@ void testState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate target absolute positions (pos2 but Y is 0.5 lower)
-        float targetX = -testPos2X;
-        float targetY = -testPos2Y + 0.5;  // 0.5 lower means less negative (add 0.5)
+        float targetX = -runPos2X;
+        float targetY = -runPos2Y + 0.5;  // 0.5 lower means less negative (add 0.5)
         
         // Calculate relative movement needed to reach absolute position
         float moveX = targetX - currentX;
@@ -355,7 +355,7 @@ void testState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos2Fork;
+        float targetFork = -runPos2Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -376,8 +376,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 9) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(RUN_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(RUN_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);  // Negative moves away from home (up)
         
@@ -421,12 +421,12 @@ void testState() {
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
         
         // Calculate actual Y position based on selected height (a1-a8)
-        // a8 (selectedPosition1Height = 8) = testPos1Y (lowest, no offset)
-        // a1 (selectedPosition1Height = 1) = testPos1Y + 7 * spacing (highest)
-        float actualPos1Y = testPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
+        // a8 (selectedPosition1Height = 8) = runPos1Y (lowest, no offset)
+        // a1 (selectedPosition1Height = 1) = runPos1Y + 7 * spacing (highest)
+        float actualPos1Y = runPos1Y + (8 - selectedPosition1Height) * POSITION_HEIGHT_SPACING_INCHES;
         
         // Calculate target absolute positions (pos1 but Y is 0.5 higher)
-        float targetX = -testPos1X;
+        float targetX = -runPos1X;
         float targetY = -actualPos1Y - 0.5;  // 0.5 higher means more negative (subtract 0.5)
         
         // Calculate relative movement needed to reach absolute position
@@ -454,7 +454,7 @@ void testState() {
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
         // Calculate target absolute position (negate because positive direction moves toward home switches)
-        float targetFork = -testPos1Fork;
+        float targetFork = -runPos1Fork;
         
         // Calculate relative movement needed to reach absolute position
         float moveFork = targetFork - currentFork;
@@ -475,8 +475,8 @@ void testState() {
     //! ************************************************************************
     else if (step == 13) {
         // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
-        motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
+        motorY->setSpeed(RUN_Y_SPEED_FORK_EXTENDED);
+        motorY->setAcceleration(RUN_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(0.5);
         
@@ -497,7 +497,7 @@ void testState() {
     //! STEP 15: RETRACT FORK MOTOR AT POSITION 4
     //! ************************************************************************
     else if (step == 14) {
-        motorFork->moveInches(testPos1Fork);
+        motorFork->moveInches(runPos1Fork);
         
         // Wait for fork motor to finish retracting
         while (motorFork->isMotorRunning()) {
@@ -509,11 +509,11 @@ void testState() {
     }
     
     //! ************************************************************************
-    //! STEP 16: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
+    //! STEP 16: MOVE X, Y, AND FORK TO POSITION 0 (skip if run all mode cycling)
     //! ************************************************************************
     else if (step == 15) {
-        // Skip return to 0 if we're in test all mode and have more heights or columns to test
-        if (testAllMode && (currentTestAllHeight < 8 || testAllCurrentColumnIndex < testAllColumnCount - 1)) {
+        // Skip return to 0 if we're in run all mode and have more heights or columns to run
+        if (runAllMode && (currentRunAllHeight < 8 || runAllCurrentColumnIndex < runAllColumnCount - 1)) {
             step = 16;
         } else {
             // Get current positions
@@ -559,43 +559,43 @@ void testState() {
             servo->write(SERVO_HOME_ANGLE);
         }
         
-        // Check if we're in test all mode and need to continue
-        if (testAllMode) {
+        // Check if we're in run all mode and need to continue
+        if (runAllMode) {
             // Check if we've completed all heights for current column
-            if (currentTestAllHeight < 8) {
+            if (currentRunAllHeight < 8) {
                 // Increment to next height
-                currentTestAllHeight++;
-                selectedPosition1Height = currentTestAllHeight;
+                currentRunAllHeight++;
+                selectedPosition1Height = currentRunAllHeight;
                 
-                // Reset test state to restart from step 0
-                testStarted = false;
+                // Reset run state to restart from step 0
+                runStarted = false;
                 step = 0;
                 
                 // Return immediately - next loop iteration will restart from step 0
                 return;
             } else {
                 // All heights completed for current column
-                // Check if there are more columns to test
-                if (testAllCurrentColumnIndex < testAllColumnCount - 1) {
+                // Check if there are more columns to run
+                if (runAllCurrentColumnIndex < runAllColumnCount - 1) {
                     // Home X, Y, and Fork axes before moving to next column (preserve column position)
                     homeAllAxes(false);  // false = don't reset column position
                     
                     // Move to next column
-                    testAllCurrentColumnIndex++;
+                    runAllCurrentColumnIndex++;
                     
                     // Calculate next column with wrap-around (0-5)
-                    int nextColumn = (testAllStartColumn + testAllCurrentColumnIndex) % 6;
+                    int nextColumn = (runAllStartColumn + runAllCurrentColumnIndex) % 6;
                     selectedColumn = nextColumn;
                     
                     // Move storage motor to next column
                     moveToColumn(nextColumn);
                     
                     // Reset height to 1 for new column
-                    currentTestAllHeight = 1;
+                    currentRunAllHeight = 1;
                     selectedPosition1Height = 1;
                     
-                    // Reset test state to restart from step 0
-                    testStarted = false;
+                    // Reset run state to restart from step 0
+                    runStarted = false;
                     step = 0;
                     
                     // Return immediately - next loop iteration will restart from step 0
@@ -605,25 +605,25 @@ void testState() {
                     // Home all axes (X, Y, and Fork) but preserve column position
                     homeAllAxes(false);  // false = don't reset column position
                     
-                    // Reset test all mode
-                    testAllMode = false;
-                    currentTestAllHeight = 1;
-                    testAllColumnCount = 1;
-                    testAllStartColumn = 0;
-                    testAllCurrentColumnIndex = 0;
+                    // Reset run all mode
+                    runAllMode = false;
+                    currentRunAllHeight = 1;
+                    runAllColumnCount = 1;
+                    runAllStartColumn = 0;
+                    runAllCurrentColumnIndex = 0;
                     
                     // Return to idle
-                    testStarted = false;
+                    runStarted = false;
                     setMachineState(STATE_IDLE);
                 }
             }
         } else {
-            // Single test complete - now do cleanup (homing only happens at the end)
+            // Single run cycle complete - now do cleanup (homing only happens at the end)
             // Home all axes (X, Y, and Fork) but preserve column position
             homeAllAxes(false);  // false = don't reset column position
             
             // Return to idle
-            testStarted = false;
+            runStarted = false;
             setMachineState(STATE_IDLE);
         }
     }

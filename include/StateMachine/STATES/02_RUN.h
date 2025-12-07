@@ -1,13 +1,13 @@
-#ifndef TEST_STATE_H
-#define TEST_STATE_H
+#ifndef RUN_STATE_H
+#define RUN_STATE_H
 
 #include <Arduino.h>
 
 //* ************************************************************************
-//* ************************ TEST STATE ***********************************
+//* ************************ RUN STATE ***********************************
 //* ************************************************************************
 
-void testState();
+void runState();
 
-#endif // TEST_STATE_H
+#endif // RUN_STATE_H
 

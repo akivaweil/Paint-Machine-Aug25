@@ -8,7 +8,7 @@ extern void updateOTA();
 
 // State machine function
 extern void setMachineState(int state);
-#define STATE_TEST 2
+#define STATE_RUN 2
 
 //* ************************************************************************
 //* ************************ IDLE STATE ***********************************
@@ -21,12 +21,12 @@ void idleState() {
     // Check start button (debounced)
     unsigned long currentTime = millis();
     if (currentTime - lastButtonCheck >= 50) {  // Check every 50ms
-        bool buttonState = digitalRead(TEST_BUTTON_PIN);
+        bool buttonState = digitalRead(START_BUTTON_PIN);
         
         // Button is active HIGH (pulldown), so check for rising edge
         if (lastButtonState == LOW && buttonState == HIGH) {
-            // Button pressed - start test cycle
-            setMachineState(STATE_TEST);
+            // Button pressed - start run cycle
+            setMachineState(STATE_RUN);
         }
         
         lastButtonState = buttonState;
