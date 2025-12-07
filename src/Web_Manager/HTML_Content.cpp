@@ -814,12 +814,12 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             <span class="chevron">&darr;</span>
       </div>
       <div class="collapsible-content expanded" id="homingContent">
-            <div class="card-body">
-            <div class="home-buttons">
-              <button class="home-btn" onclick="homeAxis('x')">Home X</button>
-              <button class="home-btn" onclick="homeAxis('y')">Home Y</button>
-              <button class="home-btn" onclick="homeAxis('fork')">Home Fork Motor</button>
-              <button class="home-btn all" onclick="homeAxis('all')">Home All</button>
+            <div class="card-body" style="padding: 12px 24px;">
+            <div class="home-buttons" style="padding-top: 0; border-top: none; margin-top: 0; margin-bottom: 0; gap: 8px;">
+              <button class="home-btn" onclick="homeAxis('x')" style="padding: 8px 14px;">Home X</button>
+              <button class="home-btn" onclick="homeAxis('y')" style="padding: 8px 14px;">Home Y</button>
+              <button class="home-btn" onclick="homeAxis('fork')" style="padding: 8px 14px;">Home Fork Motor</button>
+              <button class="home-btn all" onclick="homeAxis('all')" style="padding: 8px 14px;">Home All</button>
             </div>
             </div>
         </div>
