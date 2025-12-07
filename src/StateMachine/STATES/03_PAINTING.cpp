@@ -228,6 +228,8 @@ void paintingState() {
     static int step = 0;
     static bool paintingStarted = false;
     static long paintMotorStartPosition = 0;
+    static unsigned long servoStartTime = 0;
+    static bool paintGunTurnedOn = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -254,6 +256,8 @@ void paintingState() {
         step = 0;
         servoTargetAngle = -1.0;  // Clear servo target
         lastServoUpdateTime = 0;  // Reset servo timing
+        servoStartTime = 0;
+        paintGunTurnedOn = false;
         
         // Return to test state
         setMachineState(STATE_GANTRY);
@@ -283,15 +287,20 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: TURN ON PAINT GUN, SUCTION, MOVE SERVO TO 220, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
+    //! STEP 2: TURN ON SUCTION, MOVE SERVO TO 220, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
+    //!         TURN ON PAINT GUN 0.5 SECONDS AFTER SERVO STARTS MOVING
     //! ************************************************************************
     else if (step == 1) {
-        // Turn on paint gun and suction (non-blocking)
-        turnOnPaintGun();
+        // Turn on suction (non-blocking)
         turnOnSuction();
         
         // Start servo movement to 220 degrees (non-blocking, gradual movement)
         startServoMoveToAngle(220.0);
+        
+        // Record when servo started moving
+        if (servoStartTime == 0) {
+            servoStartTime = millis();
+        }
         
         // Start paint rotation motor for 2 revolutions (non-blocking)
         paintMotorStartPosition = startPaintRotationTwoRevolutions();
@@ -303,9 +312,18 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION
+    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, TURN ON PAINT GUN AFTER 0.5 SEC DELAY
     //! ************************************************************************
     else if (step == 2) {
+        // Check if 500ms has elapsed since servo started moving
+        if (!paintGunTurnedOn && servoStartTime > 0) {
+            unsigned long elapsedTime = millis() - servoStartTime;
+            if (elapsedTime >= 500) {
+                turnOnPaintGun();
+                paintGunTurnedOn = true;
+            }
+        }
+        
         waitForMotors(motorX, motorY);
         if (cycleCancelled) return;
         step = 3;
@@ -354,6 +372,8 @@ void paintingState() {
         // Reset state
         paintingStarted = false;
         step = 0;
+        servoStartTime = 0;
+        paintGunTurnedOn = false;
         
         // Return to test state
         setMachineState(STATE_GANTRY);
