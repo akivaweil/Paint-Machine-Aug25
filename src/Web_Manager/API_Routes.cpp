@@ -17,39 +17,22 @@
 // Setup all API routes
 void setupAPIRoutes() {
     // Route for root / web page (sensor dashboard)
-    // Use chunked response to stream from PROGMEM without loading entire HTML into RAM
+    // Use send_P with processor to replace placeholders without loading entire HTML into RAM
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        size_t htmlLen = strlen_P(sensors_html);
-        String stepsValue = String(storageMotorStepsPerClick);
-        String paintRotationStepsValue = String(paintRotationMotorStepsPerClick);
-        String servoHomeAngleValue = String(SERVO_HOME_ANGLE);
+        // Processor function for template replacements (var comes without % delimiters)
+        auto processor = [](const String& var) -> String {
+            if (var == "STORAGE_MOTOR_STEPS_PER_CLICK_VALUE") {
+                return String(storageMotorStepsPerClick);
+            } else if (var == "PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE") {
+                return String(paintRotationMotorStepsPerClick);
+            } else if (var == "SERVO_HOME_ANGLE_VALUE") {
+                return String(SERVO_HOME_ANGLE);
+            }
+            return String();
+        };
         
-        AsyncWebServerResponse *response = request->beginChunkedResponse("text/html", 
-            [htmlLen, stepsValue, paintRotationStepsValue, servoHomeAngleValue](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-                if (index >= htmlLen) {
-                    return 0; // Done
-                }
-                
-                // Read chunk from PROGMEM
-                size_t toRead = (htmlLen - index > maxLen) ? maxLen : (htmlLen - index);
-                memcpy_P(buffer, sensors_html + index, toRead);
-                buffer[toRead] = '\0';
-                
-                // Replace placeholders in this chunk (simple string replacement)
-                String chunk = String((char*)buffer);
-                chunk.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", stepsValue);
-                chunk.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", paintRotationStepsValue);
-                chunk.replace("SERVO_HOME_ANGLE_VALUE", servoHomeAngleValue);
-                
-                // Copy back to buffer
-                size_t newLen = chunk.length();
-                if (newLen > maxLen) newLen = maxLen;
-                memcpy(buffer, chunk.c_str(), newLen);
-                
-                return newLen;
-            });
-        
-        request->send(response);
+        // Send with processor - streams from PROGMEM and replaces placeholders
+        request->send_P(200, "text/html", sensors_html, processor);
     });
     
     // API endpoint for sensor states

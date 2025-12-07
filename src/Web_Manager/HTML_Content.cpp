@@ -899,10 +899,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <div class="control-section">
                 <div class="control-label">Servo (0-270&deg;)</div>
                 <div style="margin-top: 16px; width: 125%;">
-                  <input type="range" id="servoSlider" min="0" max="270" value="SERVO_HOME_ANGLE_VALUE" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
+                  <input type="range" id="servoSlider" min="0" max="270" value="%SERVO_HOME_ANGLE_VALUE%" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
                   <div style="display: flex; justify-content: space-between; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);">
                     <span>0&deg;</span>
-                    <span id="servoAngle" style="color: var(--accent-primary); font-weight: 600;">SERVO_HOME_ANGLE_VALUE&deg;</span>
+                    <span id="servoAngle" style="color: var(--accent-primary); font-weight: 600;">%SERVO_HOME_ANGLE_VALUE%&deg;</span>
                     <span>270&deg;</span>
                   </div>
                 </div>
@@ -1090,11 +1090,11 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'storagePosition', name: 'Storage Position' },
       { id: 'squarePresent', name: 'Square Present' }
     ];
-    let STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
-    let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
+    let STORAGE_MOTOR_STEPS_PER_CLICK = %STORAGE_MOTOR_STEPS_PER_CLICK_VALUE%;
+    let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = %PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE%;
     let currentSpeedPaintRotation = 1000;
     let currentAccelPaintRotation = 1000;
-    let currentPaintRotationSteps = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
+    let currentPaintRotationSteps = %PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE%;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1271,7 +1271,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelPaintRotation = accelPaintRotationInput ? parseInt(accelPaintRotationInput) : currentAccelPaintRotation;
       const speedStorage = parseInt(document.getElementById('speedStorage').value) || 10000;
       const accelStorage = parseInt(document.getElementById('accelStorage').value) || 10000;
-      const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
+      const storageSteps = parseInt(document.getElementById('storageSteps').value) || %STORAGE_MOTOR_STEPS_PER_CLICK_VALUE%;
       const storageTrim = parseInt(document.getElementById('storageTrim').value) || 300;
       const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
       const paintRotationRevOutput = paintRotationRevOutputInput ? parseInt(paintRotationRevOutputInput) : 38400;
@@ -1719,9 +1719,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                         '&accelPaintRotation=' + (motor.accelPaintRotation || 1000) +
                         '&speedStorage=' + (motor.speedStorage || 10000) +
                         '&accelStorage=' + (motor.accelStorage || 10000) +
-                        '&storageSteps=' + (motor.storageSteps || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE) +
+                        '&storageSteps=' + (motor.storageSteps || %STORAGE_MOTOR_STEPS_PER_CLICK_VALUE%) +
                         '&storageTrim=' + (motor.storageTrim || 300) +
-                        '&paintRotationSteps=' + (motor.paintRotationSteps || PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE) +
+                        '&paintRotationSteps=' + (motor.paintRotationSteps || %PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE%) +
                         '&paintRotationRevOutput=' + (motor.paintRotationRevOutput || 38400) +
                         '&servoSpeed=' + (motor.servoSpeed || 30);
             
