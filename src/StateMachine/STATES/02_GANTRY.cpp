@@ -63,6 +63,9 @@ extern int testAllCurrentColumnIndex;  // Current column index in the test seque
 // Paint gun pin
 #include "../../config/Pin_Definitions.h"
 
+// External pressure pot state
+extern bool pressurePotState;
+
 //* ************************************************************************
 //* ************************ GANTRY STATE *********************************
 //* ************************************************************************
@@ -120,6 +123,10 @@ void gantryState() {
             currentServoAngle = SERVO_HOME_ANGLE;
             servo->write(SERVO_HOME_ANGLE);
         }
+        
+        // Turn on pressure pot at the beginning of cycle
+        digitalWrite(PRESSURE_POT_PIN, HIGH);
+        pressurePotState = true;
     }
     
     //! ************************************************************************

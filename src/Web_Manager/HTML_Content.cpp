@@ -741,6 +741,16 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     <div class="sensor-grid" id="sensorGrid">
           <!-- Sensors populated by JS -->
         </div>
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+          <div class="panel-label" style="margin-bottom: 12px;">Pressure Pot</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 14px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Pressure Pot</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="pressurePotToggle" onchange="togglePressurePotFromPanel()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
     </div>
     
       <div class="content-area">
@@ -1473,6 +1483,28 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .then(data => {
           btn.textContent = data.state === 'on' ? 'ON' : 'OFF';
           btn.classList.toggle('active', data.state === 'on');
+          // Update left panel toggle
+          const toggle = document.getElementById('pressurePotToggle');
+          if (toggle) {
+            toggle.checked = data.state === 'on';
+          }
+        })
+        .catch(error => console.error('Pressure pot error:', error));
+    }
+    
+    function togglePressurePotFromPanel() {
+      const toggle = document.getElementById('pressurePotToggle');
+      const isOn = toggle.checked;
+      fetch('/api/pressurepot?state=' + (isOn ? 'on' : 'off'))
+        .then(response => response.json())
+        .then(data => {
+          toggle.checked = data.state === 'on';
+          // Update button in actuators section
+          const btn = document.getElementById('pressurePotBtn');
+          if (btn) {
+            btn.textContent = data.state === 'on' ? 'ON' : 'OFF';
+            btn.classList.toggle('active', data.state === 'on');
+          }
         })
         .catch(error => console.error('Pressure pot error:', error));
     }
@@ -1496,6 +1528,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           if (pressurePotBtn) {
             pressurePotBtn.textContent = data.pressurePot === 'on' ? 'ON' : 'OFF';
             pressurePotBtn.classList.toggle('active', data.pressurePot === 'on');
+          }
+          const pressurePotToggle = document.getElementById('pressurePotToggle');
+          if (pressurePotToggle) {
+            pressurePotToggle.checked = data.pressurePot === 'on';
           }
         })
         .catch(error => console.error('Error loading device states:', error));
