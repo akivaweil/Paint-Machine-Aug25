@@ -738,7 +738,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     <div class="main-layout">
       <div class="sensor-panel">
         <div class="panel-label">Sensors</div>
-    <div class="sensor-grid" id="sensorGrid">
+        <div class="sensor-grid" id="sensorGrid">
           <!-- Sensors populated by JS -->
         </div>
         <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
@@ -751,7 +751,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             </label>
           </div>
         </div>
-    </div>
+      </div>
     
       <div class="content-area">
         <div class="card">
