@@ -228,6 +228,19 @@ void homeAllAxes(bool resetColumn) {
         delay(1);
     }
     
+    // Apply trim movement to storage motor after finding home switch
+    if (motorStorage && resetColumn && storageHomed) {
+        if (storageMotorTrimDistance > 0) {
+            Serial.println("[HOMING] Applying storage motor trim movement...");
+            motorStorage->moveStepsSmooth(storageMotorTrimDistance);
+            while (motorStorage->isMotorRunning()) {
+                updateOTA();
+                delay(1);
+            }
+            Serial.println("[HOMING] Storage motor trim movement complete");
+        }
+    }
+    
     // Move X and Y axes 0.5 inches away from home simultaneously
     motorX->moveInches(-0.5);
     motorY->moveInches(-0.5);
