@@ -315,7 +315,23 @@ void paintingState() {
     //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, TURN ON PAINT GUN AFTER DELAY
     //! ************************************************************************
     else if (step == 2) {
-        // Check if delay has elapsed since servo started moving
+        // Wait for motors while continuously checking if paint gun delay has elapsed
+        while ((motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning())) {
+            // Check if delay has elapsed since servo started moving
+            if (!paintGunTurnedOn && servoStartTime > 0) {
+                unsigned long elapsedTime = millis() - servoStartTime;
+                if (elapsedTime >= PAINT_GUN_DELAY_MS) {
+                    turnOnPaintGun();
+                    paintGunTurnedOn = true;
+                }
+            }
+            updateServoMovement();  // Update servo while waiting
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+        
+        // Final check in case delay elapsed after motors finished
         if (!paintGunTurnedOn && servoStartTime > 0) {
             unsigned long elapsedTime = millis() - servoStartTime;
             if (elapsedTime >= PAINT_GUN_DELAY_MS) {
@@ -324,7 +340,6 @@ void paintingState() {
             }
         }
         
-        waitForMotors(motorX, motorY);
         if (cycleCancelled) return;
         step = 3;
     }
@@ -333,6 +348,15 @@ void paintingState() {
     //! STEP 4: WAIT FOR 1 REVOLUTION, THEN START SERVO MOVING BACK TO HOME
     //! ************************************************************************
     else if (step == 3) {
+        // Check if paint gun delay has elapsed (in case it hasn't turned on yet)
+        if (!paintGunTurnedOn && servoStartTime > 0) {
+            unsigned long elapsedTime = millis() - servoStartTime;
+            if (elapsedTime >= PAINT_GUN_DELAY_MS) {
+                turnOnPaintGun();
+                paintGunTurnedOn = true;
+            }
+        }
+        
         // Wait for 1 revolution from start
         waitForPaintRotationRevolutions(paintMotorStartPosition, 1.0);
         if (cycleCancelled) return;
