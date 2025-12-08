@@ -155,6 +155,7 @@ void homeAllAxes(bool resetColumn) {
     bool xHomed = false;
     bool yHomed = false;
     bool storageHomed = false;
+    bool storageMotorMoved = false;  // Track if storage motor actually moved to find switch
     
     // Storage motor only homes on first boot (when resetColumn is true)
     if (resetColumn && motorStorage) {
@@ -165,11 +166,13 @@ void homeAllAxes(bool resetColumn) {
         // If storage switch is already triggered, consider it already homed (stay at current column)
         if (storageSwitchTriggered) {
             storageHomed = true;
+            storageMotorMoved = false;  // Motor didn't move, switch already triggered
             Serial.println("[HOMING] Storage switch already triggered - staying at current column position");
         }
     } else {
         // Skip storage motor homing on subsequent homing operations
         storageHomed = true;
+        storageMotorMoved = false;
     }
     
     // Set homing speeds to 700
@@ -221,6 +224,7 @@ void homeAllAxes(bool resetColumn) {
             // Force stop immediately to prevent overshooting
             motorStorage->forceStop();
             storageHomed = true;
+            storageMotorMoved = true;  // Motor moved to find switch
             Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
         }
         
@@ -228,8 +232,8 @@ void homeAllAxes(bool resetColumn) {
         delay(1);
     }
     
-    // Apply trim movement to storage motor after finding home switch
-    if (motorStorage && resetColumn && storageHomed) {
+    // Apply trim movement to storage motor after finding home switch (only if motor actually moved)
+    if (motorStorage && resetColumn && storageHomed && storageMotorMoved) {
         if (storageMotorTrimDistance > 0) {
             Serial.println("[HOMING] Applying storage motor trim movement...");
             motorStorage->moveStepsSmooth(storageMotorTrimDistance);
