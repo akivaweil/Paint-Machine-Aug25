@@ -315,8 +315,14 @@ void paintingState() {
     //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, TURN ON PAINT GUN AFTER DELAY
     //! ************************************************************************
     else if (step == 2) {
+        // Ensure servo start time is set (in case step 1 didn't set it)
+        if (servoStartTime == 0 && servoTargetAngle >= 0) {
+            servoStartTime = millis();
+        }
+        
         // Wait for motors while continuously checking if paint gun delay has elapsed
-        while ((motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning())) {
+        bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
+        while (motorsRunning || (!paintGunTurnedOn && servoStartTime > 0 && (millis() - servoStartTime) < PAINT_GUN_DELAY_MS)) {
             // Check if delay has elapsed since servo started moving
             if (!paintGunTurnedOn && servoStartTime > 0) {
                 unsigned long elapsedTime = millis() - servoStartTime;
@@ -325,9 +331,14 @@ void paintingState() {
                     paintGunTurnedOn = true;
                 }
             }
+            
             updateServoMovement();  // Update servo while waiting
             updateOTA();
             if (cycleCancelled) return;
+            
+            // Update motors running status
+            motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
+            
             delay(1);
         }
         
