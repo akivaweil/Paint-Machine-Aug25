@@ -287,15 +287,15 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: TURN ON SUCTION, MOVE SERVO TO 220, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
+    //! STEP 2: TURN ON SUCTION, MOVE SERVO TO PAINT ANGLE, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
     //!         TURN ON PAINT GUN 0.5 SECONDS AFTER SERVO STARTS MOVING
     //! ************************************************************************
     else if (step == 1) {
         // Turn on suction (non-blocking)
         turnOnSuction();
         
-        // Start servo movement to 220 degrees (non-blocking, gradual movement)
-        startServoMoveToAngle(220.0);
+        // Start servo movement to paint angle (non-blocking, gradual movement)
+        startServoMoveToAngle(SERVO_PAINT_ANGLE);
         
         // Record when servo started moving
         if (servoStartTime == 0) {
@@ -356,7 +356,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: WAIT FOR 1 REVOLUTION, THEN START SERVO MOVING BACK TO HOME
+    //! STEP 4: WAIT FOR SERVO_RETURN_REVOLUTIONS, THEN START SERVO MOVING BACK TO HOME
     //! ************************************************************************
     else if (step == 3) {
         // Check if paint gun delay has elapsed (in case it hasn't turned on yet)
@@ -368,8 +368,8 @@ void paintingState() {
             }
         }
         
-        // Wait for 1 revolution from start
-        waitForPaintRotationRevolutions(paintMotorStartPosition, 1.0);
+        // Wait for configured number of revolutions from start
+        waitForPaintRotationRevolutions(paintMotorStartPosition, SERVO_RETURN_REVOLUTIONS);
         if (cycleCancelled) return;
         
         // Start servo moving back to home position (non-blocking)

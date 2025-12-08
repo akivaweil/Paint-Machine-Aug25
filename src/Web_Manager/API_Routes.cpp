@@ -532,12 +532,22 @@ void setupAPIRoutes() {
         }
     });
     
-    // API endpoint to get device states
+    // API endpoint to get device states (reads actual pin states to ensure accuracy)
     server.on("/api/devices/states", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Read actual pin states to ensure accuracy
+        bool suctionOn = digitalRead(SUCTION_PIN) == HIGH;
+        bool paintGunOn = digitalRead(PAINT_GUN_PIN) == HIGH;
+        bool pressurePotOn = digitalRead(PRESSURE_POT_PIN) == HIGH;
+        
+        // Update state variables to keep them in sync
+        suctionState = suctionOn;
+        paintGunState = paintGunOn;
+        pressurePotState = pressurePotOn;
+        
         String json = "{";
-        json += "\"suction\":\"" + String(suctionState ? "on" : "off") + "\",";
-        json += "\"paintGun\":\"" + String(paintGunState ? "on" : "off") + "\",";
-        json += "\"pressurePot\":\"" + String(pressurePotState ? "on" : "off") + "\"";
+        json += "\"suction\":\"" + String(suctionOn ? "on" : "off") + "\",";
+        json += "\"paintGun\":\"" + String(paintGunOn ? "on" : "off") + "\",";
+        json += "\"pressurePot\":\"" + String(pressurePotOn ? "on" : "off") + "\"";
         json += "}";
         request->send(200, "application/json", json);
     });

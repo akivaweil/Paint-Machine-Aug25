@@ -1148,6 +1148,10 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     updatePositions();
     setInterval(updatePositions, 200);
     
+    // Update device states immediately and then every 500ms
+    updateDeviceStates();
+    setInterval(updateDeviceStates, 500);
+    
     // Connection monitoring for ESP reset detection
     let consecutiveFailures = 0;
     let espOffline = false;
@@ -1507,8 +1511,9 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Pressure pot toggle error:', error));
     }
     
-    // Load suction and paint gun states on page load
-    function loadDeviceStates() {
+    // Update device states (suction, paint gun, pressure pot, square sensing)
+    function updateDeviceStates() {
+      // Update device states (suction, paint gun, pressure pot)
       fetch('/api/devices/states')
         .then(response => response.json())
         .then(data => {
@@ -1533,6 +1538,22 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           }
         })
         .catch(error => console.error('Error loading device states:', error));
+      
+      // Update square sensing toggle
+      fetch('/api/squareSensing')
+        .then(response => response.json())
+        .then(data => {
+          const toggle = document.getElementById('squareSensingToggle');
+          if (toggle) {
+            toggle.checked = data.enabled;
+          }
+        })
+        .catch(error => console.error('Error loading square sensing state:', error));
+    }
+    
+    // Load device states on page load (for initial load)
+    function loadDeviceStates() {
+      updateDeviceStates();
     }
     
     function stopMove() {

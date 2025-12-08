@@ -54,24 +54,9 @@
 #define STORAGE_MOTOR_SENSOR_IGNORE_STEPS 500  // Steps to ignore sensor at start to clear current column
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
-//║ 🎨 PAINT ROTATION MOTOR SETTINGS                                     ║
+//║ 🎨 PAINTING CONFIGURATION                                            ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-// Paint rotation motor: 12800 steps/rev with 5:15 gear ratio (3:1 reduction)
-// 1 full 360-degree output rotation = 3 motor revs = 38400 steps
-#define PAINT_ROTATION_MOTOR_SPEED 1000                // Paint rotation motor speed for normal operation
-#define PAINT_ROTATION_MOTOR_ACCEL 1000                // Paint rotation motor acceleration for normal operation
-#define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 2000      // Paint rotation motor steps per click in web dashboard
-#define PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT 9600 // Steps per full output revolution
-
-//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
-//║ 🎯 SERVO CONFIGURATION                                               ║
-//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define SERVO_HOME_ANGLE 130.0         // Servo home angle in degrees
-
-//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
-//║ 🎨 PAINTING STATE CONFIGURATION                                      ║
-//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define PAINT_GUN_DELAY_MS 500         // Delay in milliseconds before paint gun turns on after servo starts moving
+#include "Painting_Config.h"
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🛡️ SAFETY SETTINGS                                                   ║
