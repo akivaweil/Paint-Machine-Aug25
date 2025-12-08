@@ -2,7 +2,11 @@
 #include <Bounce2.h>
 #include "StateMachine/STATES/01_HOMING.h"
 #include "../../config/Config.h"
-#include "../../config/Pin_Definitions.h"
+
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🧭 HOMING STATE CONFIG                                                ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+const float HOMING_Y_START_DELAY_MS = 1000.0f;  // Delay before starting Y homing
 
 // External motor and switch instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
@@ -144,7 +148,7 @@ void homeAllAxes(bool resetColumn) {
     homeForkAxis();
     
     //! ************************************************************************
-    //! STEP 2: HOME X, Y, AND STORAGE MOTORS SIMULTANEOUSLY
+    //! STEP 2: HOME X AND STORAGE, THEN START Y AFTER DELAY
     //! ************************************************************************
     if (resetColumn) {
         Serial.println("[HOMING] Starting X, Y, and Storage axes homing...");
@@ -157,6 +161,9 @@ void homeAllAxes(bool resetColumn) {
     bool yHomed = false;
     bool storageHomed = false;
     bool storageMotorMoved = false;  // Track if storage motor actually moved to find switch
+    bool yStarted = false;
+    const unsigned long yStartDelayMs = static_cast<unsigned long>(HOMING_Y_START_DELAY_MS);
+    const unsigned long yDelayStart = millis();
     
     // Storage motor only homes on first boot (when resetColumn is true)
     if (resetColumn && motorStorage) {
@@ -184,20 +191,13 @@ void homeAllAxes(bool resetColumn) {
         motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
     }
     
-    // Start continuous movement for X toward home (positive direction)
+    // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
+    
     // Start storage motor clockwise to find nearest column (only on first boot and if not already at a column)
     if (motorStorage && resetColumn && !storageHomed) {
         motorStorage->startContinuous(true);
     }
-    
-    // Y motor waits 1 second on first boot to avoid hitting obstacle on far left
-    if (resetColumn) {
-        // First boot: delay Y motor by 1 second
-        delay(1000);
-    }
-    // Start Y motor toward home (positive direction)
-    motorY->startContinuous(true);
     
     // Keep moving until all home switches/sensors are triggered
     while (!xHomed || !yHomed || !storageHomed) {
@@ -206,53 +206,41 @@ void homeAllAxes(bool resetColumn) {
             storagePositionSensor.update();
         }
         
-        // Check X switch BEFORE running motor (fast direct pin read, then verify with debounced read)
+        // Run all motors continuously
         if (!xHomed) {
-            // Fast check using direct pin reads (no debounce delay)
-            bool xSwitchFast = digitalRead(X_HOME_PIN) == HIGH && digitalRead(X_HOME_PIN2) == HIGH;
-            if (xSwitchFast) {
-                // Verify with debounced read, then stop immediately
-                if (homeSwitchX->readDual()) {
-                    motorX->forceStop();
-                    xHomed = true;
-                    Serial.println("[HOMING] X axis homed");
-                }
-            } else {
-                // Only run motor if switch is not triggered
-                motorX->runContinuous();
-            }
+            motorX->runContinuous();
         }
-        
-        // Check Y switch BEFORE running motor (fast direct pin read, then verify with debounced read)
-        if (!yHomed) {
-            // Fast check using direct pin read (no debounce delay)
-            bool ySwitchFast = digitalRead(Y_HOME_PIN) == HIGH;
-            if (ySwitchFast) {
-                // Verify with debounced read, then stop immediately
-                if (homeSwitchY->read()) {
-                    motorY->forceStop();
-                    yHomed = true;
-                    Serial.println("[HOMING] Y axis homed");
-                }
-            } else {
-                // Only run motor if switch is not triggered
-                motorY->runContinuous();
+        // Start Y axis after configured delay so X/storage can clear the far gantry end
+        if (!yStarted && (millis() - yDelayStart >= yStartDelayMs)) {
+            if (!yHomed) {
+                motorY->startContinuous(true);
             }
+            yStarted = true;
         }
-        
-        // Check storage switch BEFORE running motor
+        if (yStarted && !yHomed) {
+            motorY->runContinuous();
+        }
         if (!storageHomed && motorStorage && resetColumn) {
-            storagePositionSensor.update();
-            bool storageSwitchFast = storagePositionSensor.read();
-            if (storageSwitchFast) {
-                motorStorage->forceStop();
-                storageHomed = true;
-                storageMotorMoved = true;  // Motor moved to find switch
-                Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
-            } else {
-                // Only run motor if switch is not triggered
-                motorStorage->runContinuous();
-            }
+            motorStorage->runContinuous();
+        }
+        
+        // Check switches and stop motors when triggered
+        if (!xHomed && homeSwitchX->readDual()) {
+            motorX->stopContinuous();
+            xHomed = true;
+            Serial.println("[HOMING] X axis homed");
+        }
+        if (!yHomed && homeSwitchY->read()) {
+            motorY->stopContinuous();
+            yHomed = true;
+            Serial.println("[HOMING] Y axis homed");
+        }
+        if (!storageHomed && motorStorage && resetColumn && storagePositionSensor.read()) {
+            // Force stop immediately to prevent overshooting
+            motorStorage->forceStop();
+            storageHomed = true;
+            storageMotorMoved = true;  // Motor moved to find switch
+            Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
         }
         
         updateOTA(); // Allow OTA updates during homing
@@ -528,4 +516,3 @@ void moveStorageClockwise() {
     
     Serial.println("[STORAGE] Successfully moved one column clockwise");
 }
-
