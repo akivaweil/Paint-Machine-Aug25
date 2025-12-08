@@ -95,6 +95,14 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
     }
 }
 
+// Stop and disable paint rotation motor
+void stopAndDisablePaintRotation() {
+    if (motorPaintRotation) {
+        motorPaintRotation->forceStop();
+    }
+    disablePaintRotationMotor();
+}
+
 // Turn on paint gun
 void turnOnPaintGun() {
     digitalWrite(PAINT_GUN_PIN, HIGH);
@@ -409,6 +417,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 4) {
         if (motorPaintRotation) {
+            enablePaintRotationMotor();
             rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((ROTATE_TO_RIGHT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
@@ -419,6 +428,7 @@ void paintingState() {
     else if (step == 5) {
         waitForPaintRotationRevolutions(rotationStartPos, fabs(ROTATE_TO_RIGHT_DEG) / 360.0f);
         if (cycleCancelled) return;
+        stopAndDisablePaintRotation();
         unsigned long dwellMs = (unsigned long)DWELL_RIGHT_MS;
         unsigned long startWait = millis();
         while (millis() - startWait < dwellMs) {
@@ -435,6 +445,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 6) {
         if (motorPaintRotation) {
+            enablePaintRotationMotor();
             rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((ROTATE_TO_BACK_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
@@ -445,6 +456,7 @@ void paintingState() {
     else if (step == 7) {
         waitForPaintRotationRevolutions(rotationStartPos, fabs(ROTATE_TO_BACK_DEG) / 360.0f);
         if (cycleCancelled) return;
+        stopAndDisablePaintRotation();
         unsigned long dwellMs = (unsigned long)DWELL_BACK_MS;
         unsigned long startWait = millis();
         while (millis() - startWait < dwellMs) {
@@ -461,6 +473,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 8) {
         if (motorPaintRotation) {
+            enablePaintRotationMotor();
             rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((ROTATE_TO_LEFT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
@@ -471,6 +484,7 @@ void paintingState() {
     else if (step == 9) {
         waitForPaintRotationRevolutions(rotationStartPos, fabs(ROTATE_TO_LEFT_DEG) / 360.0f);
         if (cycleCancelled) return;
+        stopAndDisablePaintRotation();
         unsigned long dwellMs = (unsigned long)DWELL_LEFT_MS;
         unsigned long startWait = millis();
         while (millis() - startWait < dwellMs) {
@@ -489,6 +503,7 @@ void paintingState() {
         servoSpeed = SERVO_PAINT_MOVE_SPEED;
         startServoMoveToAngle(SERVO_PAINT_END_ANGLE);
         if (motorPaintRotation) {
+            enablePaintRotationMotor();
             rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((FINAL_SPIN_TO_FRONT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
@@ -509,10 +524,7 @@ void paintingState() {
         }
         
         // Stop and disable paint rotation motor
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
+        stopAndDisablePaintRotation();
         
         // Turn off paint gun and suction
         turnOffPaintGun();
