@@ -436,6 +436,9 @@ void paintingState() {
     }
     else if (step == 7) {
         waitForMotor(motorPaintRotation);
+        if (motorPaintRotation) {
+            motorPaintRotation->forceStop();
+        }
         disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 8;
@@ -475,6 +478,9 @@ void paintingState() {
     }
     else if (step == 10) {
         waitForMotor(motorPaintRotation);
+        if (motorPaintRotation) {
+            motorPaintRotation->forceStop();
+        }
         disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 11;
@@ -514,6 +520,9 @@ void paintingState() {
     }
     else if (step == 13) {
         waitForMotor(motorPaintRotation);
+        if (motorPaintRotation) {
+            motorPaintRotation->forceStop();
+        }
         disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 14;
