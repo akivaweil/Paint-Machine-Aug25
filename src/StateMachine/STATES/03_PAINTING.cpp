@@ -51,8 +51,9 @@ extern bool testModeEnabled;
 //║ ⚔️ HELPER FUNCTIONS                                                    ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 
-// Forward declaration
+// Forward declarations
 void updateServoMovement();
+bool updateServoPositionByRotation(long startPosition, bool resetFlags);
 
 // Wait for a motor to finish moving
 void waitForMotor(StepperMotor* motor) {
@@ -86,6 +87,7 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
             break;
         }
         updateServoMovement();  // Update servo while waiting
+        updateServoPositionByRotation(startPosition, false);  // Update servo position based on rotation
         updateOTA();
         if (cycleCancelled) return;
         delay(1);
@@ -224,6 +226,53 @@ void updateServoMovement() {
     lastServoUpdateTime = currentTime;
 }
 
+// Check rotation count and move servo to appropriate position based on config
+// Returns true if any position was triggered this call
+bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
+    if (!motorPaintRotation) return false;
+    
+    static bool pos1Triggered = false;
+    static bool pos2Triggered = false;
+    static bool pos3Triggered = false;
+    
+    // Reset flags if requested
+    if (resetFlags) {
+        pos1Triggered = false;
+        pos2Triggered = false;
+        pos3Triggered = false;
+        return false;
+    }
+    
+    // Calculate current rotation count
+    long currentSteps = motorPaintRotation->getCurrentPosition() - startPosition;
+    float currentRotations = (float)currentSteps / paintRotationMotorStepsPerRevOutput;
+    
+    bool positionTriggered = false;
+    
+    // Check position 1 (0 rotations) - trigger immediately if not already triggered
+    if (!pos1Triggered && currentRotations >= SERVO_POS_1_ROTATIONS) {
+        startServoMoveToAngle(SERVO_POS_1_ANGLE);
+        pos1Triggered = true;
+        positionTriggered = true;
+    }
+    
+    // Check position 2
+    if (!pos2Triggered && currentRotations >= SERVO_POS_2_ROTATIONS) {
+        startServoMoveToAngle(SERVO_POS_2_ANGLE);
+        pos2Triggered = true;
+        positionTriggered = true;
+    }
+    
+    // Check position 3
+    if (!pos3Triggered && currentRotations >= SERVO_POS_3_ROTATIONS) {
+        startServoMoveToAngle(SERVO_POS_3_ANGLE);
+        pos3Triggered = true;
+        positionTriggered = true;
+    }
+    
+    return positionTriggered;
+}
+
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ ⚔️ PAINTING STATE                                                      ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
@@ -239,6 +288,11 @@ void paintingState() {
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
+    
+    // Update servo position based on rotation count (if motor has started)
+    if (paintingStarted && paintMotorStartPosition != 0) {
+        updateServoPositionByRotation(paintMotorStartPosition, false);
+    }
     
     // Check for cancel
     if (cycleCancelled) {
@@ -266,6 +320,10 @@ void paintingState() {
         waitingPositionReachedTime = 0;
         paintGunTurnedOn = false;
         paintGunTurnedOff = false;
+        paintMotorStartPosition = 0;
+        
+        // Reset servo position flags
+        updateServoPositionByRotation(0, true);
         
         // Return to test state
         setMachineState(STATE_GANTRY);
@@ -283,6 +341,10 @@ void paintingState() {
     if (!paintingStarted) {
         step = 0;
         paintingStarted = true;
+        // Reset servo position flags
+        updateServoPositionByRotation(0, true);
+        // Initialize servo to position 1 (0 rotations)
+        startServoMoveToAngle(SERVO_POS_1_ANGLE);
     }
     
     //! ************************************************************************
@@ -295,20 +357,13 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: TURN ON SUCTION, MOVE SERVO TO PAINT ANGLE, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
-    //!         TURN ON PAINT GUN 0.5 SECONDS AFTER SERVO STARTS MOVING
+    //! STEP 2: TURN ON SUCTION, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
+    //!         SERVO POSITIONS WILL BE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
+    //!         TURN ON PAINT GUN 0.5 SECONDS AFTER WAITING POSITION IS REACHED
     //! ************************************************************************
     else if (step == 1) {
         // Turn on suction (non-blocking)
         turnOnSuction();
-        
-        // Start servo movement to paint angle (non-blocking, gradual movement)
-        startServoMoveToAngle(SERVO_PAINT_ANGLE);
-        
-        // Record when servo started moving
-        if (servoStartTime == 0) {
-            servoStartTime = millis();
-        }
         
         // Start paint rotation motor for configured number of revolutions (non-blocking)
         paintMotorStartPosition = startPaintRotationTwoRevolutions();
@@ -327,6 +382,7 @@ void paintingState() {
         bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
         while (motorsRunning) {
             updateServoMovement();  // Update servo while waiting
+            updateServoPositionByRotation(paintMotorStartPosition, false);  // Update servo position based on rotation
             updateOTA();
             if (cycleCancelled) return;
             
@@ -351,6 +407,7 @@ void paintingState() {
                 paintGunTurnedOn = true;
             } else {
                 updateServoMovement();  // Update servo while waiting
+                updateServoPositionByRotation(paintMotorStartPosition, false);  // Update servo position based on rotation
                 updateOTA();
                 if (cycleCancelled) return;
                 delay(1);
@@ -362,7 +419,8 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN, THEN WAIT FOR SERVO_RETURN_REVOLUTIONS AND START SERVO MOVING BACK TO HOME
+    //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN
+    //!         SERVO POSITIONS ARE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
     //! ************************************************************************
     else if (step == 3) {
         // Wait for configured number of revolutions remaining to turn off paint gun
@@ -377,14 +435,6 @@ void paintingState() {
             }
             paintGunTurnedOff = true;
         }
-        
-        // Wait for configured number of revolutions remaining before returning servo
-        float servoReturnPosition = TOTAL_PAINT_REVOLUTIONS - SERVO_RETURN_REVOLUTIONS;
-        waitForPaintRotationRevolutions(paintMotorStartPosition, servoReturnPosition);
-        if (cycleCancelled) return;
-        
-        // Start servo moving back to home position (non-blocking)
-        startServoMoveToAngle(SERVO_HOME_ANGLE);
         
         step = 4;
     }
@@ -422,6 +472,10 @@ void paintingState() {
         waitingPositionReachedTime = 0;
         paintGunTurnedOn = false;
         paintGunTurnedOff = false;
+        paintMotorStartPosition = 0;
+        
+        // Reset servo position flags
+        updateServoPositionByRotation(0, true);
         
         // Return to test state
         setMachineState(STATE_GANTRY);

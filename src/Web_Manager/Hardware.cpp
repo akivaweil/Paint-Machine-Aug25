@@ -29,8 +29,8 @@ void initializeSensors() {
         servo = new ServoControl();
         servo->init(SERVO_PIN, 0, 50, 16);  // pin, channel, frequency, resolution
         servo->setAngleRange(0, 270);  // Set to 270 degree range
-        currentServoAngle = SERVO_HOME_ANGLE;  // Initialize current position
-        servo->write(SERVO_HOME_ANGLE);  // Set to servo home angle (default position)
+        currentServoAngle = SERVO_POS_1_ANGLE;  // Initialize current position
+        servo->write(SERVO_POS_1_ANGLE);  // Set to servo position 1 angle (default position)
     }
     
     // Initialize Suction and Paint Gun pins as outputs

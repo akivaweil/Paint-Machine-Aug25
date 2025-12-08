@@ -36,7 +36,7 @@ Bounce2::Button storagePositionSensor;
 
 // Servo instance
 ServoControl* servo = nullptr;
-float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
+float currentServoAngle = SERVO_POS_1_ANGLE;  // Track current servo position
 
 // Suction and Paint Gun state
 bool suctionState = false;

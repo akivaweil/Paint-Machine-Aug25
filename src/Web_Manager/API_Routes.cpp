@@ -36,7 +36,7 @@ void setupAPIRoutes() {
             String chunk = String(buffer);
             chunk.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", String(storageMotorStepsPerClick));
             chunk.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", String(paintRotationMotorStepsPerClick));
-            chunk.replace("SERVO_HOME_ANGLE_VALUE", String(SERVO_HOME_ANGLE));
+            chunk.replace("SERVO_HOME_ANGLE_VALUE", String(SERVO_POS_1_ANGLE));
             
             response->print(chunk);
         }
