@@ -3,6 +3,11 @@
 #include "StateMachine/STATES/01_HOMING.h"
 #include "../../config/Config.h"
 
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🧭 HOMING STATE CONFIG                                                ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+const float HOMING_Y_START_DELAY_MS = 1000.0f;  // Delay before starting Y homing
+
 // External motor and switch instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
@@ -143,7 +148,7 @@ void homeAllAxes(bool resetColumn) {
     homeForkAxis();
     
     //! ************************************************************************
-    //! STEP 2: HOME X, Y, AND STORAGE MOTORS SIMULTANEOUSLY
+    //! STEP 2: HOME X AND STORAGE, THEN START Y AFTER DELAY
     //! ************************************************************************
     if (resetColumn) {
         Serial.println("[HOMING] Starting X, Y, and Storage axes homing...");
@@ -156,6 +161,9 @@ void homeAllAxes(bool resetColumn) {
     bool yHomed = false;
     bool storageHomed = false;
     bool storageMotorMoved = false;  // Track if storage motor actually moved to find switch
+    bool yStarted = false;
+    const unsigned long yStartDelayMs = static_cast<unsigned long>(HOMING_Y_START_DELAY_MS);
+    const unsigned long yDelayStart = millis();
     
     // Storage motor only homes on first boot (when resetColumn is true)
     if (resetColumn && motorStorage) {
@@ -185,7 +193,7 @@ void homeAllAxes(bool resetColumn) {
     
     // Start continuous movement for X and Y toward home (positive direction)
     motorX->startContinuous(true);
-    motorY->startContinuous(true);
+    
     // Start storage motor clockwise to find nearest column (only on first boot and if not already at a column)
     if (motorStorage && resetColumn && !storageHomed) {
         motorStorage->startContinuous(true);
@@ -202,7 +210,14 @@ void homeAllAxes(bool resetColumn) {
         if (!xHomed) {
             motorX->runContinuous();
         }
-        if (!yHomed) {
+        // Start Y axis after configured delay so X/storage can clear the far gantry end
+        if (!yStarted && (millis() - yDelayStart >= yStartDelayMs)) {
+            if (!yHomed) {
+                motorY->startContinuous(true);
+            }
+            yStarted = true;
+        }
+        if (yStarted && !yHomed) {
             motorY->runContinuous();
         }
         if (!storageHomed && motorStorage && resetColumn) {
