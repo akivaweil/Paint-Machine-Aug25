@@ -122,10 +122,10 @@ void gantryState() {
         //! ************************************************************************
         moveToColumn(selectedColumn);
         
-        // Move servo to servo position 1 angle at the beginning
+        // Move servo to servo home angle at the beginning
         if (servo) {
-            currentServoAngle = SERVO_POS_1_ANGLE;
-            servo->write(SERVO_POS_1_ANGLE);
+            currentServoAngle = SERVO_HOME_ANGLE;
+            servo->write(SERVO_HOME_ANGLE);
         }
     }
     
@@ -560,10 +560,10 @@ void gantryState() {
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
         
-        // Ensure servo is at servo position 1 angle (final position)
+        // Ensure servo is at servo home angle (final position)
         if (servo) {
-            currentServoAngle = SERVO_POS_1_ANGLE;
-            servo->write(SERVO_POS_1_ANGLE);
+            currentServoAngle = SERVO_HOME_ANGLE;
+            servo->write(SERVO_HOME_ANGLE);
         }
         
         // Check if we're in test all mode and need to continue

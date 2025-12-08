@@ -334,6 +334,9 @@ void paintingState() {
         // Reset servo position flags
         updateServoPositionByRotation(0, true);
         
+        // Move servo back to home angle
+        startServoMoveToAngle(SERVO_HOME_ANGLE);
+        
         // Return to test state
         setMachineState(STATE_GANTRY);
         return;
@@ -485,6 +488,9 @@ void paintingState() {
         
         // Reset servo position flags
         updateServoPositionByRotation(0, true);
+        
+        // Move servo back to home angle
+        startServoMoveToAngle(SERVO_HOME_ANGLE);
         
         // Return to test state
         setMachineState(STATE_GANTRY);

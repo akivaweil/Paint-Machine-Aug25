@@ -18,6 +18,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎯 SERVO CONFIGURATION                                               ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define SERVO_HOME_ANGLE 130.0         // Servo home angle (idle position before painting)
 // Servo positions based on paint motor rotation count
 #define SERVO_POS_1_ANGLE 220.0        // Servo angle at position 1 (0 rotations / starting position)
 #define SERVO_POS_1_ROTATIONS 0.0      // Rotation count to trigger position 1
