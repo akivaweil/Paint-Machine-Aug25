@@ -205,34 +205,34 @@ void homeAllAxes(bool resetColumn) {
             storagePositionSensor.update();
         }
         
-        // Check switches FIRST and stop motors when triggered
-        if (!xHomed && homeSwitchX->readDual()) {
-            motorX->stopContinuous();
-            xHomed = true;
-            Serial.println("[HOMING] X axis homed");
-        }
-        if (!yHomed && homeSwitchY->read()) {
-            motorY->stopContinuous();
-            yHomed = true;
-            Serial.println("[HOMING] Y axis homed");
-        }
-        if (!storageHomed && motorStorage && resetColumn && storagePositionSensor.read()) {
-            // Force stop immediately to prevent overshooting
-            motorStorage->forceStop();
-            storageHomed = true;
-            storageMotorMoved = true;  // Motor moved to find switch
-            Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
-        }
-        
         // Run all motors continuously (only if not yet homed)
         if (!xHomed) {
             motorX->runContinuous();
+            // Check switch immediately after running to catch it as soon as possible
+            if (homeSwitchX->readDual()) {
+                motorX->forceStop();
+                xHomed = true;
+                Serial.println("[HOMING] X axis homed");
+            }
         }
         if (!yHomed) {
             motorY->runContinuous();
+            // Check switch immediately after running to catch it as soon as possible
+            if (homeSwitchY->read()) {
+                motorY->forceStop();
+                yHomed = true;
+                Serial.println("[HOMING] Y axis homed");
+            }
         }
         if (!storageHomed && motorStorage && resetColumn) {
             motorStorage->runContinuous();
+            // Check switch immediately after running to catch it as soon as possible
+            if (storagePositionSensor.read()) {
+                motorStorage->forceStop();
+                storageHomed = true;
+                storageMotorMoved = true;  // Motor moved to find switch
+                Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
+            }
         }
         
         updateOTA(); // Allow OTA updates during homing

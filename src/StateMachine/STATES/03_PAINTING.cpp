@@ -114,14 +114,6 @@ void turnOffSuction() {
     digitalWrite(SUCTION_PIN, LOW);
 }
 
-// Retract fork to position 2
-void retractForkToPosition2() {
-    if (motorFork) {
-        motorFork->moveInches(testPos2Fork);
-        waitForMotor(motorFork);
-    }
-}
-
 // Start paint rotation motor for configured number of revolutions and return start position
 long startPaintRotationTwoRevolutions() {
     enablePaintRotationMotor();
@@ -360,20 +352,11 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 1: RETRACT FORK TO POSITION 2
-    //! ************************************************************************
-    if (step == 0) {
-        retractForkToPosition2();
-        if (cycleCancelled) return;
-        step = 1;
-    }
-    
-    //! ************************************************************************
-    //! STEP 2: TURN ON SUCTION, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
+    //! STEP 1: TURN ON SUCTION, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
     //!         SERVO POSITIONS WILL BE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
     //!         TURN ON PAINT GUN 0.5 SECONDS AFTER WAITING POSITION IS REACHED
     //! ************************************************************************
-    else if (step == 1) {
+    if (step == 0) {
         // Turn on suction (non-blocking)
         turnOnSuction();
         
@@ -383,13 +366,13 @@ void paintingState() {
         // Start moving to waiting position (non-blocking)
         startMoveToWaitingPosition();
         
-        step = 2;
+        step = 1;
     }
     
     //! ************************************************************************
-    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
+    //! STEP 2: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
     //! ************************************************************************
-    else if (step == 2) {
+    else if (step == 1) {
         // Wait for motors to reach waiting position
         bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
         while (motorsRunning) {
@@ -427,14 +410,14 @@ void paintingState() {
         }
         
         if (cycleCancelled) return;
-        step = 3;
+        step = 2;
     }
     
     //! ************************************************************************
-    //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN
+    //! STEP 3: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN
     //!         SERVO POSITIONS ARE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
     //! ************************************************************************
-    else if (step == 3) {
+    else if (step == 2) {
         // Wait for configured number of revolutions remaining to turn off paint gun
         if (!paintGunTurnedOff) {
             float paintGunOffPosition = TOTAL_PAINT_REVOLUTIONS - PAINT_GUN_OFF_REVOLUTIONS;
@@ -448,22 +431,22 @@ void paintingState() {
             paintGunTurnedOff = true;
         }
         
+        step = 3;
+    }
+    
+    //! ************************************************************************
+    //! STEP 4: WAIT FOR PAINT MOTOR TO COMPLETE TOTAL REVOLUTIONS
+    //! ************************************************************************
+    else if (step == 3) {
+        waitForPaintRotationRevolutions(paintMotorStartPosition, TOTAL_PAINT_REVOLUTIONS);
+        if (cycleCancelled) return;
         step = 4;
     }
     
     //! ************************************************************************
-    //! STEP 5: WAIT FOR PAINT MOTOR TO COMPLETE TOTAL REVOLUTIONS
+    //! STEP 5: WAIT FOR PAINT MOTOR TO FINISH, THEN TURN OFF EVERYTHING
     //! ************************************************************************
     else if (step == 4) {
-        waitForPaintRotationRevolutions(paintMotorStartPosition, TOTAL_PAINT_REVOLUTIONS);
-        if (cycleCancelled) return;
-        step = 5;
-    }
-    
-    //! ************************************************************************
-    //! STEP 6: WAIT FOR PAINT MOTOR TO FINISH, THEN TURN OFF EVERYTHING
-    //! ************************************************************************
-    else if (step == 5) {
         waitForMotor(motorPaintRotation);
         if (cycleCancelled) return;
         

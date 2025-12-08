@@ -316,9 +316,24 @@ void gantryState() {
         applyMotorSettings();
         
         CHECK_PAUSE_AND_CANCEL();
-        
-        // Set step to 7 for when we return from painting state
         step = 7;
+    }
+    
+    //! ************************************************************************
+    //! STEP 8: RETRACT FORK TO POSITION 2
+    //! ************************************************************************
+    else if (step == 7) {
+        motorFork->moveInches(testPos2Fork);
+        
+        // Wait for fork motor to finish retracting
+        while (motorFork->isMotorRunning()) {
+            updateOTA();
+            delay(1);
+        }
+        CHECK_PAUSE_AND_CANCEL();
+        
+        // Set step to 8 for when we return from painting state
+        step = 8;
         
         // Transition to painting state
         setMachineState(STATE_PAINTING);
@@ -326,9 +341,9 @@ void gantryState() {
     }
     
     //! ************************************************************************
-    //! STEP 8: MOVE TO POSITION 3 (after returning from painting)
+    //! STEP 9: MOVE TO POSITION 3 (after returning from painting)
     //! ************************************************************************
-    else if (step == 7) {
+    else if (step == 8) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -351,13 +366,13 @@ void gantryState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 8;
+        step = 9;
     }
     
     //! ************************************************************************
-    //! STEP 9: EXTEND FORK MOTOR AT POSITION 3
+    //! STEP 10: EXTEND FORK MOTOR AT POSITION 3
     //! ************************************************************************
-    else if (step == 8) {
+    else if (step == 9) {
         // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -375,13 +390,13 @@ void gantryState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 9;
+        step = 10;
     }
     
     //! ************************************************************************
-    //! STEP 10: MOVE Y UP 0.5 INCHES AT POSITION 3
+    //! STEP 11: MOVE Y UP 0.5 INCHES AT POSITION 3
     //! ************************************************************************
-    else if (step == 9) {
+    else if (step == 10) {
         // Set speed and acceleration for 0.5 inch movement
         motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
@@ -398,13 +413,13 @@ void gantryState() {
         applyMotorSettings();
         
         CHECK_PAUSE_AND_CANCEL();
-        step = 10;
+        step = 11;
     }
     
     //! ************************************************************************
-    //! STEP 11: RETRACT FORK MOTOR AT POSITION 3
+    //! STEP 12: RETRACT FORK MOTOR AT POSITION 3
     //! ************************************************************************
-    else if (step == 10) {
+    else if (step == 11) {
         // Get current fork motor position and retract to home
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -416,13 +431,13 @@ void gantryState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 11;
+        step = 12;
     }
     
     //! ************************************************************************
-    //! STEP 12: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
+    //! STEP 13: MOVE TO POSITION 4 (POS1 BUT Y IS 0.5 HIGHER)
     //! ************************************************************************
-    else if (step == 11) {
+    else if (step == 12) {
         // Get current positions
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
@@ -450,13 +465,13 @@ void gantryState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 12;
+        step = 13;
     }
     
     //! ************************************************************************
-    //! STEP 13: EXTEND FORK MOTOR AT POSITION 4
+    //! STEP 14: EXTEND FORK MOTOR AT POSITION 4
     //! ************************************************************************
-    else if (step == 12) {
+    else if (step == 13) {
         // Get current fork motor position
         float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
         
@@ -474,13 +489,13 @@ void gantryState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 13;
+        step = 14;
     }
     
     //! ************************************************************************
-    //! STEP 14: LOWER Y BY 0.5 INCHES AT POSITION 4
+    //! STEP 15: LOWER Y BY 0.5 INCHES AT POSITION 4
     //! ************************************************************************
-    else if (step == 13) {
+    else if (step == 14) {
         // Set speed and acceleration for 0.5 inch movement
         motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
@@ -497,13 +512,13 @@ void gantryState() {
         applyMotorSettings();
         
         CHECK_PAUSE_AND_CANCEL();
-        step = 14;
+        step = 15;
     }
     
     //! ************************************************************************
-    //! STEP 15: RETRACT FORK MOTOR AT POSITION 4
+    //! STEP 16: RETRACT FORK MOTOR AT POSITION 4
     //! ************************************************************************
-    else if (step == 14) {
+    else if (step == 15) {
         motorFork->moveInches(testPos1Fork);
         
         // Wait for fork motor to finish retracting
@@ -512,16 +527,16 @@ void gantryState() {
             delay(1);
         }
         CHECK_PAUSE_AND_CANCEL();
-        step = 15;
+        step = 16;
     }
     
     //! ************************************************************************
-    //! STEP 16: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
+    //! STEP 17: MOVE X, Y, AND FORK TO POSITION 0 (skip if test all mode cycling)
     //! ************************************************************************
-    else if (step == 15) {
+    else if (step == 16) {
         // Skip return to 0 if we're in test all mode and have more heights or columns to test
         if (testAllMode && (currentTestAllHeight < 8 || testAllCurrentColumnIndex < testAllColumnCount - 1)) {
-            step = 16;
+            step = 17;
         } else {
             // Get current positions
             float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
@@ -539,14 +554,14 @@ void gantryState() {
                 delay(1);
             }
             CHECK_PAUSE_AND_CANCEL();
-            step = 16;
+            step = 17;
         }
     }
     
     //! ************************************************************************
-    //! STEP 17: HOME X, Y, AND FORK MOTORS
+    //! STEP 18: HOME X, Y, AND FORK MOTORS
     //! ************************************************************************
-    else if (step == 16) {
+    else if (step == 17) {
         // Safety: Ensure paint rotation motor is stopped and disabled
         if (motorPaintRotation) {
             motorPaintRotation->stopContinuous();
