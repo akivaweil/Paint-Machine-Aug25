@@ -383,6 +383,13 @@ void paintingState() {
             turnOnPaintGun();
         }
         enablePaintRotationMotor();
+        // Ensure paint rotation motor has a valid speed/accel (fallback to config if unset)
+        if (motorPaintRotation) {
+            if (motorSpeedPaintRotation <= 0) motorSpeedPaintRotation = PAINT_ROTATION_MOTOR_SPEED;
+            if (motorAccelPaintRotation <= 0) motorAccelPaintRotation = PAINT_ROTATION_MOTOR_ACCEL;
+            motorPaintRotation->setSpeed(motorSpeedPaintRotation);
+            motorPaintRotation->setAcceleration(motorAccelPaintRotation);
+        }
         servoSpeed = SERVO_PAINT_MOVE_SPEED;
         startServoMoveToAngle(SERVO_PAINT_START_ANGLE);
         step = 3;
