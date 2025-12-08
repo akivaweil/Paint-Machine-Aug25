@@ -365,20 +365,22 @@ void paintingState() {
     //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN, THEN WAIT FOR SERVO_RETURN_REVOLUTIONS AND START SERVO MOVING BACK TO HOME
     //! ************************************************************************
     else if (step == 3) {
-        // Wait for configured number of revolutions to turn off paint gun
+        // Wait for configured number of revolutions remaining to turn off paint gun
         if (!paintGunTurnedOff) {
-            waitForPaintRotationRevolutions(paintMotorStartPosition, PAINT_GUN_OFF_REVOLUTIONS);
+            float paintGunOffPosition = TOTAL_PAINT_REVOLUTIONS - PAINT_GUN_OFF_REVOLUTIONS;
+            waitForPaintRotationRevolutions(paintMotorStartPosition, paintGunOffPosition);
             if (cycleCancelled) return;
             
-            // Turn off paint gun after configured revolutions
+            // Turn off paint gun after configured revolutions remaining
             if (!testModeEnabled && paintGunTurnedOn) {
                 turnOffPaintGun();
             }
             paintGunTurnedOff = true;
         }
         
-        // Wait for configured number of revolutions from start before returning servo
-        waitForPaintRotationRevolutions(paintMotorStartPosition, SERVO_RETURN_REVOLUTIONS);
+        // Wait for configured number of revolutions remaining before returning servo
+        float servoReturnPosition = TOTAL_PAINT_REVOLUTIONS - SERVO_RETURN_REVOLUTIONS;
+        waitForPaintRotationRevolutions(paintMotorStartPosition, servoReturnPosition);
         if (cycleCancelled) return;
         
         // Start servo moving back to home position (non-blocking)

@@ -26,8 +26,8 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define PAINT_GUN_DELAY_MS 500         // Delay in milliseconds before paint gun turns on after servo starts moving
 #define TOTAL_PAINT_REVOLUTIONS 2.0    // Total number of paint motor revolutions for the painting cycle
-#define PAINT_GUN_OFF_REVOLUTIONS 1.5  // Number of paint motor revolutions before paint gun turns off
-#define SERVO_RETURN_REVOLUTIONS 1.5   // Number of paint motor revolutions before servo returns to home position
+#define PAINT_GUN_OFF_REVOLUTIONS 0.5  // Number of paint motor revolutions remaining before paint gun turns off
+#define SERVO_RETURN_REVOLUTIONS 0.5   // Number of paint motor revolutions remaining before servo returns to home position
 
 #endif // PAINTING_CONFIG_H
 
