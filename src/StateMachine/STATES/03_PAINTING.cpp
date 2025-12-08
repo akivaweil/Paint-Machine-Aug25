@@ -436,6 +436,7 @@ void paintingState() {
     }
     else if (step == 7) {
         waitForMotor(motorPaintRotation);
+        disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 8;
     }
@@ -463,6 +464,7 @@ void paintingState() {
     //! STEP 7: ROTATE TO BACK (180 CW FROM START)
     //! ************************************************************************
     else if (step == 9) {
+        enablePaintRotationMotor();
         if (motorPaintRotation) {
             // Rotate 90 more degrees to reach 180 from start
             long steps = (long)((90.0 / 360.0) * PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
@@ -473,6 +475,7 @@ void paintingState() {
     }
     else if (step == 10) {
         waitForMotor(motorPaintRotation);
+        disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 11;
     }
@@ -500,6 +503,7 @@ void paintingState() {
     //! STEP 9: ROTATE TO RIGHT (270 CW FROM START)
     //! ************************************************************************
     else if (step == 12) {
+        enablePaintRotationMotor();
         if (motorPaintRotation) {
             // Rotate 90 more degrees to reach 270 from start
             long steps = (long)((90.0 / 360.0) * PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
@@ -510,6 +514,7 @@ void paintingState() {
     }
     else if (step == 13) {
         waitForMotor(motorPaintRotation);
+        disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 14;
     }
@@ -539,6 +544,7 @@ void paintingState() {
     else if (step == 15) {
         servoSpeed = SERVO_PAINT_MOVE_SPEED;
         startServoMoveToAngle(SERVO_PAINT_END_ANGLE);
+        enablePaintRotationMotor();
         if (motorPaintRotation) {
             // Rotate 450 degrees (360 + 90) to return to front (0 degrees from start)
             // We're at 270, so we need 90 more to get to 360, which is 0
