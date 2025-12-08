@@ -25,6 +25,8 @@
 #define SERVO_POS_2_ROTATIONS 1.0      // Rotation count to trigger position 2
 #define SERVO_POS_3_ANGLE 180.0        // Servo angle at position 3
 #define SERVO_POS_3_ROTATIONS 1.75      // Rotation count to trigger position 3
+#define SERVO_POS_4_ANGLE 160.0        // Servo angle at position 4
+#define SERVO_POS_4_ROTATIONS 2.5      // Rotation count to trigger position 4
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINTING STATE CONFIGURATION                                      ║

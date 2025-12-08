@@ -234,12 +234,14 @@ bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
     static bool pos1Triggered = false;
     static bool pos2Triggered = false;
     static bool pos3Triggered = false;
+    static bool pos4Triggered = false;
     
     // Reset flags if requested
     if (resetFlags) {
         pos1Triggered = false;
         pos2Triggered = false;
         pos3Triggered = false;
+        pos4Triggered = false;
         return false;
     }
     
@@ -267,6 +269,13 @@ bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
     if (!pos3Triggered && currentRotations >= SERVO_POS_3_ROTATIONS) {
         startServoMoveToAngle(SERVO_POS_3_ANGLE);
         pos3Triggered = true;
+        positionTriggered = true;
+    }
+    
+    // Check position 4
+    if (!pos4Triggered && currentRotations >= SERVO_POS_4_ROTATIONS) {
+        startServoMoveToAngle(SERVO_POS_4_ANGLE);
+        pos4Triggered = true;
         positionTriggered = true;
     }
     
