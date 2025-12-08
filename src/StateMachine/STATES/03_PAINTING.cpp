@@ -292,6 +292,7 @@ void paintingState() {
     static float currentAngleDeg = 0.0;
     static float previousServoSpeed = 0.0;
     static unsigned long waitStart = 0;
+    static long rotationStartPos = 0;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -400,6 +401,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 4) {
         if (motorPaintRotation) {
+            rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((ROTATE_TO_RIGHT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
             currentAngleDeg += ROTATE_TO_RIGHT_DEG;
@@ -407,7 +409,7 @@ void paintingState() {
         step = 5;
     }
     else if (step == 5) {
-        waitForMotor(motorPaintRotation);
+        waitForPaintRotationRevolutions(rotationStartPos, fabs(ROTATE_TO_RIGHT_DEG) / 360.0f);
         if (cycleCancelled) return;
         unsigned long dwellMs = (unsigned long)DWELL_RIGHT_MS;
         unsigned long startWait = millis();
@@ -425,6 +427,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 6) {
         if (motorPaintRotation) {
+            rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((ROTATE_TO_BACK_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
             currentAngleDeg += ROTATE_TO_BACK_DEG;
@@ -432,7 +435,7 @@ void paintingState() {
         step = 7;
     }
     else if (step == 7) {
-        waitForMotor(motorPaintRotation);
+        waitForPaintRotationRevolutions(rotationStartPos, fabs(ROTATE_TO_BACK_DEG) / 360.0f);
         if (cycleCancelled) return;
         unsigned long dwellMs = (unsigned long)DWELL_BACK_MS;
         unsigned long startWait = millis();
@@ -450,6 +453,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 8) {
         if (motorPaintRotation) {
+            rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((ROTATE_TO_LEFT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
             currentAngleDeg += ROTATE_TO_LEFT_DEG;
@@ -457,7 +461,7 @@ void paintingState() {
         step = 9;
     }
     else if (step == 9) {
-        waitForMotor(motorPaintRotation);
+        waitForPaintRotationRevolutions(rotationStartPos, fabs(ROTATE_TO_LEFT_DEG) / 360.0f);
         if (cycleCancelled) return;
         unsigned long dwellMs = (unsigned long)DWELL_LEFT_MS;
         unsigned long startWait = millis();
@@ -477,6 +481,7 @@ void paintingState() {
         servoSpeed = SERVO_PAINT_MOVE_SPEED;
         startServoMoveToAngle(SERVO_PAINT_END_ANGLE);
         if (motorPaintRotation) {
+            rotationStartPos = motorPaintRotation->getCurrentPosition();
             long steps = (long)((FINAL_SPIN_TO_FRONT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
             motorPaintRotation->moveSteps(steps);
             currentAngleDeg += FINAL_SPIN_TO_FRONT_DEG;
@@ -485,12 +490,8 @@ void paintingState() {
     }
     else if (step == 11) {
         // Wait for rotation to complete while continuing servo updates
-        while (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            delay(1);
-        }
+        waitForPaintRotationRevolutions(rotationStartPos, fabs(FINAL_SPIN_TO_FRONT_DEG) / 360.0f);
+        if (cycleCancelled) return;
         // Ensure servo finishes to target
         while (servoTargetAngle >= 0) {
             updateServoMovement();
