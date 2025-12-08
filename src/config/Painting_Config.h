@@ -32,6 +32,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 NEW PAINTING SEQUENCE SETTINGS                                    ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define PRE_PAINT_WAIT_MS 250.0          // Delay after gantry move start before painting actions
 #define SERVO_PAINT_START_ANGLE 210.0         // Servo target before first spray move
 #define SERVO_PAINT_END_ANGLE 180.0           // Servo target during final spin back to front
 #define SERVO_PAINT_MOVE_SPEED 40.0           // Servo speed (deg/sec) for painting moves
@@ -40,8 +41,7 @@
 #define ROTATE_TO_RIGHT_DEG -90.0             // Front -> right (-90° == 270°)
 #define ROTATE_TO_BACK_DEG -90.0              // Right -> back
 #define ROTATE_TO_LEFT_DEG -90.0              // Back -> left
-#define FINAL_FULL_SPIN_DEG 360.0             // Extra spin before returning to front
-#define FINAL_RETURN_TO_FRONT_DEG -90.0       // Left -> front (short path) combined with full spin
+#define FINAL_SPIN_TO_FRONT_DEG -450.0        // Clockwise 360° + 90° to return to front
 
 // Dwell times at each side (milliseconds)
 #define DWELL_RIGHT_MS 500.0
