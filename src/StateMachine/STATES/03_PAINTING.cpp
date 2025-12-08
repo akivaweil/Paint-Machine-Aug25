@@ -120,13 +120,13 @@ void retractForkToPosition2() {
     }
 }
 
-// Start paint rotation motor for 2 full revolutions and return start position
+// Start paint rotation motor for configured number of revolutions and return start position
 long startPaintRotationTwoRevolutions() {
     enablePaintRotationMotor();
     long startPos = 0;
     if (motorPaintRotation) {
         startPos = motorPaintRotation->getCurrentPosition();
-        long steps = paintRotationMotorStepsPerRevOutput * 2;
+        long steps = paintRotationMotorStepsPerRevOutput * TOTAL_PAINT_REVOLUTIONS;
         motorPaintRotation->moveSteps(steps);
     }
     return startPos;
@@ -310,7 +310,7 @@ void paintingState() {
             servoStartTime = millis();
         }
         
-        // Start paint rotation motor for 2 revolutions (non-blocking)
+        // Start paint rotation motor for configured number of revolutions (non-blocking)
         paintMotorStartPosition = startPaintRotationTwoRevolutions();
         
         // Start moving to waiting position (non-blocking)
@@ -388,10 +388,10 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: WAIT FOR PAINT MOTOR TO COMPLETE 2 REVOLUTIONS
+    //! STEP 5: WAIT FOR PAINT MOTOR TO COMPLETE TOTAL REVOLUTIONS
     //! ************************************************************************
     else if (step == 4) {
-        waitForPaintRotationRevolutions(paintMotorStartPosition, 2.0);
+        waitForPaintRotationRevolutions(paintMotorStartPosition, TOTAL_PAINT_REVOLUTIONS);
         if (cycleCancelled) return;
         step = 5;
     }
