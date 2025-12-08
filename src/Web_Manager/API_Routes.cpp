@@ -568,6 +568,22 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for test mode toggle
+    server.on("/api/testMode", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("enabled")) {
+            int enabled = request->getParam("enabled")->value().toInt();
+            testModeEnabled = (enabled == 1);
+            saveTestModeState();
+            String json = "{\"enabled\":" + String(testModeEnabled ? "true" : "false") + "}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Test mode %s\n", testModeEnabled ? "ENABLED" : "DISABLED");
+        } else {
+            // Return current state if no parameter provided
+            String json = "{\"enabled\":" + String(testModeEnabled ? "true" : "false") + "}";
+            request->send(200, "application/json", json);
+        }
+    });
+    
     // API endpoint to get cycle state
     server.on("/api/cycle/state", HTTP_GET, [](AsyncWebServerRequest *request){
         extern int getMachineState();

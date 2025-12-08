@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "StateMachine/STATES/03_PAINTING.h"
 #include "../../config/Config.h"
+#include "../../config/Painting_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "Web_Manager.h"
 #include "ServoControl.h"
@@ -38,6 +39,9 @@ extern float testPos2Fork;
 
 // Paint rotation motor steps per revolution
 extern long paintRotationMotorStepsPerRevOutput;
+
+// Test mode flag
+extern bool testModeEnabled;
 
 //* ************************************************************************
 //* ************************ PAINTING STATE ********************************
@@ -230,6 +234,7 @@ void paintingState() {
     static long paintMotorStartPosition = 0;
     static unsigned long servoStartTime = 0;
     static bool paintGunTurnedOn = false;
+    static bool paintGunTurnedOff = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -258,6 +263,7 @@ void paintingState() {
         lastServoUpdateTime = 0;  // Reset servo timing
         servoStartTime = 0;
         paintGunTurnedOn = false;
+        paintGunTurnedOff = false;
         
         // Return to test state
         setMachineState(STATE_GANTRY);
@@ -327,7 +333,9 @@ void paintingState() {
             if (!paintGunTurnedOn && servoStartTime > 0) {
                 unsigned long elapsedTime = millis() - servoStartTime;
                 if (elapsedTime >= PAINT_GUN_DELAY_MS) {
-                    turnOnPaintGun();
+                    if (!testModeEnabled) {
+                        turnOnPaintGun();
+                    }
                     paintGunTurnedOn = true;
                 }
             }
@@ -346,7 +354,9 @@ void paintingState() {
         if (!paintGunTurnedOn && servoStartTime > 0) {
             unsigned long elapsedTime = millis() - servoStartTime;
             if (elapsedTime >= PAINT_GUN_DELAY_MS) {
-                turnOnPaintGun();
+                if (!testModeEnabled) {
+                    turnOnPaintGun();
+                }
                 paintGunTurnedOn = true;
             }
         }
@@ -356,19 +366,33 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: WAIT FOR SERVO_RETURN_REVOLUTIONS, THEN START SERVO MOVING BACK TO HOME
+    //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN, THEN WAIT FOR SERVO_RETURN_REVOLUTIONS AND START SERVO MOVING BACK TO HOME
     //! ************************************************************************
     else if (step == 3) {
         // Check if paint gun delay has elapsed (in case it hasn't turned on yet)
         if (!paintGunTurnedOn && servoStartTime > 0) {
             unsigned long elapsedTime = millis() - servoStartTime;
             if (elapsedTime >= PAINT_GUN_DELAY_MS) {
-                turnOnPaintGun();
+                if (!testModeEnabled) {
+                    turnOnPaintGun();
+                }
                 paintGunTurnedOn = true;
             }
         }
         
-        // Wait for configured number of revolutions from start
+        // Wait for configured number of revolutions to turn off paint gun
+        if (!paintGunTurnedOff) {
+            waitForPaintRotationRevolutions(paintMotorStartPosition, PAINT_GUN_OFF_REVOLUTIONS);
+            if (cycleCancelled) return;
+            
+            // Turn off paint gun after configured revolutions
+            if (!testModeEnabled && paintGunTurnedOn) {
+                turnOffPaintGun();
+            }
+            paintGunTurnedOff = true;
+        }
+        
+        // Wait for configured number of revolutions from start before returning servo
         waitForPaintRotationRevolutions(paintMotorStartPosition, SERVO_RETURN_REVOLUTIONS);
         if (cycleCancelled) return;
         
@@ -409,6 +433,7 @@ void paintingState() {
         step = 0;
         servoStartTime = 0;
         paintGunTurnedOn = false;
+        paintGunTurnedOff = false;
         
         // Return to test state
         setMachineState(STATE_GANTRY);

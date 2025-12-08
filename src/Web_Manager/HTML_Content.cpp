@@ -788,6 +788,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Test Mode:</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="testModeToggle" onchange="toggleTestMode()">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
               </div>
             </div>
             <div class="button-container">
@@ -1313,6 +1320,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     loadMotorSettings();
     loadDeviceStates();
     loadSquareSensingState();
+    loadTestModeState();
     
     // Cycle control state polling
     let cycleStateInterval = null;
@@ -1653,6 +1661,17 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Square sensing toggle error:', error));
     }
     
+    function toggleTestMode() {
+      const toggle = document.getElementById('testModeToggle');
+      const enabled = toggle.checked;
+      fetch('/api/testMode?enabled=' + (enabled ? '1' : '0'))
+        .then(response => response.json())
+        .then(data => {
+          console.log('Test mode:', data.enabled ? 'ON' : 'OFF');
+        })
+        .catch(error => console.error('Test mode toggle error:', error));
+    }
+    
     // Load square sensing toggle state on page load
     function loadSquareSensingState() {
       fetch('/api/squareSensing')
@@ -1664,6 +1683,19 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           }
         })
         .catch(error => console.error('Error loading square sensing state:', error));
+    }
+    
+    // Load test mode toggle state on page load
+    function loadTestModeState() {
+      fetch('/api/testMode')
+        .then(response => response.json())
+        .then(data => {
+          const toggle = document.getElementById('testModeToggle');
+          if (toggle) {
+            toggle.checked = data.enabled;
+          }
+        })
+        .catch(error => console.error('Error loading test mode state:', error));
     }
     
     // Keyboard controls
@@ -1691,12 +1723,14 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       Promise.all([
         fetch('/api/motor/settings').then(r => r.json()),
         fetch('/api/test/positions').then(r => r.json()),
-        fetch('/api/squareSensing').then(r => r.json())
-      ]).then(([motorSettings, testPositions, squareSensing]) => {
+        fetch('/api/squareSensing').then(r => r.json()),
+        fetch('/api/testMode').then(r => r.json())
+      ]).then(([motorSettings, testPositions, squareSensing, testMode]) => {
         const allSettings = {
           motor: motorSettings,
           testPositions: testPositions,
-          squareSensing: squareSensing.enabled
+          squareSensing: squareSensing.enabled,
+          testMode: testMode.enabled
         };
         
         const jsonStr = JSON.stringify(allSettings, null, 2);
@@ -1783,6 +1817,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               .then(() => {
                 // Reload square sensing state to update UI
                 loadSquareSensingState();
+              });
+          }
+          
+          // Upload test mode state
+          if (settings.testMode !== undefined) {
+            fetch('/api/testMode?enabled=' + (settings.testMode ? '1' : '0'))
+              .then(() => {
+                // Reload test mode state to update UI
+                loadTestModeState();
               });
           }
           

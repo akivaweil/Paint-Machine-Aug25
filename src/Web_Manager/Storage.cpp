@@ -99,3 +99,17 @@ void loadSquareSensingState() {
     preferences.end();
 }
 
+// Save test mode toggle state to non-volatile storage
+void saveTestModeState() {
+    preferences.begin("testSeq", false);
+    preferences.putBool("testMode", testModeEnabled);
+    preferences.end();
+}
+
+// Load test mode toggle state from non-volatile storage
+void loadTestModeState() {
+    preferences.begin("testSeq", true);
+    testModeEnabled = preferences.getBool("testMode", false);  // Default to disabled
+    preferences.end();
+}
+

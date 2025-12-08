@@ -68,6 +68,9 @@ int testAllCurrentColumnIndex = 0;  // Current column index in the test sequence
 // Square sensing toggle (enables/disables wood_present_sensor check during test cycle)
 bool squareSensingEnabled = true;  // Default to enabled
 
+// Test mode toggle (disables paint gun and pressure pot during paint cycle)
+bool testModeEnabled = false;  // Default to disabled
+
 // Cycle control state
 bool cyclePaused = false;  // Tracks if cycle is paused
 bool cycleCancelled = false;  // Tracks if cycle should be cancelled
@@ -122,6 +125,9 @@ void initializeWebServer() {
     
     // Load saved square sensing state
     loadSquareSensingState();
+    
+    // Load saved test mode state
+    loadTestModeState();
     
     // Initialize sensor pins
     initializeSensors();
