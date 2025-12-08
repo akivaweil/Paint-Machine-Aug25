@@ -233,6 +233,7 @@ void paintingState() {
     static bool paintingStarted = false;
     static long paintMotorStartPosition = 0;
     static unsigned long servoStartTime = 0;
+    static unsigned long waitingPositionReachedTime = 0;
     static bool paintGunTurnedOn = false;
     static bool paintGunTurnedOff = false;
     
@@ -262,6 +263,7 @@ void paintingState() {
         servoTargetAngle = -1.0;  // Clear servo target
         lastServoUpdateTime = 0;  // Reset servo timing
         servoStartTime = 0;
+        waitingPositionReachedTime = 0;
         paintGunTurnedOn = false;
         paintGunTurnedOff = false;
         
@@ -318,28 +320,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, TURN ON PAINT GUN AFTER DELAY
+    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
     //! ************************************************************************
     else if (step == 2) {
-        // Ensure servo start time is set (in case step 1 didn't set it)
-        if (servoStartTime == 0 && servoTargetAngle >= 0) {
-            servoStartTime = millis();
-        }
-        
-        // Wait for motors while continuously checking if paint gun delay has elapsed
+        // Wait for motors to reach waiting position
         bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
-        while (motorsRunning || (!paintGunTurnedOn && servoStartTime > 0 && (millis() - servoStartTime) < PAINT_GUN_DELAY_MS)) {
-            // Check if delay has elapsed since servo started moving
-            if (!paintGunTurnedOn && servoStartTime > 0) {
-                unsigned long elapsedTime = millis() - servoStartTime;
-                if (elapsedTime >= PAINT_GUN_DELAY_MS) {
-                    if (!testModeEnabled) {
-                        turnOnPaintGun();
-                    }
-                    paintGunTurnedOn = true;
-                }
-            }
-            
+        while (motorsRunning) {
             updateServoMovement();  // Update servo while waiting
             updateOTA();
             if (cycleCancelled) return;
@@ -350,14 +336,24 @@ void paintingState() {
             delay(1);
         }
         
-        // Final check in case delay elapsed after motors finished
-        if (!paintGunTurnedOn && servoStartTime > 0) {
-            unsigned long elapsedTime = millis() - servoStartTime;
-            if (elapsedTime >= PAINT_GUN_DELAY_MS) {
+        // Record time when waiting position is reached
+        if (waitingPositionReachedTime == 0) {
+            waitingPositionReachedTime = millis();
+        }
+        
+        // Wait 250ms after motors reach waiting position before turning on paint gun
+        while (!paintGunTurnedOn && waitingPositionReachedTime > 0) {
+            unsigned long elapsedTime = millis() - waitingPositionReachedTime;
+            if (elapsedTime >= 250) {
                 if (!testModeEnabled) {
                     turnOnPaintGun();
                 }
                 paintGunTurnedOn = true;
+            } else {
+                updateServoMovement();  // Update servo while waiting
+                updateOTA();
+                if (cycleCancelled) return;
+                delay(1);
             }
         }
         
@@ -369,17 +365,6 @@ void paintingState() {
     //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN, THEN WAIT FOR SERVO_RETURN_REVOLUTIONS AND START SERVO MOVING BACK TO HOME
     //! ************************************************************************
     else if (step == 3) {
-        // Check if paint gun delay has elapsed (in case it hasn't turned on yet)
-        if (!paintGunTurnedOn && servoStartTime > 0) {
-            unsigned long elapsedTime = millis() - servoStartTime;
-            if (elapsedTime >= PAINT_GUN_DELAY_MS) {
-                if (!testModeEnabled) {
-                    turnOnPaintGun();
-                }
-                paintGunTurnedOn = true;
-            }
-        }
-        
         // Wait for configured number of revolutions to turn off paint gun
         if (!paintGunTurnedOff) {
             waitForPaintRotationRevolutions(paintMotorStartPosition, PAINT_GUN_OFF_REVOLUTIONS);
@@ -432,6 +417,7 @@ void paintingState() {
         paintingStarted = false;
         step = 0;
         servoStartTime = 0;
+        waitingPositionReachedTime = 0;
         paintGunTurnedOn = false;
         paintGunTurnedOff = false;
         
