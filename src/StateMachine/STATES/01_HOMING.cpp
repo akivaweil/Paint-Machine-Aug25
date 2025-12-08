@@ -205,18 +205,7 @@ void homeAllAxes(bool resetColumn) {
             storagePositionSensor.update();
         }
         
-        // Run all motors continuously
-        if (!xHomed) {
-            motorX->runContinuous();
-        }
-        if (!yHomed) {
-            motorY->runContinuous();
-        }
-        if (!storageHomed && motorStorage && resetColumn) {
-            motorStorage->runContinuous();
-        }
-        
-        // Check switches and stop motors when triggered
+        // Check switches FIRST and stop motors when triggered
         if (!xHomed && homeSwitchX->readDual()) {
             motorX->stopContinuous();
             xHomed = true;
@@ -233,6 +222,17 @@ void homeAllAxes(bool resetColumn) {
             storageHomed = true;
             storageMotorMoved = true;  // Motor moved to find switch
             Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
+        }
+        
+        // Run all motors continuously (only if not yet homed)
+        if (!xHomed) {
+            motorX->runContinuous();
+        }
+        if (!yHomed) {
+            motorY->runContinuous();
+        }
+        if (!storageHomed && motorStorage && resetColumn) {
+            motorStorage->runContinuous();
         }
         
         updateOTA(); // Allow OTA updates during homing
