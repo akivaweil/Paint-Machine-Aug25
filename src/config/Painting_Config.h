@@ -30,11 +30,30 @@
 #define SERVO_POS_4_ROTATIONS 2.5      // Rotation count to trigger position 4
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🎨 NEW PAINTING SEQUENCE SETTINGS                                    ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define SERVO_PAINT_START_ANGLE 210.0         // Servo target before first spray move
+#define SERVO_PAINT_END_ANGLE 180.0           // Servo target during final spin back to front
+#define SERVO_PAINT_MOVE_SPEED 40.0           // Servo speed (deg/sec) for painting moves
+
+// Rotation moves are relative to current orientation (degrees)
+#define ROTATE_TO_RIGHT_DEG -90.0             // Front -> right (-90° == 270°)
+#define ROTATE_TO_BACK_DEG -90.0              // Right -> back
+#define ROTATE_TO_LEFT_DEG -90.0              // Back -> left
+#define FINAL_FULL_SPIN_DEG 360.0             // Extra spin before returning to front
+#define FINAL_RETURN_TO_FRONT_DEG -90.0       // Left -> front (short path) combined with full spin
+
+// Dwell times at each side (milliseconds)
+#define DWELL_RIGHT_MS 500.0
+#define DWELL_BACK_MS 1000.0
+#define DWELL_LEFT_MS 500.0
+
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINTING STATE CONFIGURATION                                      ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define PAINT_GUN_DELAY_MS 500         // Delay in milliseconds before paint gun turns on after servo starts moving
 #define TOTAL_PAINT_REVOLUTIONS 3.0    // Total number of paint motor revolutions for the painting cycle
-#define PAINT_GUN_OFF_REVOLUTIONS 0.5  // Number of paint motor revolutions remaining before paint gun turns off
+#define PAINT_GUN_OFF_REVOLUTIONS 0.2  // Number of paint motor revolutions remaining before paint gun turns off
 
 #endif // PAINTING_CONFIG_H
 

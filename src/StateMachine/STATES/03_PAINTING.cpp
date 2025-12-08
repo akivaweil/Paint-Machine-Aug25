@@ -289,19 +289,11 @@ bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
 void paintingState() {
     static int step = 0;
     static bool paintingStarted = false;
-    static long paintMotorStartPosition = 0;
-    static unsigned long servoStartTime = 0;
-    static unsigned long waitingPositionReachedTime = 0;
-    static bool paintGunTurnedOn = false;
-    static bool paintGunTurnedOff = false;
+    static float currentAngleDeg = 0.0;
+    static float previousServoSpeed = 0.0;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
-    
-    // Update servo position based on rotation count (if motor has started)
-    if (paintingStarted && paintMotorStartPosition != 0) {
-        updateServoPositionByRotation(paintMotorStartPosition, false);
-    }
     
     // Check for cancel
     if (cycleCancelled) {
@@ -325,11 +317,7 @@ void paintingState() {
         step = 0;
         servoTargetAngle = -1.0;  // Clear servo target
         lastServoUpdateTime = 0;  // Reset servo timing
-        servoStartTime = 0;
-        waitingPositionReachedTime = 0;
-        paintGunTurnedOn = false;
-        paintGunTurnedOff = false;
-        paintMotorStartPosition = 0;
+        currentAngleDeg = 0.0;
         
         // Reset servo position flags
         updateServoPositionByRotation(0, true);
@@ -353,119 +341,148 @@ void paintingState() {
     if (!paintingStarted) {
         step = 0;
         paintingStarted = true;
-        // Reset servo position flags
+        currentAngleDeg = 0.0;
+        previousServoSpeed = servoSpeed;
+        // Reset servo position flags (not used in new sequence)
         updateServoPositionByRotation(0, true);
-        // Initialize servo to position 1 (0 rotations)
-        startServoMoveToAngle(SERVO_POS_1_ANGLE);
     }
     
     //! ************************************************************************
-    //! STEP 1: RETRACT FORK TO POSITION 2
+    //! STEP 1: TURN ON SUCTION AND PAINT GUN
     //! ************************************************************************
     if (step == 0) {
-        retractForkToPosition2();
-        if (cycleCancelled) return;
+        turnOnSuction();
+        if (!testModeEnabled) {
+            turnOnPaintGun();
+        }
+        enablePaintRotationMotor();
         step = 1;
     }
     
     //! ************************************************************************
-    //! STEP 2: TURN ON SUCTION, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
-    //!         SERVO POSITIONS WILL BE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
-    //!         TURN ON PAINT GUN 0.5 SECONDS AFTER WAITING POSITION IS REACHED
+    //! STEP 2: MOVE SERVO TO START ANGLE (210°) AT CONFIGURED SPEED
     //! ************************************************************************
     else if (step == 1) {
-        // Turn on suction (non-blocking)
-        turnOnSuction();
-        
-        // Start paint rotation motor for configured number of revolutions (non-blocking)
-        paintMotorStartPosition = startPaintRotationTwoRevolutions();
-        
-        // Start moving to waiting position (non-blocking)
-        startMoveToWaitingPosition();
-        
+        servoSpeed = SERVO_PAINT_MOVE_SPEED;
+        startServoMoveToAngle(SERVO_PAINT_START_ANGLE);
         step = 2;
     }
     
     //! ************************************************************************
-    //! STEP 3: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
+    //! STEP 3: WAIT FOR SERVO TO REACH START ANGLE
     //! ************************************************************************
     else if (step == 2) {
-        // Wait for motors to reach waiting position
-        bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
-        while (motorsRunning) {
-            updateServoMovement();  // Update servo while waiting
-            updateServoPositionByRotation(paintMotorStartPosition, false);  // Update servo position based on rotation
-            updateOTA();
-            if (cycleCancelled) return;
-            
-            // Update motors running status
-            motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
-            
-            delay(1);
+        if (servoTargetAngle < 0) {
+            step = 3;
         }
-        
-        // Record time when waiting position is reached
-        if (waitingPositionReachedTime == 0) {
-            waitingPositionReachedTime = millis();
-        }
-        
-        // Wait 250ms after motors reach waiting position before turning on paint gun
-        while (!paintGunTurnedOn && waitingPositionReachedTime > 0) {
-            unsigned long elapsedTime = millis() - waitingPositionReachedTime;
-            if (elapsedTime >= 250) {
-                if (!testModeEnabled) {
-                    turnOnPaintGun();
-                }
-                paintGunTurnedOn = true;
-            } else {
-                updateServoMovement();  // Update servo while waiting
-                updateServoPositionByRotation(paintMotorStartPosition, false);  // Update servo position based on rotation
-                updateOTA();
-                if (cycleCancelled) return;
-                delay(1);
-            }
-        }
-        
-        if (cycleCancelled) return;
-        step = 3;
     }
     
     //! ************************************************************************
-    //! STEP 4: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN
-    //!         SERVO POSITIONS ARE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
+    //! STEP 4: ROTATE TO RIGHT SIDE, THEN DWELL
     //! ************************************************************************
     else if (step == 3) {
-        // Wait for configured number of revolutions remaining to turn off paint gun
-        if (!paintGunTurnedOff) {
-            float paintGunOffPosition = TOTAL_PAINT_REVOLUTIONS - PAINT_GUN_OFF_REVOLUTIONS;
-            waitForPaintRotationRevolutions(paintMotorStartPosition, paintGunOffPosition);
-            if (cycleCancelled) return;
-            
-            // Turn off paint gun after configured revolutions remaining
-            if (!testModeEnabled && paintGunTurnedOn) {
-                turnOffPaintGun();
-            }
-            paintGunTurnedOff = true;
+        if (motorPaintRotation) {
+            long steps = (long)((ROTATE_TO_RIGHT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
+            motorPaintRotation->moveSteps(steps);
+            currentAngleDeg += ROTATE_TO_RIGHT_DEG;
         }
-        
         step = 4;
     }
-    
-    //! ************************************************************************
-    //! STEP 5: WAIT FOR PAINT MOTOR TO COMPLETE TOTAL REVOLUTIONS
-    //! ************************************************************************
     else if (step == 4) {
-        waitForPaintRotationRevolutions(paintMotorStartPosition, TOTAL_PAINT_REVOLUTIONS);
+        waitForMotor(motorPaintRotation);
         if (cycleCancelled) return;
+        unsigned long dwellMs = (unsigned long)DWELL_RIGHT_MS;
+        unsigned long startWait = millis();
+        while (millis() - startWait < dwellMs) {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
         step = 5;
     }
     
     //! ************************************************************************
-    //! STEP 6: WAIT FOR PAINT MOTOR TO FINISH, THEN TURN OFF EVERYTHING
+    //! STEP 5: ROTATE TO BACK SIDE, THEN DWELL
     //! ************************************************************************
     else if (step == 5) {
+        if (motorPaintRotation) {
+            long steps = (long)((ROTATE_TO_BACK_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
+            motorPaintRotation->moveSteps(steps);
+            currentAngleDeg += ROTATE_TO_BACK_DEG;
+        }
+        step = 6;
+    }
+    else if (step == 6) {
         waitForMotor(motorPaintRotation);
         if (cycleCancelled) return;
+        unsigned long dwellMs = (unsigned long)DWELL_BACK_MS;
+        unsigned long startWait = millis();
+        while (millis() - startWait < dwellMs) {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+        step = 7;
+    }
+    
+    //! ************************************************************************
+    //! STEP 6: ROTATE TO LEFT SIDE, THEN DWELL
+    //! ************************************************************************
+    else if (step == 7) {
+        if (motorPaintRotation) {
+            long steps = (long)((ROTATE_TO_LEFT_DEG / 360.0) * paintRotationMotorStepsPerRevOutput);
+            motorPaintRotation->moveSteps(steps);
+            currentAngleDeg += ROTATE_TO_LEFT_DEG;
+        }
+        step = 8;
+    }
+    else if (step == 8) {
+        waitForMotor(motorPaintRotation);
+        if (cycleCancelled) return;
+        unsigned long dwellMs = (unsigned long)DWELL_LEFT_MS;
+        unsigned long startWait = millis();
+        while (millis() - startWait < dwellMs) {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+        step = 9;
+    }
+    
+    //! ************************************************************************
+    //! STEP 7: FINAL FULL REVOLUTION WHILE MOVING SERVO TO END ANGLE
+    //! ************************************************************************
+    else if (step == 9) {
+        servoSpeed = SERVO_PAINT_MOVE_SPEED;
+        startServoMoveToAngle(SERVO_PAINT_END_ANGLE);
+        if (motorPaintRotation) {
+            float baseDelta = FINAL_RETURN_TO_FRONT_DEG;
+            float spinDelta = (baseDelta >= 0.0) ? FINAL_FULL_SPIN_DEG : -FINAL_FULL_SPIN_DEG;
+            float finalDelta = baseDelta + spinDelta;
+            long steps = (long)((finalDelta / 360.0) * paintRotationMotorStepsPerRevOutput);
+            motorPaintRotation->moveSteps(steps);
+            currentAngleDeg += finalDelta;
+        }
+        step = 10;
+    }
+    else if (step == 10) {
+        // Wait for rotation to complete while continuing servo updates
+        while (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+        // Ensure servo finishes to target
+        while (servoTargetAngle >= 0) {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
         
         // Stop and disable paint rotation motor
         if (motorPaintRotation) {
@@ -477,22 +494,16 @@ void paintingState() {
         turnOffPaintGun();
         turnOffSuction();
         
+        // Restore servo speed
+        servoSpeed = previousServoSpeed;
+        
         // Reset state
         paintingStarted = false;
         step = 0;
-        servoStartTime = 0;
-        waitingPositionReachedTime = 0;
-        paintGunTurnedOn = false;
-        paintGunTurnedOff = false;
-        paintMotorStartPosition = 0;
-        
-        // Reset servo position flags
+        currentAngleDeg = 0.0;
         updateServoPositionByRotation(0, true);
         
-        // Move servo back to home angle
-        startServoMoveToAngle(SERVO_HOME_ANGLE);
-        
-        // Return to test state
+        // Remain at end angle; return to test state
         setMachineState(STATE_GANTRY);
     }
 }
