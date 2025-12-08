@@ -32,9 +32,13 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINTING STATE CONFIGURATION                                      ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define PAINT_GUN_DELAY_MS 500         // Delay in milliseconds before paint gun turns on after servo starts moving
-#define TOTAL_PAINT_REVOLUTIONS 3.0    // Total number of paint motor revolutions for the painting cycle
-#define PAINT_GUN_OFF_REVOLUTIONS 0.5  // Number of paint motor revolutions remaining before paint gun turns off
+#define SERVO_PAINT_MOVE_SPEED 40.0    // Servo speed in degrees per second for painting movements
+#define SERVO_PAINT_START_ANGLE 210.0  // Starting servo angle for painting sequence
+#define SERVO_PAINT_END_ANGLE 180.0    // Ending servo angle for painting sequence
+#define WAITING_POSITION_DELAY_MS 250  // Delay in milliseconds after gantry reaches waiting position before turning on paint gun
+#define DWELL_LEFT_MS 500              // Dwell time in milliseconds on left side
+#define DWELL_BACK_MS 1000             // Dwell time in milliseconds on back side
+#define DWELL_RIGHT_MS 500             // Dwell time in milliseconds on right side
 
 #endif // PAINTING_CONFIG_H
 

@@ -70,8 +70,8 @@ void loadMotorSettings() {
     motorAccelFork = preferences.getLong("accelFork", FORK_MAX_ACCEL);
     
     // Load paint rotation motor settings
-    motorSpeedPaintRotation = preferences.getLong("spdPaintRot", PAINT_ROTATION_MOTOR_SPEED);
-    motorAccelPaintRotation = preferences.getLong("accPaintRot", PAINT_ROTATION_MOTOR_ACCEL);
+    // motorSpeedPaintRotation = preferences.getLong("spdPaintRot", PAINT_ROTATION_MOTOR_SPEED);
+    // motorAccelPaintRotation = preferences.getLong("accPaintRot", PAINT_ROTATION_MOTOR_ACCEL);
     
     // Load storage motor settings
     motorSpeedStorage = preferences.getLong("spdStorage", STORAGE_MOTOR_SPEED);
@@ -80,7 +80,7 @@ void loadMotorSettings() {
     storageMotorStepsPerClick = preferences.getLong("storageSteps", STORAGE_MOTOR_STEPS_PER_CLICK);
     storageMotorTrimDistance = preferences.getLong("storageTrim", STORAGE_MOTOR_HOMING_TRIM);
     paintRotationMotorStepsPerClick = preferences.getLong("paintRotSteps", PAINT_ROTATION_MOTOR_STEPS_PER_CLICK);
-    paintRotationMotorStepsPerRevOutput = preferences.getLong("paintRotRevOut", PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
+    // paintRotationMotorStepsPerRevOutput = preferences.getLong("paintRotRevOut", PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
     servoSpeed = preferences.getFloat("servoSpeed", 30.0);
     preferences.end();
 }
