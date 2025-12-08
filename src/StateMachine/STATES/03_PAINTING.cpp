@@ -98,9 +98,12 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
 // Stop and disable paint rotation motor
 void stopAndDisablePaintRotation() {
     if (motorPaintRotation) {
+        // Stop any planned move and hard stop
+        motorPaintRotation->moveSteps(0);
         motorPaintRotation->forceStop();
     }
     disablePaintRotationMotor();
+    delay(5);  // brief settle to ensure driver disable latches
 }
 
 // Turn on paint gun
