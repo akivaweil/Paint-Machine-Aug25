@@ -2,6 +2,7 @@
 #include <Bounce2.h>
 #include "StateMachine/STATES/01_HOMING.h"
 #include "../../config/Config.h"
+#include "../../config/Pin_Definitions.h"
 
 // External motor and switch instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
@@ -205,33 +206,52 @@ void homeAllAxes(bool resetColumn) {
             storagePositionSensor.update();
         }
         
-        // Run all motors continuously (only if not yet homed)
+        // Check X switch BEFORE running motor (fast direct pin read, then verify with debounced read)
         if (!xHomed) {
-            motorX->runContinuous();
-            // Check switch immediately after running to catch it as soon as possible
-            if (homeSwitchX->readDual()) {
-                motorX->forceStop();
-                xHomed = true;
-                Serial.println("[HOMING] X axis homed");
+            // Fast check using direct pin reads (no debounce delay)
+            bool xSwitchFast = digitalRead(X_HOME_PIN) == HIGH && digitalRead(X_HOME_PIN2) == HIGH;
+            if (xSwitchFast) {
+                // Verify with debounced read, then stop immediately
+                if (homeSwitchX->readDual()) {
+                    motorX->forceStop();
+                    xHomed = true;
+                    Serial.println("[HOMING] X axis homed");
+                }
+            } else {
+                // Only run motor if switch is not triggered
+                motorX->runContinuous();
             }
         }
+        
+        // Check Y switch BEFORE running motor (fast direct pin read, then verify with debounced read)
         if (!yHomed) {
-            motorY->runContinuous();
-            // Check switch immediately after running to catch it as soon as possible
-            if (homeSwitchY->read()) {
-                motorY->forceStop();
-                yHomed = true;
-                Serial.println("[HOMING] Y axis homed");
+            // Fast check using direct pin read (no debounce delay)
+            bool ySwitchFast = digitalRead(Y_HOME_PIN) == HIGH;
+            if (ySwitchFast) {
+                // Verify with debounced read, then stop immediately
+                if (homeSwitchY->read()) {
+                    motorY->forceStop();
+                    yHomed = true;
+                    Serial.println("[HOMING] Y axis homed");
+                }
+            } else {
+                // Only run motor if switch is not triggered
+                motorY->runContinuous();
             }
         }
+        
+        // Check storage switch BEFORE running motor
         if (!storageHomed && motorStorage && resetColumn) {
-            motorStorage->runContinuous();
-            // Check switch immediately after running to catch it as soon as possible
-            if (storagePositionSensor.read()) {
+            storagePositionSensor.update();
+            bool storageSwitchFast = storagePositionSensor.read();
+            if (storageSwitchFast) {
                 motorStorage->forceStop();
                 storageHomed = true;
                 storageMotorMoved = true;  // Motor moved to find switch
                 Serial.println("[HOMING] Storage axis homed to column position (force stopped)");
+            } else {
+                // Only run motor if switch is not triggered
+                motorStorage->runContinuous();
             }
         }
         
