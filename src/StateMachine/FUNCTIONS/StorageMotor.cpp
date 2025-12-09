@@ -1,4 +1,5 @@
 #include "../../../include/StateMachine/FUNCTIONS/StorageMotor.h"
+#include "../../config/Config.h"
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ ⚙️ STORAGE MOTOR CONTROLLER (AccelStepper)                           ║
@@ -10,6 +11,8 @@ StorageMotor::StorageMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     this->maxAccel = maxAcc;
     this->continuousMode = false;
     this->continuousDirection = true;
+    this->rampStep = 0;
+    this->lastRampTime = 0;
     
     // Create AccelStepper instance (DRIVER mode: step and direction pins)
     stepper = new AccelStepper(AccelStepper::DRIVER, step, dir);
@@ -121,12 +124,16 @@ void StorageMotor::setStepsPerInch(float stepsPerInch) {
 void StorageMotor::startContinuous(bool positive) {
     continuousMode = true;
     continuousDirection = positive;
+    rampStep = 0;
+    lastRampTime = millis();
     if (stepper) {
+        // Start at lower speed to prevent brownout, will ramp up in runContinuous()
+        long startSpeed = STORAGE_MOTOR_CONTINUOUS_START_SPEED;
         if (positive) {
-            stepper->setSpeed(maxSpeed);
+            stepper->setSpeed(startSpeed);
             stepper->runSpeed();
         } else {
-            stepper->setSpeed(-maxSpeed);
+            stepper->setSpeed(-startSpeed);
             stepper->runSpeed();
         }
     }
@@ -134,6 +141,8 @@ void StorageMotor::startContinuous(bool positive) {
 
 void StorageMotor::stopContinuous() {
     continuousMode = false;
+    rampStep = 0;
+    lastRampTime = 0;
     if (stepper) {
         stepper->stop();
         stepper->setCurrentPosition(stepper->currentPosition());
@@ -142,10 +151,29 @@ void StorageMotor::stopContinuous() {
 
 void StorageMotor::runContinuous() {
     if (continuousMode && stepper) {
+        // Gradually ramp up speed to prevent brownout
+        unsigned long currentTime = millis();
+        
+        // Ramp up speed every 10ms
+        if (currentTime - lastRampTime >= 10) {
+            if (rampStep < STORAGE_MOTOR_CONTINUOUS_RAMP_STEPS) {
+                rampStep++;
+                lastRampTime = currentTime;
+            }
+        }
+        
+        // Calculate current speed (ramp from start speed to max speed)
+        long currentSpeed = STORAGE_MOTOR_CONTINUOUS_START_SPEED;
+        if (rampStep > 0) {
+            long speedRange = maxSpeed - STORAGE_MOTOR_CONTINUOUS_START_SPEED;
+            currentSpeed = STORAGE_MOTOR_CONTINUOUS_START_SPEED + 
+                          (speedRange * rampStep / STORAGE_MOTOR_CONTINUOUS_RAMP_STEPS);
+        }
+        
         if (continuousDirection) {
-            stepper->setSpeed(maxSpeed);
+            stepper->setSpeed(currentSpeed);
         } else {
-            stepper->setSpeed(-maxSpeed);
+            stepper->setSpeed(-currentSpeed);
         }
         stepper->runSpeed();
     }

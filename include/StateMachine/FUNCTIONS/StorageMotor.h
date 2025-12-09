@@ -16,6 +16,8 @@ private:
     // Current state
     bool continuousMode;
     bool continuousDirection;
+    long rampStep;
+    unsigned long lastRampTime;
 
 public:
     // Constructor

@@ -49,6 +49,8 @@
 #define STORAGE_MOTOR_SPEED 2000              // Storage motor speed for normal operation
 #define STORAGE_MOTOR_ACCEL 2000              // Storage motor acceleration for normal operation
 #define STORAGE_MOTOR_HOMING_SPEED 500        // Storage motor speed for homing operation
+#define STORAGE_MOTOR_CONTINUOUS_START_SPEED 300  // Initial speed for continuous movement to prevent brownout
+#define STORAGE_MOTOR_CONTINUOUS_RAMP_STEPS 50    // Number of steps to ramp up speed
 #define STORAGE_MOTOR_HOMING_TRIM 38           // Storage motor homing trim amount in steps (extra distance after reaching home switch)
 #define STORAGE_MOTOR_STEPS_PER_CLICK 800      // Storage motor steps per click (1/6 rev output = 800 steps)
 #define STORAGE_COLUMN_SPACING_STEPS 762       // Distance between storage columns in steps
