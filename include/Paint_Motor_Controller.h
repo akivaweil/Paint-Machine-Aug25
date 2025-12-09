@@ -28,6 +28,8 @@ bool isStepperRunning();
 long getStepperPosition();
 void disableStepper();
 void resetStepperPosition();
+void setStepperSpeed(long speed);
+void setStepperAcceleration(long accel);
 
 #endif
 

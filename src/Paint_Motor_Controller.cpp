@@ -91,3 +91,15 @@ void resetStepperPosition() {
     }
 }
 
+void setStepperSpeed(long speed) {
+    if (stepper) {
+        stepper->setSpeedInHz(speed);
+    }
+}
+
+void setStepperAcceleration(long accel) {
+    if (stepper) {
+        stepper->setAcceleration(accel);
+    }
+}
+

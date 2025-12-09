@@ -9,6 +9,7 @@
 #include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "ServoControl.h"
+#include "Paint_Motor_Controller.h"
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -110,6 +111,9 @@ void applyMotorSettings() {
         motorStorage->setSpeed(motorSpeedStorage);
         motorStorage->setAcceleration(motorAccelStorage);
     }
+    // Apply paint rotation motor settings
+    setStepperSpeed(motorSpeedPaintRotation);
+    setStepperAcceleration(motorAccelPaintRotation);
 }
 
 void initializeWebServer() {

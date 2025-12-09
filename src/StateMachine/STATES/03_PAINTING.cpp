@@ -40,6 +40,10 @@ extern float testPos2Fork;
 // Paint rotation motor steps per revolution
 extern long paintRotationMotorStepsPerRevOutput;
 
+// Paint rotation motor speed and acceleration
+extern long motorSpeedPaintRotation;
+extern long motorAccelPaintRotation;
+
 // Test mode flag
 extern bool testModeEnabled;
 
@@ -366,6 +370,9 @@ void paintingState() {
     else if (step == 4) {
         // Initialize paint rotation motor if not already started
         if (paintMotorStartPosition == 0) {
+            // Set speed and acceleration from dashboard settings
+            setStepperSpeed(motorSpeedPaintRotation);
+            setStepperAcceleration(motorAccelPaintRotation);
             enablePaintRotationMotor();
             resetStepperPosition();  // Reset to 0 to ensure clean start
             paintMotorStartPosition = getStepperPosition();  // Should be 0 now
