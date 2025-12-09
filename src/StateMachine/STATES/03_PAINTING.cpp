@@ -589,7 +589,7 @@ void paintingState() {
         
         // Start rotation (can happen simultaneously with servo movement)
         if (!finalRotationStarted && !isStepperRunning()) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 2.25));  // 810 degrees = 2.25 rev
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 2.75));  // 810 degrees = 2.25 rev
             finalRotationStarted = true;
         }
         
