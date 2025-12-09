@@ -435,12 +435,15 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: ROTATE TO LEFT SIDE (90 DEGREE CW TURN)
+    //! STEP 7: ROTATE TO LEFT SIDE (90 DEGREES ABSOLUTE)
     //! ************************************************************************
     else if (step == 5) {
-        // Rotate to 90 degrees (90 degrees from start)
+        // Rotate to 90 degrees absolute (0.25 rev from start)
         if (!rotationToLeftStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
+            long targetPosition = paintRotationMotorStepsPerRevOutput / 4;  // 90 degrees = 0.25 rev
+            long currentPosition = getStepperPosition();
+            long stepsToMove = targetPosition - currentPosition;
+            moveStepper(stepsToMove);
             rotationToLeftStarted = true;
         }
         
@@ -472,12 +475,15 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 9: ROTATE TO BACK LEFT (135 DEGREE CW FROM START)
+    //! STEP 9: ROTATE TO BACK LEFT (135 DEGREES ABSOLUTE)
     //! ************************************************************************
     else if (step == 7) {
-        // Rotate to 135 degrees (45 more degrees from 90, 135 total from start)
+        // Rotate to 135 degrees absolute (0.375 rev from start)
         if (!rotationToBackLeftStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 8);  // 45 degrees = 0.125 rev
+            long targetPosition = paintRotationMotorStepsPerRevOutput * 3 / 8;  // 135 degrees = 0.375 rev
+            long currentPosition = getStepperPosition();
+            long stepsToMove = targetPosition - currentPosition;
+            moveStepper(stepsToMove);
             rotationToBackLeftStarted = true;
         }
         
@@ -509,12 +515,15 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: ROTATE TO BACK (180 CW FROM START)
+    //! STEP 11: ROTATE TO BACK (180 DEGREES ABSOLUTE)
     //! ************************************************************************
     else if (step == 9) {
-        // Rotate to 180 degrees (45 more degrees from 135, 180 total from start)
+        // Rotate to 180 degrees absolute (0.5 rev from start)
         if (!rotationToBackStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 8);  // 45 degrees = 0.125 rev
+            long targetPosition = paintRotationMotorStepsPerRevOutput / 2;  // 180 degrees = 0.5 rev
+            long currentPosition = getStepperPosition();
+            long stepsToMove = targetPosition - currentPosition;
+            moveStepper(stepsToMove);
             rotationToBackStarted = true;
         }
         
@@ -546,12 +555,15 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 13: ROTATE TO BACK RIGHT (225 DEGREE CW FROM START)
+    //! STEP 13: ROTATE TO BACK RIGHT (225 DEGREES ABSOLUTE)
     //! ************************************************************************
     else if (step == 11) {
-        // Rotate to 225 degrees (45 more degrees from 180, 225 total from start)
+        // Rotate to 225 degrees absolute (0.625 rev from start)
         if (!rotationToBackRightStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 8);  // 45 degrees = 0.125 rev
+            long targetPosition = paintRotationMotorStepsPerRevOutput * 5 / 8;  // 225 degrees = 0.625 rev
+            long currentPosition = getStepperPosition();
+            long stepsToMove = targetPosition - currentPosition;
+            moveStepper(stepsToMove);
             rotationToBackRightStarted = true;
         }
         
@@ -583,12 +595,15 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 15: ROTATE TO RIGHT (270 CW FROM START)
+    //! STEP 15: ROTATE TO RIGHT (270 DEGREES ABSOLUTE)
     //! ************************************************************************
     else if (step == 13) {
-        // Rotate to 270 degrees (45 more degrees from 225, 270 total from start)
+        // Rotate to 270 degrees absolute (0.75 rev from start)
         if (!rotationToRightStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 8);  // 45 degrees = 0.125 rev
+            long targetPosition = paintRotationMotorStepsPerRevOutput * 3 / 4;  // 270 degrees = 0.75 rev
+            long currentPosition = getStepperPosition();
+            long stepsToMove = targetPosition - currentPosition;
+            moveStepper(stepsToMove);
             rotationToRightStarted = true;
         }
         
