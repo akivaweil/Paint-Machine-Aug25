@@ -199,6 +199,7 @@ void paintingState() {
     static unsigned long waitStartTime = 0;
     static bool servoAt210Complete = false;
     static bool servoAt180Complete = false;
+    static bool rotationToLeftStarted = false;
     static bool rotationToBackStarted = false;
     static bool rotationToRightStarted = false;
     static bool finalRotationStarted = false;
@@ -238,6 +239,7 @@ void paintingState() {
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
+        rotationToLeftStarted = false;
         rotationToBackStarted = false;
         rotationToRightStarted = false;
         finalRotationStarted = false;
@@ -267,6 +269,7 @@ void paintingState() {
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
+        rotationToLeftStarted = false;
         rotationToBackStarted = false;
         rotationToRightStarted = false;
         finalRotationStarted = false;
@@ -358,7 +361,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: ROTATE TO LEFT SIDE (90 DEGREE CW TURN)
+    //! STEP 5: INITIALIZE PAINT ROTATION MOTOR (NO MOVEMENT - STAY AT 0 DEGREES)
     //! ************************************************************************
     else if (step == 4) {
         // Initialize paint rotation motor if not already started
@@ -366,23 +369,16 @@ void paintingState() {
             enablePaintRotationMotor();
             resetStepperPosition();  // Reset to 0 to ensure clean start
             paintMotorStartPosition = getStepperPosition();  // Should be 0 now
-            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
+            // No movement - stay at starting position (0 degrees)
         }
         
-        // Wait for rotation to complete
-        if (!isStepperRunning()) {
-            step = 5;
-            waitStartTime = millis();
-        } else {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            delay(1);
-        }
+        // Move to next step immediately (no movement to wait for)
+        step = 5;
+        waitStartTime = millis();
     }
     
     //! ************************************************************************
-    //! STEP 6: WAIT ON LEFT SIDE FOR 500MS
+    //! STEP 6: WAIT AT STARTING POSITION FOR 500MS
     //! ************************************************************************
     else if (step == 5) {
         unsigned long elapsedTime = millis() - waitStartTime;
@@ -397,13 +393,13 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: ROTATE TO BACK (180 CW FROM START)
+    //! STEP 7: ROTATE TO LEFT SIDE (90 DEGREE CW TURN)
     //! ************************************************************************
     else if (step == 6) {
-        // Rotate to 180 degrees (90 more degrees from 90, 180 total from start)
-        if (!rotationToBackStarted) {
+        // Rotate to 90 degrees (90 degrees from start)
+        if (!rotationToLeftStarted) {
             moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
-            rotationToBackStarted = true;
+            rotationToLeftStarted = true;
         }
         
         // Wait for rotation to complete
@@ -419,11 +415,11 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 8: WAIT ON BACK FOR 1000MS
+    //! STEP 8: WAIT ON LEFT SIDE FOR 500MS
     //! ************************************************************************
     else if (step == 7) {
         unsigned long elapsedTime = millis() - waitStartTime;
-        if (elapsedTime >= BACK_SIDE_WAIT_MS) {
+        if (elapsedTime >= LEFT_SIDE_WAIT_MS) {
             step = 8;
         } else {
             updateServoMovement();
@@ -434,13 +430,13 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 9: ROTATE TO RIGHT (270 CW FROM START)
+    //! STEP 9: ROTATE TO BACK (180 CW FROM START)
     //! ************************************************************************
     else if (step == 8) {
-        // Rotate to 270 degrees (90 more degrees from 180, 270 total from start)
-        if (!rotationToRightStarted) {
+        // Rotate to 180 degrees (90 more degrees from 90, 180 total from start)
+        if (!rotationToBackStarted) {
             moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
-            rotationToRightStarted = true;
+            rotationToBackStarted = true;
         }
         
         // Wait for rotation to complete
@@ -456,11 +452,11 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 10: WAIT ON RIGHT FOR 500MS
+    //! STEP 10: WAIT ON BACK FOR 1000MS
     //! ************************************************************************
     else if (step == 9) {
         unsigned long elapsedTime = millis() - waitStartTime;
-        if (elapsedTime >= RIGHT_SIDE_WAIT_MS) {
+        if (elapsedTime >= BACK_SIDE_WAIT_MS) {
             step = 10;
         } else {
             updateServoMovement();
@@ -471,9 +467,46 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: MOVE SERVO TO 180 DEGREES AND ROTATE 450 DEGREES CW (1.25 REV = 500 STEPS)
+    //! STEP 11: ROTATE TO RIGHT (270 CW FROM START)
     //! ************************************************************************
     else if (step == 10) {
+        // Rotate to 270 degrees (90 more degrees from 180, 270 total from start)
+        if (!rotationToRightStarted) {
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
+            rotationToRightStarted = true;
+        }
+        
+        // Wait for rotation to complete
+        if (!isStepperRunning()) {
+            step = 11;
+            waitStartTime = millis();
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 12: WAIT ON RIGHT FOR 500MS
+    //! ************************************************************************
+    else if (step == 11) {
+        unsigned long elapsedTime = millis() - waitStartTime;
+        if (elapsedTime >= RIGHT_SIDE_WAIT_MS) {
+            step = 12;
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 13: MOVE SERVO TO 180 DEGREES AND ROTATE 450 DEGREES CW (1.25 REV = 500 STEPS)
+    //! ************************************************************************
+    else if (step == 12) {
         // Start moving servo to 180 degrees (non-blocking)
         if (!servoAt180Complete) {
             startServoMoveToAngle(180.0);
@@ -491,7 +524,7 @@ void paintingState() {
         bool servoComplete = servoTargetAngle < 0;
         
         if (rotationComplete && servoComplete) {
-            step = 11;
+            step = 13;
         } else {
             updateServoMovement();
             updateOTA();
@@ -501,9 +534,9 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 12: TURN OFF PAINT GUN AND SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 14: TURN OFF PAINT GUN AND SUCTION, CLEANUP AND RETURN TO GANTRY STATE
     //! ************************************************************************
-    else if (step == 11) {
+    else if (step == 13) {
         // Turn off paint gun and suction
         turnOffPaintGun();
         turnOffSuction();
@@ -521,6 +554,7 @@ void paintingState() {
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
+        rotationToLeftStarted = false;
         rotationToBackStarted = false;
         rotationToRightStarted = false;
         finalRotationStarted = false;
