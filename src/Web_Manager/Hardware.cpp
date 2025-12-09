@@ -95,22 +95,6 @@ void setServoAngle(float angle) {
     }
 }
 
-// Enable/disable paint rotation motor (enable pin is active LOW)
-void enablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);  // LOW = enabled
-}
-
-void disablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = disabled
-}
-
-bool isPaintRotationMotorRunning() {
-    if (motorPaintRotation) {
-        return motorPaintRotation->isMotorRunning();
-    }
-    return false;
-}
-
 // Initialize motors
 void initializeMotors() {
     if (motorX == nullptr) {
@@ -127,9 +111,8 @@ void initializeMotors() {
     }
     if (motorPaintRotation == nullptr) {
         motorPaintRotation = new StepperMotor(PAINT_ROTATION_STEP_PIN, PAINT_ROTATION_DIR_PIN, STEPS_PER_INCH, motorSpeedPaintRotation, motorAccelPaintRotation);
-        // Initialize enable pin for paint rotation motor
-        pinMode(PAINT_ROTATION_ENABLE_PIN, OUTPUT);
-        disablePaintRotationMotor();  // Start with motor disabled
+        // Initialize enable pin for paint rotation motor (active LOW)
+        motorPaintRotation->setEnablePin(PAINT_ROTATION_ENABLE_PIN, true);
     }
 }
 

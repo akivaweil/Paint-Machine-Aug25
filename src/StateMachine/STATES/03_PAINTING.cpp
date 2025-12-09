@@ -17,8 +17,6 @@ extern StepperMotor* motorPaintRotation;
 extern ServoControl* servo;
 extern float currentServoAngle;
 extern float servoSpeed;
-extern void enablePaintRotationMotor();
-extern void disablePaintRotationMotor();
 extern void setServoAngle(float angle);
 
 // OTA Manager function
@@ -285,7 +283,6 @@ void paintingState() {
         if (motorFork) motorFork->forceStop();
         if (motorPaintRotation) {
             motorPaintRotation->forceStop();
-            disablePaintRotationMotor();
         }
         
         // Turn off paint gun and suction
@@ -426,14 +423,7 @@ void paintingState() {
     //! STEP 5: ROTATE TO LEFT SIDE (90 DEGREE CW TURN)
     //! ************************************************************************
     else if (step == 6) {
-        enablePaintRotationMotor();
         if (motorPaintRotation) {
-            // DRASTIC FIX: Force stop and set speed/accel with literals before every move
-            motorPaintRotation->forceStop();
-            delay(10);
-            motorPaintRotation->setSpeed(10000);
-            motorPaintRotation->setAcceleration(10000);
-            
             long steps = (long)((90.0 / 360.0) * PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
             motorPaintRotation->moveSteps(steps);
             currentAngleDeg += 90.0;
@@ -442,10 +432,6 @@ void paintingState() {
     }
     else if (step == 7) {
         waitForMotor(motorPaintRotation);
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 8;
     }
@@ -473,14 +459,7 @@ void paintingState() {
     //! STEP 7: ROTATE TO BACK (180 CW FROM START)
     //! ************************************************************************
     else if (step == 9) {
-        enablePaintRotationMotor();
         if (motorPaintRotation) {
-            // DRASTIC FIX: Force stop and set speed/accel with literals before every move
-            motorPaintRotation->forceStop();
-            delay(10);
-            motorPaintRotation->setSpeed(10000);
-            motorPaintRotation->setAcceleration(10000);
-            
             // Rotate 90 more degrees to reach 180 from start
             long steps = (long)((90.0 / 360.0) * PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
             motorPaintRotation->moveSteps(steps);
@@ -490,10 +469,6 @@ void paintingState() {
     }
     else if (step == 10) {
         waitForMotor(motorPaintRotation);
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 11;
     }
@@ -521,14 +496,7 @@ void paintingState() {
     //! STEP 9: ROTATE TO RIGHT (270 CW FROM START)
     //! ************************************************************************
     else if (step == 12) {
-        enablePaintRotationMotor();
         if (motorPaintRotation) {
-            // DRASTIC FIX: Force stop and set speed/accel with literals before every move
-            motorPaintRotation->forceStop();
-            delay(10);
-            motorPaintRotation->setSpeed(10000);
-            motorPaintRotation->setAcceleration(10000);
-            
             // Rotate 90 more degrees to reach 270 from start
             long steps = (long)((90.0 / 360.0) * PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
             motorPaintRotation->moveSteps(steps);
@@ -538,10 +506,6 @@ void paintingState() {
     }
     else if (step == 13) {
         waitForMotor(motorPaintRotation);
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
         if (cycleCancelled) return;
         step = 14;
     }
@@ -571,14 +535,7 @@ void paintingState() {
     else if (step == 15) {
         servoSpeed = SERVO_PAINT_MOVE_SPEED;
         startServoMoveToAngle(SERVO_PAINT_END_ANGLE);
-        enablePaintRotationMotor();
         if (motorPaintRotation) {
-            // DRASTIC FIX: Force stop and set speed/accel with literals before every move
-            motorPaintRotation->forceStop();
-            delay(10);
-            motorPaintRotation->setSpeed(10000);
-            motorPaintRotation->setAcceleration(10000);
-            
             // Rotate 450 degrees (360 + 90) to return to front (0 degrees from start)
             // We're at 270, so we need 90 more to get to 360, which is 0
             long steps = (long)((450.0 / 360.0) * PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT);
@@ -602,12 +559,6 @@ void paintingState() {
             if (cycleCancelled) return;
             delay(1);
         }
-        
-        // Stop and disable paint rotation motor
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
-        disablePaintRotationMotor();
         
         step = 17;
     }

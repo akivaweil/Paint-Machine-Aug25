@@ -175,3 +175,10 @@ void StepperMotor::runContinuous() {
         }
     }
 }
+
+void StepperMotor::setEnablePin(uint8_t pin, bool active_low) {
+    if (stepper) {
+        stepper->setEnablePin(pin, active_low);
+        stepper->setAutoEnable(true);
+    }
+}

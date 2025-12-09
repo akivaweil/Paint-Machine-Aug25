@@ -134,9 +134,6 @@ void setupAPIRoutes() {
                     motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
                     if (motor) {
-                        // Enable motor and wait for driver to stabilize
-                        enablePaintRotationMotor();
-                        delay(50);
                         // Turn on suction when painting motor starts rotating
                         digitalWrite(SUCTION_PIN, HIGH);
                         // Move the set amount (blocking)
@@ -145,12 +142,8 @@ void setupAPIRoutes() {
                         while (motor->isMotorRunning()) {
                             delay(10);
                         }
-                        // Small delay before disabling to ensure movement is complete
-                        delay(50);
                         // Turn off suction when motor stops
                         digitalWrite(SUCTION_PIN, LOW);
-                        // Disable motor
-                        disablePaintRotationMotor();
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
                     } else {

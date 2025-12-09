@@ -17,8 +17,7 @@ extern StepperMotor* motorPaintRotation;
 extern ServoControl* servo;
 extern float currentServoAngle;
 extern float servoSpeed;
-extern void enablePaintRotationMotor();
-extern void disablePaintRotationMotor();
+
 
 // OTA Manager function
 extern void updateOTA();
@@ -79,7 +78,6 @@ void gantryState() {
         if (motorFork) motorFork->forceStop();
         if (motorPaintRotation) {
             motorPaintRotation->forceStop();
-            disablePaintRotationMotor();
         }
         
         // Turn off paint gun and suction
@@ -569,7 +567,6 @@ void gantryState() {
                 delay(10);
             }
         }
-        disablePaintRotationMotor();
         
         // Ensure paint gun and suction are off
         digitalWrite(PAINT_GUN_PIN, LOW);

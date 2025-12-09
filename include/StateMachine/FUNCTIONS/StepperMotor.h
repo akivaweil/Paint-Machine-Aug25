@@ -54,6 +54,9 @@ public:
     
     // Update steps per inch
     void setStepsPerInch(float stepsPerInch);
+
+    // Enable pin control
+    void setEnablePin(uint8_t pin, bool active_low = true);
 };
 
 #endif // STEPPER_MOTOR_H
