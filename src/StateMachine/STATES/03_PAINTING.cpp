@@ -328,7 +328,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: SERVO TO 210 DEGREES AT 40 SPEED, THEN RESTORE DASHBOARD SPEED
+    //! STEP 4: SERVO TO 210 DEGREES AT CONFIG SPEED, THEN RESTORE DASHBOARD SPEED
     //! ************************************************************************
     else if (step == 3) {
         // Save current servo speed and set to fast speed
@@ -364,7 +364,8 @@ void paintingState() {
         // Initialize paint rotation motor if not already started
         if (paintMotorStartPosition == 0) {
             enablePaintRotationMotor();
-            paintMotorStartPosition = getStepperPosition();
+            resetStepperPosition();  // Reset to 0 to ensure clean start
+            paintMotorStartPosition = getStepperPosition();  // Should be 0 now
             moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
         }
         

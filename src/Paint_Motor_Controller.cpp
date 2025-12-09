@@ -85,3 +85,9 @@ void disableStepper() {
     }
 }
 
+void resetStepperPosition() {
+    if (stepper) {
+        stepper->setCurrentPosition(0);
+    }
+}
+

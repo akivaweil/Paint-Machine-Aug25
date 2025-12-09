@@ -27,6 +27,7 @@ void stopStepper();
 bool isStepperRunning();
 long getStepperPosition();
 void disableStepper();
+void resetStepperPosition();
 
 #endif
 
