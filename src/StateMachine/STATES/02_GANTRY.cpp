@@ -2,6 +2,7 @@
 #include "StateMachine/STATES/02_GANTRY.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "Web_Manager.h"
 #include "ServoControl.h"
@@ -12,6 +13,9 @@
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
+
+// Home switch for fork motor
+extern HomeSwitch* homeSwitchFork;
 
 // External servo and paint gun controls
 extern ServoControl* servo;
@@ -189,8 +193,12 @@ void gantryState() {
             // Retract fork before skipping
             motorFork->moveInches(testPos1Fork);
             
-            // Wait for fork motor to finish retracting
+            // Wait for fork motor to finish retracting (check home sensor as safety)
             while (motorFork->isMotorRunning()) {
+                if (homeSwitchFork && homeSwitchFork->read()) {
+                    motorFork->forceStop();
+                    break;
+                }
                 updateOTA();
                 delay(1);
             }
@@ -232,8 +240,12 @@ void gantryState() {
     else if (step == 3) {
         motorFork->moveInches(testPos1Fork);
         
-        // Wait for fork motor to finish retracting
+        // Wait for fork motor to finish retracting (check home sensor as safety)
         while (motorFork->isMotorRunning()) {
+            if (homeSwitchFork && homeSwitchFork->read()) {
+                motorFork->forceStop();
+                break;
+            }
             updateOTA();
             delay(1);
         }
@@ -423,8 +435,12 @@ void gantryState() {
         
         motorFork->moveInches(-currentFork);
         
-        // Wait for fork motor to finish retracting
+        // Wait for fork motor to finish retracting (check home sensor as safety)
         while (motorFork->isMotorRunning()) {
+            if (homeSwitchFork && homeSwitchFork->read()) {
+                motorFork->forceStop();
+                break;
+            }
             updateOTA();
             delay(1);
         }
@@ -519,8 +535,12 @@ void gantryState() {
     else if (step == 15) {
         motorFork->moveInches(testPos1Fork);
         
-        // Wait for fork motor to finish retracting
+        // Wait for fork motor to finish retracting (check home sensor as safety)
         while (motorFork->isMotorRunning()) {
+            if (homeSwitchFork && homeSwitchFork->read()) {
+                motorFork->forceStop();
+                break;
+            }
             updateOTA();
             delay(1);
         }
@@ -546,8 +566,11 @@ void gantryState() {
             motorY->moveInches(-currentY);
             motorFork->moveInches(-currentFork);
             
-            // Wait for all motors to finish
+            // Wait for all motors to finish (check fork home sensor as safety)
             while (motorX->isMotorRunning() || motorY->isMotorRunning() || motorFork->isMotorRunning()) {
+                if (homeSwitchFork && homeSwitchFork->read() && motorFork->isMotorRunning()) {
+                    motorFork->forceStop();
+                }
                 updateOTA();
                 delay(1);
             }
