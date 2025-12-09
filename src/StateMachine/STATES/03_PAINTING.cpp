@@ -229,6 +229,8 @@ void paintingState() {
     static bool rotationToRightStarted = false;
     static bool finalRotationStarted = false;
     static bool servoAtHomeComplete = false;
+    static unsigned long servoStartTime = 0;
+    static bool initial180RotationStarted = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -272,6 +274,8 @@ void paintingState() {
         rotationToBackRightStarted = false;
         rotationToRightStarted = false;
         finalRotationStarted = false;
+        servoStartTime = 0;
+        initial180RotationStarted = false;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -305,6 +309,8 @@ void paintingState() {
         rotationToRightStarted = false;
         finalRotationStarted = false;
         servoAtHomeComplete = false;
+        servoStartTime = 0;
+        initial180RotationStarted = false;
     }
     
     //! ************************************************************************
@@ -372,10 +378,30 @@ void paintingState() {
             servoSpeed = SERVO_FAST_SPEED;
         }
         
+        // Initialize paint rotation motor if not already started
+        if (paintMotorStartPosition == 0) {
+            // Set speed and acceleration from dashboard settings
+            setStepperSpeed(motorSpeedPaintRotation);
+            setStepperAcceleration(motorAccelPaintRotation);
+            enablePaintRotationMotor();
+            resetStepperPosition();  // Reset to 0 to ensure clean start
+            paintMotorStartPosition = getStepperPosition();  // Should be 0 now
+        }
+        
         // Start moving servo to painting angle (non-blocking)
         if (!servoAt210Complete) {
             startServoMoveToAngle(SERVO_PAINTING_ANGLE);
             servoAt210Complete = true;
+            servoStartTime = millis();  // Record when servo started moving
+        }
+        
+        // 200ms after servo starts moving, start 180-degree rotation
+        if (!initial180RotationStarted && servoStartTime > 0) {
+            unsigned long elapsedTime = millis() - servoStartTime;
+            if (elapsedTime >= INITIAL_ROTATION_DELAY_MS) {
+                moveStepper(paintRotationMotorStepsPerRevOutput / 2);  // 180 degrees = 0.5 rev
+                initial180RotationStarted = true;
+            }
         }
         
         // Wait for servo to reach target
@@ -393,22 +419,19 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: INITIALIZE PAINT ROTATION MOTOR (NO MOVEMENT - STAY AT 0 DEGREES)
+    //! STEP 5: WAIT FOR INITIAL 180-DEGREE ROTATION TO COMPLETE, THEN CONTINUE TO LEFT
     //! ************************************************************************
     else if (step == 4) {
-        // Initialize paint rotation motor if not already started
-        if (paintMotorStartPosition == 0) {
-            // Set speed and acceleration from dashboard settings
-            setStepperSpeed(motorSpeedPaintRotation);
-            setStepperAcceleration(motorAccelPaintRotation);
-            enablePaintRotationMotor();
-            resetStepperPosition();  // Reset to 0 to ensure clean start
-            paintMotorStartPosition = getStepperPosition();  // Should be 0 now
-            // No movement - stay at starting position (0 degrees)
+        // Wait for initial 180-degree rotation to complete (if it was started)
+        if (initial180RotationStarted && isStepperRunning()) {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        } else {
+            // Initial rotation complete (or wasn't needed), continue to left side
+            step = 5;
         }
-        
-        // Skip wait step, move directly to rotation
-        step = 5;
     }
     
     //! ************************************************************************
@@ -680,6 +703,8 @@ void paintingState() {
         rotationToBackRightStarted = false;
         rotationToRightStarted = false;
         finalRotationStarted = false;
+        servoStartTime = 0;
+        initial180RotationStarted = false;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
