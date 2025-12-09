@@ -53,7 +53,6 @@ extern bool testModeEnabled;
 
 // Forward declarations
 void updateServoMovement();
-bool updateServoPositionByRotation(long startPosition, bool resetFlags);
 
 // Wait for a motor to finish moving
 void waitForMotor(StepperMotor* motor) {
@@ -69,23 +68,6 @@ void waitForMotor(StepperMotor* motor) {
 void waitForMotors(StepperMotor* motor1, StepperMotor* motor2) {
     while ((motor1 && motor1->isMotorRunning()) || (motor2 && motor2->isMotorRunning())) {
         updateServoMovement();  // Update servo while waiting
-        updateOTA();
-        if (cycleCancelled) return;
-        delay(1);
-    }
-}
-
-// Wait for paint rotation motor to complete X revolutions from a start position
-void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
-    long targetSteps = paintRotationMotorStepsPerRevOutput * revolutions;
-    
-    while (isStepperRunning()) {
-        long currentSteps = getStepperPosition() - startPosition;
-        if (currentSteps >= targetSteps) {
-            break;
-        }
-        updateServoMovement();  // Update servo while waiting
-        updateServoPositionByRotation(startPosition, false);  // Update servo position based on rotation
         updateOTA();
         if (cycleCancelled) return;
         delay(1);
@@ -202,60 +184,6 @@ void updateServoMovement() {
     
     // Update timing
     lastServoUpdateTime = currentTime;
-}
-
-// Check rotation count and move servo to appropriate position based on config
-// Returns true if any position was triggered this call
-bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
-    static bool pos1Triggered = false;
-    static bool pos2Triggered = false;
-    static bool pos3Triggered = false;
-    static bool pos4Triggered = false;
-    
-    // Reset flags if requested
-    if (resetFlags) {
-        pos1Triggered = false;
-        pos2Triggered = false;
-        pos3Triggered = false;
-        pos4Triggered = false;
-        return false;
-    }
-    
-    // Calculate current rotation count
-    long currentSteps = getStepperPosition() - startPosition;
-    float currentRotations = (float)currentSteps / paintRotationMotorStepsPerRevOutput;
-    
-    bool positionTriggered = false;
-    
-    // Check position 1 (0 rotations) - trigger immediately if not already triggered
-    if (!pos1Triggered && currentRotations >= SERVO_POS_1_ROTATIONS) {
-        startServoMoveToAngle(SERVO_POS_1_ANGLE);
-        pos1Triggered = true;
-        positionTriggered = true;
-    }
-    
-    // Check position 2
-    if (!pos2Triggered && currentRotations >= SERVO_POS_2_ROTATIONS) {
-        startServoMoveToAngle(SERVO_POS_2_ANGLE);
-        pos2Triggered = true;
-        positionTriggered = true;
-    }
-    
-    // Check position 3
-    if (!pos3Triggered && currentRotations >= SERVO_POS_3_ROTATIONS) {
-        startServoMoveToAngle(SERVO_POS_3_ANGLE);
-        pos3Triggered = true;
-        positionTriggered = true;
-    }
-    
-    // Check position 4
-    if (!pos4Triggered && currentRotations >= SERVO_POS_4_ROTATIONS) {
-        startServoMoveToAngle(SERVO_POS_4_ANGLE);
-        pos4Triggered = true;
-        positionTriggered = true;
-    }
-    
-    return positionTriggered;
 }
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗

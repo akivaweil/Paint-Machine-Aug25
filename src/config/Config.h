@@ -74,7 +74,7 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define POSITION_HEIGHT_SPACING_MM 49.0
 #define POSITION_HEIGHT_SPACING_INCHES (POSITION_HEIGHT_SPACING_MM / 25.4)
-#define TEST_Y_SPEED_FORK_EXTENDED 15000       // Y-axis speed when fork is extended (steps per second)
-#define TEST_Y_ACCEL_FORK_EXTENDED 15000       // Y-axis acceleration when fork is extended (steps per second squared)
+#define TEST_Y_SPEED_FORK_EXTENDED 7000       // Y-axis speed when fork is extended (steps per second)
+#define TEST_Y_ACCEL_FORK_EXTENDED 7000       // Y-axis acceleration when fork is extended (steps per second squared)
 
 #endif // CONFIG_H 
