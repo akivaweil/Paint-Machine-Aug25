@@ -363,7 +363,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: SERVO TO 210 DEGREES AT CONFIG SPEED, THEN RESTORE DASHBOARD SPEED
+    //! STEP 4: SERVO TO 230 DEGREES AT CONFIG SPEED, THEN RESTORE DASHBOARD SPEED
     //! ************************************************************************
     else if (step == 3) {
         // Save current servo speed and set to fast speed
@@ -372,9 +372,9 @@ void paintingState() {
             servoSpeed = SERVO_FAST_SPEED;
         }
         
-        // Start moving servo to 210 degrees (non-blocking)
+        // Start moving servo to 230 degrees (non-blocking)
         if (!servoAt210Complete) {
-            startServoMoveToAngle(210.0);
+            startServoMoveToAngle(230.0);
             servoAt210Complete = true;
         }
         
@@ -597,12 +597,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 17: MOVE SERVO TO 180 DEGREES AND ROTATE 810 DEGREES CW (2.25 REV)
+    //! STEP 17: MOVE SERVO TO 230 DEGREES AND ROTATE 810 DEGREES CW (2.25 REV)
     //! ************************************************************************
     else if (step == 15) {
-        // Start moving servo to 180 degrees (non-blocking)
+        // Start moving servo to 230 degrees (non-blocking)
         if (!servoAt180Complete) {
-            startServoMoveToAngle(180.0);
+            startServoMoveToAngle(230.0);
             servoAt180Complete = true;
         }
         
