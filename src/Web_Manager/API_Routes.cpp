@@ -425,8 +425,10 @@ void setupAPIRoutes() {
                 storageMotorTrimDistance = request->getParam("storageTrim")->value().toInt();
             }
             
-            // Get paint rotation steps (always sent from frontend)
-            paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
+            // Get paint rotation steps if provided
+            if (request->hasParam("paintRotationSteps")) {
+                paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
+            }
             
             // Get paint rotation steps per rev output if provided
             if (request->hasParam("paintRotationRevOutput")) {

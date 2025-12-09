@@ -1052,10 +1052,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               <input type="number" id="accelPaintRotation" step="100" min="100" max="30000" placeholder="1000" onblur="autoSaveMotorSettings()">
             </div>
             <div class="input-row">
-              <label>Steps/Click:</label>
-              <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000" onblur="autoSaveMotorSettings()">
-            </div>
-            <div class="input-row">
               <label>Steps/Rev Output:</label>
               <input type="number" id="paintRotationRevOutput" step="100" min="100" max="1000000" placeholder="38400" onblur="autoSaveMotorSettings()">
             </div>
@@ -1100,7 +1096,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
     let currentSpeedPaintRotation = 1000;
     let currentAccelPaintRotation = 1000;
-    let currentPaintRotationSteps = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1249,9 +1244,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             document.getElementById('storageTrim').value = data.storageTrim;
           }
           if (data.paintRotationSteps !== undefined) {
-            document.getElementById('paintRotationSteps').value = data.paintRotationSteps;
             PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
-            currentPaintRotationSteps = data.paintRotationSteps;
           }
           if (data.paintRotationRevOutput !== undefined) {
             document.getElementById('paintRotationRevOutput').value = data.paintRotationRevOutput;
@@ -1275,7 +1268,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
       const speedPaintRotationInput = document.getElementById('speedPaintRotation').value;
       const accelPaintRotationInput = document.getElementById('accelPaintRotation').value;
-      const paintRotationStepsInput = document.getElementById('paintRotationSteps').value;
       const paintRotationRevOutputInput = document.getElementById('paintRotationRevOutput').value;
       const speedPaintRotation = speedPaintRotationInput ? parseInt(speedPaintRotationInput) : currentSpeedPaintRotation;
       const accelPaintRotation = accelPaintRotationInput ? parseInt(accelPaintRotationInput) : currentAccelPaintRotation;
@@ -1283,7 +1275,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelStorage = parseInt(document.getElementById('accelStorage').value) || 10000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
       const storageTrim = parseInt(document.getElementById('storageTrim').value) || 300;
-      const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
+      const paintRotationSteps = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
       const paintRotationRevOutput = paintRotationRevOutputInput ? parseInt(paintRotationRevOutputInput) : 38400;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
       
@@ -1303,7 +1295,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = paintRotationSteps;
           currentSpeedPaintRotation = speedPaintRotation;
           currentAccelPaintRotation = accelPaintRotation;
-          currentPaintRotationSteps = paintRotationSteps;
         })
         .catch(error => {
           console.error('Error saving motor settings:', error);
@@ -1785,7 +1776,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                 if (motor.paintRotationSteps) PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = motor.paintRotationSteps;
                 if (motor.speedPaintRotation) currentSpeedPaintRotation = motor.speedPaintRotation;
                 if (motor.accelPaintRotation) currentAccelPaintRotation = motor.accelPaintRotation;
-                if (motor.paintRotationSteps) currentPaintRotationSteps = motor.paintRotationSteps;
                 
                 // Reload motor settings to update UI
                 loadMotorSettings();
