@@ -358,14 +358,14 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: ROTATE TO LEFT SIDE (90 DEGREE CW TURN) - 100 STEPS
+    //! STEP 5: ROTATE TO LEFT SIDE (90 DEGREE CW TURN)
     //! ************************************************************************
     else if (step == 4) {
         // Initialize paint rotation motor if not already started
         if (paintMotorStartPosition == 0) {
             enablePaintRotationMotor();
             paintMotorStartPosition = getStepperPosition();
-            moveStepper(PAINT_ROTATION_STEPS_90_DEG);  // 90 degrees = 0.25 rev = 100 steps
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
         }
         
         // Wait for rotation to complete
@@ -396,12 +396,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: ROTATE TO BACK (180 CW FROM START) - 200 STEPS TOTAL
+    //! STEP 7: ROTATE TO BACK (180 CW FROM START)
     //! ************************************************************************
     else if (step == 6) {
-        // Rotate to 180 degrees (100 more steps from 90, 200 total from start)
+        // Rotate to 180 degrees (90 more degrees from 90, 180 total from start)
         if (!rotationToBackStarted) {
-            moveStepper(PAINT_ROTATION_STEPS_90_DEG);  // 90 degrees = 0.25 rev = 100 steps
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
             rotationToBackStarted = true;
         }
         
@@ -433,12 +433,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 9: ROTATE TO RIGHT (270 CW FROM START) - 300 STEPS TOTAL
+    //! STEP 9: ROTATE TO RIGHT (270 CW FROM START)
     //! ************************************************************************
     else if (step == 8) {
-        // Rotate to 270 degrees (100 more steps from 180, 300 total from start)
+        // Rotate to 270 degrees (90 more degrees from 180, 270 total from start)
         if (!rotationToRightStarted) {
-            moveStepper(PAINT_ROTATION_STEPS_90_DEG);  // 90 degrees = 0.25 rev = 100 steps
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
             rotationToRightStarted = true;
         }
         
