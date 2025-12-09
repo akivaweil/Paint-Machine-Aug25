@@ -32,9 +32,11 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINTING STATE CONFIGURATION                                      ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define PAINT_GUN_DELAY_MS 500         // Delay in milliseconds before paint gun turns on after servo starts moving
-#define TOTAL_PAINT_REVOLUTIONS 3.0    // Total number of paint motor revolutions for the painting cycle
-#define PAINT_GUN_OFF_REVOLUTIONS 0.5  // Number of paint motor revolutions remaining before paint gun turns off
+#define WAITING_POSITION_DELAY_MS 250  // Delay in milliseconds before turning on paint gun after gantry reaches waiting position
+#define SERVO_FAST_SPEED 40.0          // Temporary servo speed for step 4 (degrees per second)
+#define LEFT_SIDE_WAIT_MS 500          // Wait time on left side in milliseconds
+#define BACK_SIDE_WAIT_MS 1000         // Wait time on back side in milliseconds
+#define RIGHT_SIDE_WAIT_MS 500         // Wait time on right side in milliseconds
 
 #endif // PAINTING_CONFIG_H
 
