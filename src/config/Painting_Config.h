@@ -8,13 +8,13 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINT ROTATION MOTOR SETTINGS                                     ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-// Paint rotation motor: 12800 steps/rev with 5:15 gear ratio (3:1 reduction)
-// 1 full 360-degree output rotation = 3 motor revs = 38400 steps
+// Paint rotation motor: 400 steps/rev at motor, 3:1 gear reduction
+// 1 full 360-degree output rotation = 3 motor revs = 1200 motor steps
 #define PAINT_ROTATION_MOTOR_SPEED 1000                // Paint rotation motor speed for normal operation
 #define PAINT_ROTATION_MOTOR_ACCEL 1000                // Paint rotation motor acceleration for normal operation
 #define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 2000      // Paint rotation motor steps per click in web dashboard
-#define PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT 400  // Steps per full output revolution
-#define PAINT_ROTATION_STEPS_90_DEG 100                 // Steps for 90 degree rotation (0.25 rev = 400/4)
+#define PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT 1200  // Motor steps per full output revolution (400 steps/rev * 3:1 gear = 1200)
+#define PAINT_ROTATION_STEPS_90_DEG 300                 // Motor steps for 90 degree output rotation (1200/4 = 300)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎯 SERVO CONFIGURATION                                               ║
