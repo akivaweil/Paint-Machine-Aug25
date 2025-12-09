@@ -24,9 +24,9 @@
 #define SERVO_POS_1_ROTATIONS 0.0      // Rotation count to trigger position 1
 #define SERVO_POS_2_ANGLE 200.0        // Servo angle at position 2
 #define SERVO_POS_2_ROTATIONS 1.0      // Rotation count to trigger position 2
-#define SERVO_POS_3_ANGLE 150.0        // Servo angle at position 3
+#define SERVO_POS_3_ANGLE 180.0        // Servo angle at position 3
 #define SERVO_POS_3_ROTATIONS 1.75      // Rotation count to trigger position 3
-#define SERVO_POS_4_ANGLE 130.0        // Servo angle at position 4
+#define SERVO_POS_4_ANGLE 150.0        // Servo angle at position 4
 #define SERVO_POS_4_ROTATIONS 2.5      // Rotation count to trigger position 4
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
@@ -35,6 +35,8 @@
 #define PAINT_GUN_DELAY_MS 500         // Delay in milliseconds before paint gun turns on after servo starts moving
 #define TOTAL_PAINT_REVOLUTIONS 3.0    // Total number of paint motor revolutions for the painting cycle
 #define PAINT_GUN_OFF_REVOLUTIONS 0.5  // Number of paint motor revolutions remaining before paint gun turns off
+#define PAINT_MOTOR_PAUSE_REVOLUTIONS 2.0  // Number of revolutions before motor pauses
+#define PAINT_MOTOR_PAUSE_DURATION_MS 1000  // Duration of pause in milliseconds after PAINT_MOTOR_PAUSE_REVOLUTIONS
 
 #endif // PAINTING_CONFIG_H
 
