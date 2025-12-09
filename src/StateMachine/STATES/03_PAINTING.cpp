@@ -80,21 +80,50 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
     if (!motorPaintRotation) return;
     
     long targetSteps = paintRotationMotorStepsPerRevOutput * revolutions;
+    unsigned long startTime = millis();
+    const unsigned long MAX_WAIT_MS = 30000;  // 30 second timeout to prevent infinite loops
+    long lastPosition = startPosition;
+    unsigned long lastPositionChangeTime = millis();
     
     // Wait until we've reached the target position
     // Check position regardless of motor running state to handle high-speed cases
     while (true) {
-        long currentSteps = motorPaintRotation->getCurrentPosition() - startPosition;
+        // Timeout check to prevent infinite loops
+        if (millis() - startTime > MAX_WAIT_MS) {
+            // Force stop if timeout
+            motorPaintRotation->forceStop();
+            break;
+        }
         
-        // If we've reached or exceeded the target, break
+        long currentPosition = motorPaintRotation->getCurrentPosition();
+        long currentSteps = currentPosition - startPosition;
+        
+        // Check if position is changing - if not changing for 2 seconds and motor says it's running, force stop
+        if (currentPosition != lastPosition) {
+            lastPosition = currentPosition;
+            lastPositionChangeTime = millis();
+        } else if (motorPaintRotation->isMotorRunning() && (millis() - lastPositionChangeTime > 2000)) {
+            // Position hasn't changed in 2 seconds but motor says it's running - force stop
+            motorPaintRotation->forceStop();
+            break;
+        }
+        
+        // If we've reached or exceeded the target, force stop and break
         if (currentSteps >= targetSteps) {
-            // Wait for motor to finish if it's still running
-            while (motorPaintRotation->isMotorRunning()) {
+            // Force stop to ensure motor stops at target
+            motorPaintRotation->forceStop();
+            // Wait a bit for motor to actually stop (with timeout)
+            unsigned long stopStartTime = millis();
+            while (motorPaintRotation->isMotorRunning() && (millis() - stopStartTime < 500)) {
                 updateServoMovement();
                 updateServoPositionByRotation(startPosition, false);
                 updateOTA();
                 if (cycleCancelled) return;
                 delay(1);
+            }
+            // Force stop again if still running after timeout
+            if (motorPaintRotation->isMotorRunning()) {
+                motorPaintRotation->forceStop();
             }
             break;
         }
@@ -385,13 +414,14 @@ void paintingState() {
             motorPaintRotation->moveSteps(steps);
         }
         
-        // Wait for rotation to complete
+        // Wait for rotation to complete (function handles stopping the motor)
         waitForPaintRotationRevolutions(initialStartPos, 1.0);
         if (cycleCancelled) return;
         
-        // Wait for motor to finish
-        waitForMotor(motorPaintRotation);
-        if (cycleCancelled) return;
+        // Ensure motor is stopped
+        if (motorPaintRotation && motorPaintRotation->isMotorRunning()) {
+            motorPaintRotation->forceStop();
+        }
         
         step = 1;
     }
