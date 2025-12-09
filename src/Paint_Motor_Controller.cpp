@@ -21,14 +21,25 @@ void initializeStepper() {
     }
     
     if (engine) {
+        // Force MCPWM driver to avoid RMT channel limits
+        #ifdef DRIVER_MCPWM_PCNT
+        stepper = engine->stepperConnectToPin(STEPPER_STEP_PIN, DRIVER_MCPWM_PCNT);
+        #else
         stepper = engine->stepperConnectToPin(STEPPER_STEP_PIN);
+        #endif
+        
         if (stepper) {
             stepper->setDirectionPin(STEPPER_DIR_PIN);
             stepper->setEnablePin(STEPPER_ENABLE_PIN);
             stepper->setAutoEnable(true);
             stepper->setSpeedInHz(STEPPER_SPEED);
             stepper->setAcceleration(STEPPER_ACCEL);
+            Serial.println("Paint Motor initialized successfully");
+        } else {
+            Serial.println("Failed to initialize Paint Motor stepper!");
         }
+    } else {
+        Serial.println("Failed to initialize FastAccelStepper Engine!");
     }
 }
 

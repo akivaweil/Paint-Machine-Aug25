@@ -8,6 +8,7 @@
 // Forward declarations
 class ServoControl;
 class StepperMotor;
+class StorageMotor;
 class HomeSwitch;
 
 // External server instance
@@ -18,7 +19,7 @@ extern bool sensorsInitialized;
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
-extern StepperMotor* motorStorage;
+extern StorageMotor* motorStorage;
 extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;

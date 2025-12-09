@@ -4,6 +4,7 @@
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_GANTRY.h"
 #include "Paint_Motor_Controller.h"
@@ -114,13 +115,12 @@ void setupAPIRoutes() {
             } else if (axis == "storage") {
                 if (request->hasParam("steps")) {
                     long steps = request->getParam("steps")->value().toInt();
-                    motor = motorStorage;
                     axisName = "Storage Motor";
-                    if (motor) {
+                    if (motorStorage) {
                         // Stop any continuous movement and ensure motor is stopped
-                        motor->stopContinuous();
-                        motor->forceStop();
-                        motor->moveSteps(steps);
+                        motorStorage->stopContinuous();
+                        motorStorage->forceStop();
+                        motorStorage->moveSteps(steps);
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
                     } else {

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Bounce2.h>
 #include "StateMachine/STATES/01_HOMING.h"
+#include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "../../config/Config.h"
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
@@ -12,7 +13,7 @@ const float HOMING_Y_START_DELAY_MS = 1000.0f;  // Delay before starting Y homin
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
-extern StepperMotor* motorStorage;
+extern StorageMotor* motorStorage;
 extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;
@@ -301,7 +302,7 @@ void homeAllAxes(bool resetColumn) {
 // Storage motor can ONLY move clockwise
 void moveToColumn(int targetColumn) {
     extern int currentColumn;  // Declared in Web_Manager.cpp
-    extern StepperMotor* motorStorage;  // Declared in Web_Manager.cpp
+    extern StorageMotor* motorStorage;  // Declared in Web_Manager.cpp
     extern Bounce2::Button storagePositionSensor;  // Declared in Web_Manager.cpp
     
     if (!motorStorage) {
@@ -422,7 +423,7 @@ void moveToColumn(int targetColumn) {
 // Move storage motor clockwise one column
 // Moves STORAGE_COLUMN_SPACING_STEPS, finds switch, then trims
 void moveStorageClockwise() {
-    extern StepperMotor* motorStorage;  // Declared in Web_Manager.cpp
+    extern StorageMotor* motorStorage;  // Declared in Web_Manager.cpp
     extern Bounce2::Button storagePositionSensor;  // Declared in Web_Manager.cpp
     
     if (!motorStorage) {

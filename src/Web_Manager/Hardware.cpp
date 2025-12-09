@@ -3,6 +3,7 @@
 #include "Web_Manager.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "ServoControl.h"
 #include "Paint_Motor_Controller.h"
@@ -111,6 +112,10 @@ bool isPaintRotationMotorRunning() {
 
 // Initialize motors
 void initializeMotors() {
+    // Initialize paint rotation motor controller FIRST to ensure it gets resources
+    initializeStepper();
+    disablePaintRotationMotor();  // Start with motor disabled
+
     if (motorX == nullptr) {
         motorX = new StepperMotor(X_STEP_PIN, X_DIR_PIN, X_STEPS_PER_INCH, X_MAX_SPEED, X_MAX_ACCEL);
     }
@@ -121,11 +126,8 @@ void initializeMotors() {
         motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
     }
     if (motorStorage == nullptr) {
-        motorStorage = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, motorSpeedStorage, motorAccelStorage);
+        motorStorage = new StorageMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, motorSpeedStorage, motorAccelStorage);
     }
-    // Initialize paint rotation motor controller
-    initializeStepper();
-    disablePaintRotationMotor();  // Start with motor disabled
 }
 
 // Read sensor states

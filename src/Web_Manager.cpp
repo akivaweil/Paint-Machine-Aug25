@@ -6,6 +6,7 @@
 #include "config/Config.h"
 #include "config/Pin_Definitions.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "ServoControl.h"
 
@@ -23,7 +24,7 @@ bool sensorsInitialized = false;
 StepperMotor* motorX = nullptr;
 StepperMotor* motorY = nullptr;
 StepperMotor* motorFork = nullptr;
-StepperMotor* motorStorage = nullptr;
+StorageMotor* motorStorage = nullptr;
 
 // Home switch instances
 HomeSwitch* homeSwitchX = nullptr;
@@ -144,4 +145,9 @@ void initializeWebServer() {
 void updateWebServer() {
     // Update Bounce2 sensors
     storagePositionSensor.update();
+    
+    // Run storage motor (AccelStepper needs run() called regularly)
+    if (motorStorage) {
+        motorStorage->run();
+    }
 }

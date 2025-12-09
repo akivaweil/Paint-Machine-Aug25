@@ -19,7 +19,13 @@ StepperMotor::StepperMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
 
     // Connect stepper to step pin
     if (engine) {
+        // Force MCPWM driver to avoid RMT channel limits (ESP32-S3 has 4 RMT, 6 MCPWM)
+        #ifdef DRIVER_MCPWM_PCNT
+        stepper = engine->stepperConnectToPin(step, DRIVER_MCPWM_PCNT);
+        #else
         stepper = engine->stepperConnectToPin(step);
+        #endif
+        
         if (stepper) {
             stepper->setDirectionPin(dir, false);  // false = direction pin is not inverted
             stepper->setSpeedInHz(maxSpd);
