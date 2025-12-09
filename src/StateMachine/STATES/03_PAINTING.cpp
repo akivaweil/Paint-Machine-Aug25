@@ -6,12 +6,12 @@
 #include "Web_Manager.h"
 #include "ServoControl.h"
 #include "../../config/Pin_Definitions.h"
+#include "Paint_Motor_Controller.h"
 
 // External motor instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
-extern StepperMotor* motorPaintRotation;
 
 // External servo and paint gun controls
 extern ServoControl* servo;
@@ -77,12 +77,10 @@ void waitForMotors(StepperMotor* motor1, StepperMotor* motor2) {
 
 // Wait for paint rotation motor to complete X revolutions from a start position
 void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
-    if (!motorPaintRotation) return;
-    
     long targetSteps = paintRotationMotorStepsPerRevOutput * revolutions;
     
-    while (motorPaintRotation->isMotorRunning()) {
-        long currentSteps = motorPaintRotation->getCurrentPosition() - startPosition;
+    while (isStepperRunning()) {
+        long currentSteps = getStepperPosition() - startPosition;
         if (currentSteps >= targetSteps) {
             break;
         }
@@ -117,12 +115,9 @@ void turnOffSuction() {
 // Start paint rotation motor for configured number of revolutions and return start position
 long startPaintRotationTwoRevolutions() {
     enablePaintRotationMotor();
-    long startPos = 0;
-    if (motorPaintRotation) {
-        startPos = motorPaintRotation->getCurrentPosition();
-        long steps = paintRotationMotorStepsPerRevOutput * TOTAL_PAINT_REVOLUTIONS;
-        motorPaintRotation->moveSteps(steps);
-    }
+    long startPos = getStepperPosition();
+    long steps = paintRotationMotorStepsPerRevOutput * TOTAL_PAINT_REVOLUTIONS;
+    moveStepper(steps);
     return startPos;
 }
 
@@ -221,8 +216,6 @@ void updateServoMovement() {
 // Check rotation count and move servo to appropriate position based on config
 // Returns true if any position was triggered this call
 bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
-    if (!motorPaintRotation) return false;
-    
     static bool pos1Triggered = false;
     static bool pos2Triggered = false;
     static bool pos3Triggered = false;
@@ -238,7 +231,7 @@ bool updateServoPositionByRotation(long startPosition, bool resetFlags) {
     }
     
     // Calculate current rotation count
-    long currentSteps = motorPaintRotation->getCurrentPosition() - startPosition;
+    long currentSteps = getStepperPosition() - startPosition;
     float currentRotations = (float)currentSteps / paintRotationMotorStepsPerRevOutput;
     
     bool positionTriggered = false;
@@ -301,10 +294,8 @@ void paintingState() {
         if (motorX) motorX->forceStop();
         if (motorY) motorY->forceStop();
         if (motorFork) motorFork->forceStop();
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-            disablePaintRotationMotor();
-        }
+        stopStepper();
+        disablePaintRotationMotor();
         
         // Turn off paint gun and suction
         turnOffPaintGun();
@@ -447,13 +438,16 @@ void paintingState() {
     //! STEP 5: WAIT FOR PAINT MOTOR TO FINISH, THEN TURN OFF EVERYTHING
     //! ************************************************************************
     else if (step == 4) {
-        waitForMotor(motorPaintRotation);
+        while (isStepperRunning()) {
+            updateServoMovement();  // Update servo while waiting
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
         if (cycleCancelled) return;
         
         // Stop and disable paint rotation motor
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-        }
+        stopStepper();
         disablePaintRotationMotor();
         
         // Turn off paint gun and suction

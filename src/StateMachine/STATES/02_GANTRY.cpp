@@ -6,12 +6,12 @@
 #include "Web_Manager.h"
 #include "ServoControl.h"
 #include "../../config/Pin_Definitions.h"
+#include "Paint_Motor_Controller.h"
 
 // External motor instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
-extern StepperMotor* motorPaintRotation;
 
 // External servo and paint gun controls
 extern ServoControl* servo;
@@ -77,10 +77,8 @@ void gantryState() {
         if (motorX) motorX->forceStop();
         if (motorY) motorY->forceStop();
         if (motorFork) motorFork->forceStop();
-        if (motorPaintRotation) {
-            motorPaintRotation->forceStop();
-            disablePaintRotationMotor();
-        }
+        stopStepper();
+        disablePaintRotationMotor();
         
         // Turn off paint gun and suction
         digitalWrite(PAINT_GUN_PIN, LOW);
@@ -563,11 +561,9 @@ void gantryState() {
     //! ************************************************************************
     else if (step == 17) {
         // Safety: Ensure paint rotation motor is stopped and disabled
-        if (motorPaintRotation) {
-            motorPaintRotation->stopContinuous();
-            while (motorPaintRotation->isMotorRunning()) {
-                delay(10);
-            }
+        stopStepper();
+        while (isStepperRunning()) {
+            delay(10);
         }
         disablePaintRotationMotor();
         

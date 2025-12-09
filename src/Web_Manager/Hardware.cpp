@@ -5,6 +5,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "ServoControl.h"
+#include "Paint_Motor_Controller.h"
 
 //* ************************************************************************
 //* ************************ HARDWARE *************************************
@@ -97,18 +98,15 @@ void setServoAngle(float angle) {
 
 // Enable/disable paint rotation motor (enable pin is active LOW)
 void enablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, LOW);  // LOW = enabled
+    enableStepper();
 }
 
 void disablePaintRotationMotor() {
-    digitalWrite(PAINT_ROTATION_ENABLE_PIN, HIGH);  // HIGH = disabled
+    disableStepper();
 }
 
 bool isPaintRotationMotorRunning() {
-    if (motorPaintRotation) {
-        return motorPaintRotation->isMotorRunning();
-    }
-    return false;
+    return isStepperRunning();
 }
 
 // Initialize motors
@@ -125,12 +123,9 @@ void initializeMotors() {
     if (motorStorage == nullptr) {
         motorStorage = new StepperMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, motorSpeedStorage, motorAccelStorage);
     }
-    if (motorPaintRotation == nullptr) {
-        motorPaintRotation = new StepperMotor(PAINT_ROTATION_STEP_PIN, PAINT_ROTATION_DIR_PIN, STEPS_PER_INCH, motorSpeedPaintRotation, motorAccelPaintRotation);
-        // Initialize enable pin for paint rotation motor
-        pinMode(PAINT_ROTATION_ENABLE_PIN, OUTPUT);
-        disablePaintRotationMotor();  // Start with motor disabled
-    }
+    // Initialize paint rotation motor controller
+    initializeStepper();
+    disablePaintRotationMotor();  // Start with motor disabled
 }
 
 // Read sensor states

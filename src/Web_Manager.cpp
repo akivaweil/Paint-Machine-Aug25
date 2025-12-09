@@ -24,7 +24,6 @@ StepperMotor* motorX = nullptr;
 StepperMotor* motorY = nullptr;
 StepperMotor* motorFork = nullptr;
 StepperMotor* motorStorage = nullptr;
-StepperMotor* motorPaintRotation = nullptr;
 
 // Home switch instances
 HomeSwitch* homeSwitchX = nullptr;
@@ -105,10 +104,6 @@ void applyMotorSettings() {
     if (motorFork) {
         motorFork->setSpeed(motorSpeedFork);
         motorFork->setAcceleration(motorAccelFork);
-    }
-    if (motorPaintRotation) {
-        motorPaintRotation->setSpeed(motorSpeedPaintRotation);
-        motorPaintRotation->setAcceleration(motorAccelPaintRotation);
     }
     if (motorStorage) {
         motorStorage->setSpeed(motorSpeedStorage);

@@ -28,9 +28,9 @@
 #define STORAGE_DIR_PIN 47
 
 // Paint Rotation Motor
-#define PAINT_ROTATION_STEP_PIN 3
-#define PAINT_ROTATION_DIR_PIN 8
-#define PAINT_ROTATION_ENABLE_PIN 9
+#define PAINT_ROTATION_STEP_PIN 14
+#define PAINT_ROTATION_DIR_PIN 13
+#define PAINT_ROTATION_ENABLE_PIN 10
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🏠 HOME SWITCHES (Active HIGH with pulldown)                        ║

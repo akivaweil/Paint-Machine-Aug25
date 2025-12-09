@@ -6,6 +6,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
 #include "StateMachine/STATES/02_GANTRY.h"
+#include "Paint_Motor_Controller.h"
 
 // Include HTML content (needed for sensors_html)
 #include "Web_Manager/HTML_Content.cpp"
@@ -131,31 +132,26 @@ void setupAPIRoutes() {
             } else if (axis == "paintRotation") {
                 if (request->hasParam("steps")) {
                     long steps = request->getParam("steps")->value().toInt();
-                    motor = motorPaintRotation;
                     axisName = "Paint Rotation Motor";
-                    if (motor) {
-                        // Enable motor and wait for driver to stabilize
-                        enablePaintRotationMotor();
-                        delay(50);
-                        // Turn on suction when painting motor starts rotating
-                        digitalWrite(SUCTION_PIN, HIGH);
-                        // Move the set amount (blocking)
-                        motor->moveSteps(steps);
-                        // Block until motor finishes
-                        while (motor->isMotorRunning()) {
-                            delay(10);
-                        }
-                        // Small delay before disabling to ensure movement is complete
-                        delay(50);
-                        // Turn off suction when motor stops
-                        digitalWrite(SUCTION_PIN, LOW);
-                        // Disable motor
-                        disablePaintRotationMotor();
-                        request->send(200, "text/plain", "OK");
-                        Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
-                    } else {
-                        request->send(400, "text/plain", "Motor not initialized");
+                    // Enable motor and wait for driver to stabilize
+                    enablePaintRotationMotor();
+                    delay(50);
+                    // Turn on suction when painting motor starts rotating
+                    digitalWrite(SUCTION_PIN, HIGH);
+                    // Move the set amount (blocking)
+                    moveStepper(steps);
+                    // Block until motor finishes
+                    while (isStepperRunning()) {
+                        delay(10);
                     }
+                    // Small delay before disabling to ensure movement is complete
+                    delay(50);
+                    // Turn off suction when motor stops
+                    digitalWrite(SUCTION_PIN, LOW);
+                    // Disable motor
+                    disablePaintRotationMotor();
+                    request->send(200, "text/plain", "OK");
+                    Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
                 } else {
                     request->send(400, "text/plain", "Missing steps parameter");
                 }

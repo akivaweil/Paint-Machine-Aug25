@@ -19,7 +19,6 @@ extern StepperMotor* motorX;
 extern StepperMotor* motorY;
 extern StepperMotor* motorFork;
 extern StepperMotor* motorStorage;
-extern StepperMotor* motorPaintRotation;
 extern HomeSwitch* homeSwitchX;
 extern HomeSwitch* homeSwitchY;
 extern HomeSwitch* homeSwitchFork;
