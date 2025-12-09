@@ -352,16 +352,11 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 1: TURN ON SUCTION, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
-    //!         SERVO POSITIONS WILL BE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
-    //!         TURN ON PAINT GUN 0.5 SECONDS AFTER WAITING POSITION IS REACHED
+    //! STEP 1: TURN ON SUCTION, MOVE TO WAITING POSITION (NON-BLOCKING)
     //! ************************************************************************
     if (step == 0) {
         // Turn on suction (non-blocking)
         turnOnSuction();
-        
-        // Start paint rotation motor for configured number of revolutions (non-blocking)
-        paintMotorStartPosition = startPaintRotationTwoRevolutions();
         
         // Start moving to waiting position (non-blocking)
         startMoveToWaitingPosition();
@@ -370,14 +365,14 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
+    //! STEP 2: WAIT FOR GANTRY TO REACH WAITING POSITION, START PAINT ROTATION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
+    //!         SERVO POSITIONS WILL BE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
     //! ************************************************************************
     else if (step == 1) {
         // Wait for motors to reach waiting position
         bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
         while (motorsRunning) {
             updateServoMovement();  // Update servo while waiting
-            updateServoPositionByRotation(paintMotorStartPosition, false);  // Update servo position based on rotation
             updateOTA();
             if (cycleCancelled) return;
             
@@ -385,6 +380,11 @@ void paintingState() {
             motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
             
             delay(1);
+        }
+        
+        // Start paint rotation motor after reaching waiting position (non-blocking)
+        if (paintMotorStartPosition == 0) {
+            paintMotorStartPosition = startPaintRotationTwoRevolutions();
         }
         
         // Record time when waiting position is reached
@@ -402,7 +402,10 @@ void paintingState() {
                 paintGunTurnedOn = true;
             } else {
                 updateServoMovement();  // Update servo while waiting
-                updateServoPositionByRotation(paintMotorStartPosition, false);  // Update servo position based on rotation
+                // Update servo position based on rotation (paint motor started after reaching waiting position)
+                if (paintMotorStartPosition != 0) {
+                    updateServoPositionByRotation(paintMotorStartPosition, false);
+                }
                 updateOTA();
                 if (cycleCancelled) return;
                 delay(1);
