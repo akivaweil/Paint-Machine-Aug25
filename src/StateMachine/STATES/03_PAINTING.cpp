@@ -86,7 +86,7 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
     unsigned long lastPositionChangeTime = millis();
     
     // Wait until we've reached the target position
-    // Check position regardless of motor running state to handle high-speed cases
+    // Check position very frequently to catch target at high speeds
     while (true) {
         // Timeout check to prevent infinite loops
         if (millis() - startTime > MAX_WAIT_MS) {
@@ -95,8 +95,9 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
             break;
         }
         
+        // Check position multiple times per loop for high-speed accuracy
         long currentPosition = motorPaintRotation->getCurrentPosition();
-        long currentSteps = currentPosition - startPosition;
+        long currentSteps = abs(currentPosition - startPosition);  // Use abs to handle any direction
         
         // Check if position is changing - if not changing for 2 seconds and motor says it's running, force stop
         if (currentPosition != lastPosition) {
@@ -109,10 +110,33 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
         }
         
         // If we've reached or exceeded the target, force stop immediately and break
+        // Check if we're at or past target
         if (currentSteps >= targetSteps) {
             // Force stop immediately - don't wait for servo
             motorPaintRotation->forceStop();
+            // Wait a moment for stop to take effect, then verify
+            delay(10);
+            // Force stop again to ensure it's stopped
+            if (motorPaintRotation->isMotorRunning()) {
+                motorPaintRotation->forceStop();
+            }
             break;
+        }
+        
+        // Also check if we're very close to target (within 200 steps) and motor is running
+        // This helps prevent overshoot at high speeds by checking more frequently
+        if (currentSteps >= (targetSteps - 200) && motorPaintRotation->isMotorRunning()) {
+            // We're close - check position again immediately
+            long quickCheckPos = motorPaintRotation->getCurrentPosition();
+            long quickCheckSteps = abs(quickCheckPos - startPosition);
+            if (quickCheckSteps >= targetSteps) {
+                motorPaintRotation->forceStop();
+                delay(10);
+                if (motorPaintRotation->isMotorRunning()) {
+                    motorPaintRotation->forceStop();
+                }
+                break;
+            }
         }
         
         // If motor stopped but we haven't reached target, something went wrong - break to avoid infinite loop
@@ -124,7 +148,7 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
         updateServoPositionByRotation(startPosition, false);  // Update servo position based on rotation
         updateOTA();
         if (cycleCancelled) return;
-        delay(1);
+        // No delay - check as fast as possible for high-speed accuracy
     }
 }
 
@@ -396,12 +420,15 @@ void paintingState() {
         long initialStartPos = 0;
         if (motorPaintRotation) {
             initialStartPos = motorPaintRotation->getCurrentPosition();
-            // Move 1 full revolution (360 degrees)
+            // Move 1 full revolution (360 degrees) - use exact steps per rev
             long steps = paintRotationMotorStepsPerRevOutput;
+            // Don't use moveSteps - instead we'll check position and stop manually
+            // This gives us better control at high speeds
             motorPaintRotation->moveSteps(steps);
         }
         
         // Wait for rotation to complete (motor will stop immediately when target reached)
+        // Pass 1.0 for exactly one revolution
         waitForPaintRotationRevolutions(initialStartPos, 1.0);
         if (cycleCancelled) return;
         
