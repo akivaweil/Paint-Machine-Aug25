@@ -435,12 +435,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: ROTATE TO LEFT SIDE (90 DEGREE CW TURN)
+    //! STEP 7: ROTATE TO LEFT SIDE (90 DEGREE CCW TURN)
     //! ************************************************************************
     else if (step == 5) {
-        // Rotate to 90 degrees (90 degrees from start)
+        // Rotate to 90 degrees CCW (90 degrees counter-clockwise from start)
         if (!rotationToLeftStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev
+            moveStepper(-paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees CCW = -0.25 rev
             rotationToLeftStarted = true;
         }
         
