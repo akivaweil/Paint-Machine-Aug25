@@ -27,6 +27,8 @@ extern void setMachineState(int state);
 
 // Storage motor trim distance
 extern long storageMotorTrimDistance;
+// Cycle cancellation flag
+extern bool cycleCancelled;
 #define STATE_IDLE 1
 
 //* ************************************************************************
@@ -163,6 +165,9 @@ void homeAllAxes(bool resetColumn) {
     bool storageHomed = false;
     bool storageMotorMoved = false;  // Track if storage motor actually moved to find switch
     bool yStarted = false;
+    
+    // Determine if Y should delay: only on boot (resetColumn) or cancellation
+    bool shouldDelayY = resetColumn || cycleCancelled;
     const unsigned long yStartDelayMs = static_cast<unsigned long>(HOMING_Y_START_DELAY_MS);
     const unsigned long yDelayStart = millis();
     
@@ -211,12 +216,23 @@ void homeAllAxes(bool resetColumn) {
         if (!xHomed) {
             motorX->runContinuous();
         }
-        // Start Y axis after configured delay so X/storage can clear the far gantry end
-        if (!yStarted && (millis() - yDelayStart >= yStartDelayMs)) {
-            if (!yHomed) {
-                motorY->startContinuous(true);
+        // Start Y axis after configured delay (only on boot or cancellation) or immediately (normal homing)
+        if (!yStarted) {
+            if (shouldDelayY) {
+                // Wait for delay before starting Y so X/storage can clear the far gantry end
+                if (millis() - yDelayStart >= yStartDelayMs) {
+                    if (!yHomed) {
+                        motorY->startContinuous(true);
+                    }
+                    yStarted = true;
+                }
+            } else {
+                // Start Y immediately for normal homing
+                if (!yHomed) {
+                    motorY->startContinuous(true);
+                }
+                yStarted = true;
             }
-            yStarted = true;
         }
         if (yStarted && !yHomed) {
             motorY->runContinuous();

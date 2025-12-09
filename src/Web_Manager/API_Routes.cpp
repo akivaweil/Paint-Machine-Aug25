@@ -181,7 +181,7 @@ void setupAPIRoutes() {
                 request->send(200, "text/plain", "OK");
                 Serial.println("Web Request: Home Fork Motor axis");
             } else if (axis == "all") {
-                homeAllAxes();
+                homeAllAxes(false);  // false = normal homing (not boot), preserve column position
                 request->send(200, "text/plain", "OK");
                 Serial.println("Web Request: Home all axes");
             } else {
