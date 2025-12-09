@@ -71,6 +71,25 @@ extern int testAllCurrentColumnIndex;  // Current column index in the test seque
 //* ************************ GANTRY STATE *********************************
 //* ************************************************************************
 
+// Helper function to move Y-axis with speed adjustment based on direction
+static void moveYWithSpeedAdjustment(float inches) {
+    if (!motorY) return;
+    
+    extern long motorSpeedY;
+    
+    // Negative movement = up (away from home), positive = down (toward home)
+    if (inches < 0) {
+        // Moving up - use reduced speed to prevent stalling against gravity
+        long upSpeed = (long)(motorSpeedY * Y_SPEED_UP_MULTIPLIER);
+        motorY->setSpeed(upSpeed);
+    } else {
+        // Moving down - use normal speed
+        motorY->setSpeed(motorSpeedY);
+    }
+    
+    motorY->moveInches(inches);
+}
+
 void gantryState() {
     static int step = 0;
     static bool testStarted = false;
@@ -154,7 +173,7 @@ void gantryState() {
         
         // Move X and Y simultaneously to absolute position 1
         motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
+        moveYWithSpeedAdjustment(moveY);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -215,8 +234,8 @@ void gantryState() {
     //! STEP 3: RAISE Y BY 0.5 INCHES AT POSITION 1
     //! ************************************************************************
     else if (step == 2) {
-        // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
+        // Set speed and acceleration for 0.5 inch movement (going up - use reduced speed)
+        motorY->setSpeed((long)(TEST_Y_SPEED_FORK_EXTENDED * Y_SPEED_UP_MULTIPLIER));
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);
@@ -271,7 +290,7 @@ void gantryState() {
         
         // Move X and Y simultaneously to absolute position 2
         motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
+        moveYWithSpeedAdjustment(moveY);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -368,7 +387,7 @@ void gantryState() {
         
         // Move X and Y simultaneously to absolute position 3
         motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
+        moveYWithSpeedAdjustment(moveY);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -407,8 +426,8 @@ void gantryState() {
     //! STEP 11: MOVE Y UP 0.5 INCHES AT POSITION 3
     //! ************************************************************************
     else if (step == 10) {
-        // Set speed and acceleration for 0.5 inch movement
-        motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
+        // Set speed and acceleration for 0.5 inch movement (going up - use reduced speed)
+        motorY->setSpeed((long)(TEST_Y_SPEED_FORK_EXTENDED * Y_SPEED_UP_MULTIPLIER));
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
         
         motorY->moveInches(-0.5);  // Negative moves away from home (up)
@@ -471,7 +490,7 @@ void gantryState() {
         
         // Move X and Y simultaneously to absolute position 4
         motorX->moveInches(moveX);
-        motorY->moveInches(moveY);
+        moveYWithSpeedAdjustment(moveY);
         
         // Wait for both motors to finish
         while (motorX->isMotorRunning() || motorY->isMotorRunning()) {
@@ -563,7 +582,7 @@ void gantryState() {
             
             // Move X, Y, and Fork to position 0 simultaneously
             motorX->moveInches(-currentX);
-            motorY->moveInches(-currentY);
+            moveYWithSpeedAdjustment(-currentY);
             motorFork->moveInches(-currentFork);
             
             // Wait for all motors to finish (check fork home sensor as safety)

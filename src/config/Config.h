@@ -37,6 +37,7 @@
 #define X_MAX_ACCEL 0                  // Set on dashboard - DO NOT use from config
 #define Y_MAX_SPEED 0                  // Set on dashboard - DO NOT use from config
 #define Y_MAX_ACCEL 0                  // Set on dashboard - DO NOT use from config
+#define Y_SPEED_UP_MULTIPLIER 0.7      // Y-axis speed multiplier when moving up (0.7 = 70% of normal speed to prevent stalling against gravity)
 #define FORK_MAX_SPEED 0               // Set on dashboard - DO NOT use from config
 #define FORK_MAX_ACCEL 0               // Set on dashboard - DO NOT use from config
 

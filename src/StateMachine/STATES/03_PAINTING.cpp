@@ -58,6 +58,25 @@ extern bool testModeEnabled;
 // Forward declarations
 void updateServoMovement();
 
+// Helper function to move Y-axis with speed adjustment based on direction
+static void moveYWithSpeedAdjustment(float inches) {
+    if (!motorY) return;
+    
+    extern long motorSpeedY;
+    
+    // Negative movement = up (away from home), positive = down (toward home)
+    if (inches < 0) {
+        // Moving up - use reduced speed to prevent stalling against gravity
+        long upSpeed = (long)(motorSpeedY * Y_SPEED_UP_MULTIPLIER);
+        motorY->setSpeed(upSpeed);
+    } else {
+        // Moving down - use normal speed
+        motorY->setSpeed(motorSpeedY);
+    }
+    
+    motorY->moveInches(inches);
+}
+
 // Wait for a motor to finish moving
 void waitForMotor(StepperMotor* motor) {
     while (motor && motor->isMotorRunning()) {
@@ -117,7 +136,7 @@ void startMoveToWaitingPosition() {
     
     // Move both motors simultaneously (non-blocking)
     motorX->moveInches(moveX);
-    motorY->moveInches(moveY);
+    moveYWithSpeedAdjustment(moveY);
 }
 
 // Non-blocking servo movement state
@@ -589,7 +608,7 @@ void paintingState() {
         
         // Start rotation (can happen simultaneously with servo movement)
         if (!finalRotationStarted && !isStepperRunning()) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 2.75));  // 810 degrees = 2.25 rev
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 2.25));  // 810 degrees = 2.25 rev
             finalRotationStarted = true;
         }
         
