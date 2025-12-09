@@ -20,6 +20,7 @@
 //║ 🎯 SERVO CONFIGURATION                                               ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define SERVO_HOME_ANGLE 130.0         // Servo home angle (idle position before painting)
+#define SERVO_PAINTING_ANGLE 220.0     // Servo angle during painting operations
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINTING STATE CONFIGURATION                                      ║
