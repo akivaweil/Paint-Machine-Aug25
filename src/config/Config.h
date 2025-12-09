@@ -47,7 +47,7 @@
 // 1/6 rev output per click = 1/2 rev motor = 6400 steps
 #define STORAGE_MOTOR_SPEED 10000              // Storage motor speed for normal operation
 #define STORAGE_MOTOR_ACCEL 20000              // Storage motor acceleration for normal operation
-#define STORAGE_MOTOR_HOMING_SPEED 1000        // Storage motor speed for homing operation
+#define STORAGE_MOTOR_HOMING_SPEED 3000        // Storage motor speed for homing operation
 #define STORAGE_MOTOR_HOMING_TRIM 300          // Storage motor homing trim amount in steps (extra distance after reaching home switch)
 #define STORAGE_MOTOR_STEPS_PER_CLICK 6400     // Storage motor steps per click (1/6 rev output = 6400 steps)
 #define STORAGE_COLUMN_SPACING_STEPS 6100      // Distance between storage columns in steps

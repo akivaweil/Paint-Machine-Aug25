@@ -355,6 +355,7 @@ void moveToColumn(int targetColumn) {
     bool sensorCheckStarted = false;
     
     while (motorStorage->isMotorRunning()) {
+        motorStorage->run();  // AccelStepper requires run() to be called
         long currentPosition = motorStorage->getCurrentPosition();
         long stepsMoved = abs(currentPosition - startPosition);
         
@@ -457,6 +458,7 @@ void moveStorageClockwise() {
     bool sensorCheckStarted = false;
     
     while (motorStorage->isMotorRunning()) {
+        motorStorage->run();  // AccelStepper requires run() to be called
         long currentPosition = motorStorage->getCurrentPosition();
         long stepsMoved = abs(currentPosition - startPosition);
         
