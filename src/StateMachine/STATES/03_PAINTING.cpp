@@ -230,6 +230,7 @@ void paintingState() {
     static bool finalRotationStarted = false;
     static bool servoAtHomeComplete = false;
     static unsigned long servoStartTime = 0;
+    static unsigned long servoReachedPaintingAngleTime = 0;
     static bool initial180RotationStarted = false;
     
     // Update servo movement (non-blocking, call every cycle)
@@ -275,6 +276,7 @@ void paintingState() {
         rotationToRightStarted = false;
         finalRotationStarted = false;
         servoStartTime = 0;
+        servoReachedPaintingAngleTime = 0;
         initial180RotationStarted = false;
         
         // Move servo back to home angle
@@ -310,6 +312,7 @@ void paintingState() {
         finalRotationStarted = false;
         servoAtHomeComplete = false;
         servoStartTime = 0;
+        servoReachedPaintingAngleTime = 0;
         initial180RotationStarted = false;
     }
     
@@ -359,19 +362,9 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: TURN ON PAINT GUN
+    //! STEP 3: MOVE SERVO TO PAINTING ANGLE, THEN TURN ON PAINT GUN
     //! ************************************************************************
     else if (step == 2) {
-        if (!testModeEnabled) {
-            turnOnPaintGun();
-        }
-        step = 3;
-    }
-    
-    //! ************************************************************************
-    //! STEP 4: SERVO TO PAINTING ANGLE AT CONFIG SPEED, THEN RESTORE DASHBOARD SPEED
-    //! ************************************************************************
-    else if (step == 3) {
         // Save current servo speed and set to fast speed
         if (savedServoSpeed == 0.0) {
             savedServoSpeed = servoSpeed;
@@ -395,20 +388,46 @@ void paintingState() {
             servoStartTime = millis();  // Record when servo started moving
         }
         
-        // 200ms after servo starts moving, start 180-degree rotation
-        if (!initial180RotationStarted && servoStartTime > 0) {
-            unsigned long elapsedTime = millis() - servoStartTime;
+        // Wait for servo to reach painting angle before turning on paint gun
+        if (servoTargetAngle < 0) {
+            // Servo has reached painting angle, turn on paint gun
+            if (!testModeEnabled) {
+                turnOnPaintGun();
+            }
+            
+            // Record time when servo reached painting angle
+            if (servoReachedPaintingAngleTime == 0) {
+                servoReachedPaintingAngleTime = millis();
+            }
+            
+            // Restore dashboard speed
+            servoSpeed = savedServoSpeed;
+            savedServoSpeed = 0.0;
+            
+            step = 3;
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 4: START INITIAL 180-DEGREE ROTATION AND CONTINUE
+    //! ************************************************************************
+    else if (step == 3) {
+        // 200ms after servo reached painting angle, start 180-degree rotation
+        if (!initial180RotationStarted && servoReachedPaintingAngleTime > 0) {
+            unsigned long elapsedTime = millis() - servoReachedPaintingAngleTime;
             if (elapsedTime >= INITIAL_ROTATION_DELAY_MS) {
                 moveStepper(paintRotationMotorStepsPerRevOutput / 2);  // 180 degrees = 0.5 rev
                 initial180RotationStarted = true;
             }
         }
         
-        // Wait for servo to reach target
-        if (servoTargetAngle < 0) {
-            // Servo movement complete, restore dashboard speed
-            servoSpeed = savedServoSpeed;
-            savedServoSpeed = 0.0;
+        // Wait for initial rotation delay to pass (servo already at angle, paint gun already on)
+        if (initial180RotationStarted || (servoReachedPaintingAngleTime > 0 && (millis() - servoReachedPaintingAngleTime) >= INITIAL_ROTATION_DELAY_MS)) {
             step = 4;
         } else {
             updateServoMovement();
@@ -704,6 +723,7 @@ void paintingState() {
         rotationToRightStarted = false;
         finalRotationStarted = false;
         servoStartTime = 0;
+        servoReachedPaintingAngleTime = 0;
         initial180RotationStarted = false;
         
         // Return to gantry state
