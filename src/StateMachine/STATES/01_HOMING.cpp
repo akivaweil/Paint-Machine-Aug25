@@ -254,6 +254,7 @@ void homeAllAxes(bool resetColumn) {
             Serial.println("[HOMING] Applying storage motor trim movement...");
             motorStorage->moveStepsSmooth(storageMotorTrimDistance);
             while (motorStorage->isMotorRunning()) {
+                motorStorage->run();  // AccelStepper requires run() to be called
                 updateOTA();
                 delay(1);
             }
@@ -407,6 +408,7 @@ void moveToColumn(int targetColumn) {
     if (storageMotorTrimDistance > 0) {
         motorStorage->moveStepsSmooth(storageMotorTrimDistance);
         while (motorStorage->isMotorRunning()) {
+            motorStorage->run();  // AccelStepper requires run() to be called
             updateOTA();
             delay(1);
         }
@@ -508,6 +510,7 @@ void moveStorageClockwise() {
     if (storageMotorTrimDistance > 0) {
         motorStorage->moveStepsSmooth(storageMotorTrimDistance);
         while (motorStorage->isMotorRunning()) {
+            motorStorage->run();  // AccelStepper requires run() to be called
             updateOTA();
             delay(1);
         }
