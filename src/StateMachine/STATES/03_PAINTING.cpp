@@ -352,11 +352,38 @@ void paintingState() {
     }
     
     //! ************************************************************************
+    //! STEP 0: DO FULL 360-DEGREE ROTATION BEFORE ANYTHING ELSE
+    //! ************************************************************************
+    if (step == 0) {
+        // Enable paint rotation motor
+        enablePaintRotationMotor();
+        
+        // Get start position
+        long initialStartPos = 0;
+        if (motorPaintRotation) {
+            initialStartPos = motorPaintRotation->getCurrentPosition();
+            // Move 1 full revolution (360 degrees)
+            long steps = paintRotationMotorStepsPerRevOutput;
+            motorPaintRotation->moveSteps(steps);
+        }
+        
+        // Wait for rotation to complete
+        waitForPaintRotationRevolutions(initialStartPos, 1.0);
+        if (cycleCancelled) return;
+        
+        // Wait for motor to finish
+        waitForMotor(motorPaintRotation);
+        if (cycleCancelled) return;
+        
+        step = 1;
+    }
+    
+    //! ************************************************************************
     //! STEP 1: TURN ON SUCTION, START PAINT ROTATION, MOVE TO WAITING POSITION (ALL NON-BLOCKING)
     //!         SERVO POSITIONS WILL BE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
     //!         TURN ON PAINT GUN 0.5 SECONDS AFTER WAITING POSITION IS REACHED
     //! ************************************************************************
-    if (step == 0) {
+    else if (step == 1) {
         // Turn on suction (non-blocking)
         turnOnSuction();
         
@@ -366,13 +393,13 @@ void paintingState() {
         // Start moving to waiting position (non-blocking)
         startMoveToWaitingPosition();
         
-        step = 1;
+        step = 2;
     }
     
     //! ************************************************************************
     //! STEP 2: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS BEFORE TURNING ON PAINT GUN
     //! ************************************************************************
-    else if (step == 1) {
+    else if (step == 2) {
         // Wait for motors to reach waiting position
         bool motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
         while (motorsRunning) {
@@ -410,14 +437,14 @@ void paintingState() {
         }
         
         if (cycleCancelled) return;
-        step = 2;
+        step = 3;
     }
     
     //! ************************************************************************
     //! STEP 3: WAIT FOR PAINT_GUN_OFF_REVOLUTIONS TO TURN OFF PAINT GUN
     //!         SERVO POSITIONS ARE AUTOMATICALLY UPDATED BASED ON ROTATION COUNT
     //! ************************************************************************
-    else if (step == 2) {
+    else if (step == 3) {
         // Wait for configured number of revolutions remaining to turn off paint gun
         if (!paintGunTurnedOff) {
             float paintGunOffPosition = TOTAL_PAINT_REVOLUTIONS - PAINT_GUN_OFF_REVOLUTIONS;
@@ -431,22 +458,22 @@ void paintingState() {
             paintGunTurnedOff = true;
         }
         
-        step = 3;
+        step = 4;
     }
     
     //! ************************************************************************
     //! STEP 4: WAIT FOR PAINT MOTOR TO COMPLETE TOTAL REVOLUTIONS
     //! ************************************************************************
-    else if (step == 3) {
+    else if (step == 4) {
         waitForPaintRotationRevolutions(paintMotorStartPosition, TOTAL_PAINT_REVOLUTIONS);
         if (cycleCancelled) return;
-        step = 4;
+        step = 5;
     }
     
     //! ************************************************************************
     //! STEP 5: WAIT FOR PAINT MOTOR TO FINISH, THEN TURN OFF EVERYTHING
     //! ************************************************************************
-    else if (step == 4) {
+    else if (step == 5) {
         waitForMotor(motorPaintRotation);
         if (cycleCancelled) return;
         
