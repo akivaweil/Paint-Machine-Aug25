@@ -81,11 +81,29 @@ void waitForPaintRotationRevolutions(long startPosition, float revolutions) {
     
     long targetSteps = paintRotationMotorStepsPerRevOutput * revolutions;
     
-    while (motorPaintRotation->isMotorRunning()) {
+    // Wait until we've reached the target position
+    // Check position regardless of motor running state to handle high-speed cases
+    while (true) {
         long currentSteps = motorPaintRotation->getCurrentPosition() - startPosition;
+        
+        // If we've reached or exceeded the target, break
         if (currentSteps >= targetSteps) {
+            // Wait for motor to finish if it's still running
+            while (motorPaintRotation->isMotorRunning()) {
+                updateServoMovement();
+                updateServoPositionByRotation(startPosition, false);
+                updateOTA();
+                if (cycleCancelled) return;
+                delay(1);
+            }
             break;
         }
+        
+        // If motor stopped but we haven't reached target, something went wrong - break to avoid infinite loop
+        if (!motorPaintRotation->isMotorRunning() && currentSteps < targetSteps) {
+            break;
+        }
+        
         updateServoMovement();  // Update servo while waiting
         updateServoPositionByRotation(startPosition, false);  // Update servo position based on rotation
         updateOTA();
