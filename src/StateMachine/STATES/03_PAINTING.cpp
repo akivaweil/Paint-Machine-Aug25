@@ -627,9 +627,14 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 18: MOVE SERVO TO SERVO HOME POSITION
+    //! STEP 18: TURN OFF PAINT GUN AND MOVE SERVO TO SERVO HOME POSITION
     //! ************************************************************************
     else if (step == 16) {
+        // Turn off paint gun before moving servo to home
+        if (!servoAtHomeComplete) {
+            turnOffPaintGun();
+        }
+        
         // Start moving servo to home angle (non-blocking)
         if (!servoAtHomeComplete) {
             startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -649,11 +654,10 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: TURN OFF PAINT GUN AND SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 19: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
     //! ************************************************************************
     else if (step == 17) {
-        // Turn off paint gun and suction
-        turnOffPaintGun();
+        // Turn off suction
         turnOffSuction();
         
         // Stop and disable paint rotation motor
