@@ -13,7 +13,8 @@
 #define PAINT_ROTATION_MOTOR_SPEED 1000                // Paint rotation motor speed for normal operation
 #define PAINT_ROTATION_MOTOR_ACCEL 1000                // Paint rotation motor acceleration for normal operation
 #define PAINT_ROTATION_MOTOR_STEPS_PER_CLICK 2000      // Paint rotation motor steps per click in web dashboard
-#define PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT 400 // Steps per full output revolution
+#define PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT 400  // Steps per full output revolution
+#define PAINT_ROTATION_STEPS_90_DEG 100                 // Steps for 90 degree rotation (0.25 rev = 400/4)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎯 SERVO CONFIGURATION                                               ║

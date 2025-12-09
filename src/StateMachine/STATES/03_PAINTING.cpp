@@ -437,7 +437,7 @@ void paintingState() {
         if (paintMotorStartPosition == 0) {
             enablePaintRotationMotor();
             paintMotorStartPosition = getStepperPosition();
-            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev = 100 steps
+            moveStepper(PAINT_ROTATION_STEPS_90_DEG);  // 90 degrees = 0.25 rev = 100 steps
         }
         
         // Wait for rotation to complete
@@ -473,7 +473,7 @@ void paintingState() {
     else if (step == 6) {
         // Rotate to 180 degrees (100 more steps from 90, 200 total from start)
         if (!rotationToBackStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 4);
+            moveStepper(PAINT_ROTATION_STEPS_90_DEG);  // 90 degrees = 0.25 rev = 100 steps
             rotationToBackStarted = true;
         }
         
@@ -510,7 +510,7 @@ void paintingState() {
     else if (step == 8) {
         // Rotate to 270 degrees (100 more steps from 180, 300 total from start)
         if (!rotationToRightStarted) {
-            moveStepper(paintRotationMotorStepsPerRevOutput / 4);
+            moveStepper(PAINT_ROTATION_STEPS_90_DEG);  // 90 degrees = 0.25 rev = 100 steps
             rotationToRightStarted = true;
         }
         
