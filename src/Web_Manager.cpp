@@ -88,7 +88,6 @@ long motorSpeedStorage = STORAGE_MOTOR_SPEED;
 long motorAccelStorage = STORAGE_MOTOR_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 long storageMotorTrimDistance = STORAGE_MOTOR_HOMING_TRIM;
-long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
 float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
 

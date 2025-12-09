@@ -57,7 +57,6 @@ extern long motorSpeedStorage;
 extern long motorAccelStorage;
 extern long storageMotorStepsPerClick;
 extern long storageMotorTrimDistance;
-extern long paintRotationMotorStepsPerClick;
 extern long paintRotationMotorStepsPerRevOutput;
 extern float servoSpeed;
 extern bool cyclePaused;

@@ -35,7 +35,6 @@ void setupAPIRoutes() {
             // Replace placeholders
             String chunk = String(buffer);
             chunk.replace("STORAGE_MOTOR_STEPS_PER_CLICK_VALUE", String(storageMotorStepsPerClick));
-            chunk.replace("PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE", String(paintRotationMotorStepsPerClick));
             chunk.replace("SERVO_HOME_ANGLE_VALUE", String(SERVO_HOME_ANGLE));
             
             response->print(chunk);
@@ -400,7 +399,6 @@ void setupAPIRoutes() {
         if (request->hasParam("speedX") && request->hasParam("accelX") &&
             request->hasParam("speedY") && request->hasParam("accelY") &&
             request->hasParam("speedFork") && request->hasParam("accelFork") &&
-            request->hasParam("speedPaintRotation") && request->hasParam("accelPaintRotation") &&
             request->hasParam("speedStorage") && request->hasParam("accelStorage")) {
             
             // Get motor settings from request
@@ -410,10 +408,6 @@ void setupAPIRoutes() {
             motorAccelY = request->getParam("accelY")->value().toInt();
             motorSpeedFork = request->getParam("speedFork")->value().toInt();
             motorAccelFork = request->getParam("accelFork")->value().toInt();
-            
-            // Get paint rotation speed and accel (always sent from frontend)
-            motorSpeedPaintRotation = request->getParam("speedPaintRotation")->value().toInt();
-            motorAccelPaintRotation = request->getParam("accelPaintRotation")->value().toInt();
             
             // Get storage motor speed and accel (always sent from frontend)
             motorSpeedStorage = request->getParam("speedStorage")->value().toInt();
@@ -427,14 +421,6 @@ void setupAPIRoutes() {
             // Get storage trim distance if provided
             if (request->hasParam("storageTrim")) {
                 storageMotorTrimDistance = request->getParam("storageTrim")->value().toInt();
-            }
-            
-            // Get paint rotation steps (always sent from frontend)
-            paintRotationMotorStepsPerClick = request->getParam("paintRotationSteps")->value().toInt();
-            
-            // Get paint rotation steps per rev output if provided
-            if (request->hasParam("paintRotationRevOutput")) {
-                paintRotationMotorStepsPerRevOutput = request->getParam("paintRotationRevOutput")->value().toInt();
             }
             
             // Get servo speed if provided
@@ -461,14 +447,10 @@ void setupAPIRoutes() {
             json += "\"accelY\":" + String(motorAccelY) + ",";
             json += "\"speedFork\":" + String(motorSpeedFork) + ",";
             json += "\"accelFork\":" + String(motorAccelFork) + ",";
-            json += "\"speedPaintRotation\":" + String(motorSpeedPaintRotation) + ",";
-            json += "\"accelPaintRotation\":" + String(motorAccelPaintRotation) + ",";
             json += "\"speedStorage\":" + String(motorSpeedStorage) + ",";
             json += "\"accelStorage\":" + String(motorAccelStorage) + ",";
             json += "\"storageSteps\":" + String(storageMotorStepsPerClick) + ",";
             json += "\"storageTrim\":" + String(storageMotorTrimDistance) + ",";
-            json += "\"paintRotationSteps\":" + String(paintRotationMotorStepsPerClick) + ",";
-            json += "\"paintRotationRevOutput\":" + String(paintRotationMotorStepsPerRevOutput) + ",";
             json += "\"servoSpeed\":" + String(servoSpeed);
             json += "}";
             request->send(200, "application/json", json);

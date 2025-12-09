@@ -896,13 +896,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           </div>
         </div>
               <div class="control-section">
-                <div class="control-label">Paint Rotation Motor</div>
-                <div class="arrow-controls" style="grid-template-columns: 48px; grid-template-rows: repeat(2, 48px);">
-                  <button class="arrow-btn up" style="grid-column: 1; grid-row: 1;" onclick="movePaintRotation(-1)">↺</button>
-                  <button class="arrow-btn down" style="grid-column: 1; grid-row: 2;" onclick="movePaintRotation(1)">↻</button>
-          </div>
-        </div>
-              <div class="control-section">
                 <div class="control-label">Servo (0-270&deg;)</div>
                 <div style="margin-top: 16px; width: 125%;">
                   <input type="range" id="servoSlider" min="0" max="270" value="SERVO_HOME_ANGLE_VALUE" step="5" style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; outline: none; -webkit-appearance: none;" oninput="setServoAngle(this.value)">
@@ -1042,25 +1035,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
             </div>
           </div>
           <div class="position-inputs">
-            <h3>Paint Rotation Motor</h3>
-            <div class="input-row">
-              <label>Speed:</label>
-              <input type="number" id="speedPaintRotation" step="100" min="100" max="30000" placeholder="1000" onblur="autoSaveMotorSettings()">
-            </div>
-            <div class="input-row">
-              <label>Accel:</label>
-              <input type="number" id="accelPaintRotation" step="100" min="100" max="30000" placeholder="1000" onblur="autoSaveMotorSettings()">
-            </div>
-            <div class="input-row">
-              <label>Steps/Click:</label>
-              <input type="number" id="paintRotationSteps" step="100" min="100" max="1000000" placeholder="2000" onblur="autoSaveMotorSettings()">
-            </div>
-            <div class="input-row">
-              <label>Steps/Rev Output:</label>
-              <input type="number" id="paintRotationRevOutput" step="100" min="100" max="1000000" placeholder="38400" onblur="autoSaveMotorSettings()">
-            </div>
-          </div>
-          <div class="position-inputs">
             <h3>Servo</h3>
             <div class="input-row">
               <label>Speed (deg/sec):</label>
@@ -1097,10 +1071,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       { id: 'squarePresent', name: 'Square Present' }
     ];
     let STORAGE_MOTOR_STEPS_PER_CLICK = STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
-    let PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
-    let currentSpeedPaintRotation = 1000;
-    let currentAccelPaintRotation = 1000;
-    let currentPaintRotationSteps = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE;
     
     function createSensorCard(sensor, state) {
       const isActive = state === true || state === 1;
@@ -1227,14 +1197,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           document.getElementById('accelY').value = data.accelY || 5000;
           document.getElementById('speedFork').value = data.speedFork || 2000;
           document.getElementById('accelFork').value = data.accelFork || 5000;
-          if (data.speedPaintRotation !== undefined) {
-            document.getElementById('speedPaintRotation').value = data.speedPaintRotation;
-            currentSpeedPaintRotation = data.speedPaintRotation;
-          }
-          if (data.accelPaintRotation !== undefined) {
-            document.getElementById('accelPaintRotation').value = data.accelPaintRotation;
-            currentAccelPaintRotation = data.accelPaintRotation;
-          }
           if (data.speedStorage !== undefined) {
             document.getElementById('speedStorage').value = data.speedStorage;
           }
@@ -1247,14 +1209,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           }
           if (data.storageTrim !== undefined) {
             document.getElementById('storageTrim').value = data.storageTrim;
-          }
-          if (data.paintRotationSteps !== undefined) {
-            document.getElementById('paintRotationSteps').value = data.paintRotationSteps;
-            PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = data.paintRotationSteps;
-            currentPaintRotationSteps = data.paintRotationSteps;
-          }
-          if (data.paintRotationRevOutput !== undefined) {
-            document.getElementById('paintRotationRevOutput').value = data.paintRotationRevOutput;
           }
           if (data.servoSpeed !== undefined) {
             document.getElementById('servoSpeed').value = data.servoSpeed;
@@ -1273,37 +1227,23 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       const accelY = parseInt(document.getElementById('accelY').value) || 5000;
       const speedFork = parseInt(document.getElementById('speedFork').value) || 2000;
       const accelFork = parseInt(document.getElementById('accelFork').value) || 5000;
-      const speedPaintRotationInput = document.getElementById('speedPaintRotation').value;
-      const accelPaintRotationInput = document.getElementById('accelPaintRotation').value;
-      const paintRotationStepsInput = document.getElementById('paintRotationSteps').value;
-      const paintRotationRevOutputInput = document.getElementById('paintRotationRevOutput').value;
-      const speedPaintRotation = speedPaintRotationInput ? parseInt(speedPaintRotationInput) : currentSpeedPaintRotation;
-      const accelPaintRotation = accelPaintRotationInput ? parseInt(accelPaintRotationInput) : currentAccelPaintRotation;
       const speedStorage = parseInt(document.getElementById('speedStorage').value) || 10000;
       const accelStorage = parseInt(document.getElementById('accelStorage').value) || 10000;
       const storageSteps = parseInt(document.getElementById('storageSteps').value) || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE;
       const storageTrim = parseInt(document.getElementById('storageTrim').value) || 300;
-      const paintRotationSteps = paintRotationStepsInput ? parseInt(paintRotationStepsInput) : currentPaintRotationSteps;
-      const paintRotationRevOutput = paintRotationRevOutputInput ? parseInt(paintRotationRevOutputInput) : 38400;
       const servoSpeed = parseFloat(document.getElementById('servoSpeed').value) || 30;
       
       const url = '/api/motor/settings?speedX=' + speedX + '&accelX=' + accelX +
                   '&speedY=' + speedY + '&accelY=' + accelY +
                   '&speedFork=' + speedFork + '&accelFork=' + accelFork +
-                  '&speedPaintRotation=' + speedPaintRotation + '&accelPaintRotation=' + accelPaintRotation +
                   '&speedStorage=' + speedStorage + '&accelStorage=' + accelStorage +
-                  '&storageSteps=' + storageSteps + '&storageTrim=' + storageTrim + '&paintRotationSteps=' + paintRotationSteps + 
-                  '&paintRotationRevOutput=' + paintRotationRevOutput + '&servoSpeed=' + servoSpeed;
+                  '&storageSteps=' + storageSteps + '&storageTrim=' + storageTrim + '&servoSpeed=' + servoSpeed;
       
       fetch(url)
         .then(response => response.text())
         .then(data => {
           console.log('Motor settings saved:', data);
           STORAGE_MOTOR_STEPS_PER_CLICK = storageSteps;
-          PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = paintRotationSteps;
-          currentSpeedPaintRotation = speedPaintRotation;
-          currentAccelPaintRotation = accelPaintRotation;
-          currentPaintRotationSteps = paintRotationSteps;
         })
         .catch(error => {
           console.error('Error saving motor settings:', error);
@@ -1446,11 +1386,6 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function moveStorageClockwise() {
       fetch('/api/storage/clockwise')
         .catch(error => console.error('Storage move error:', error));
-    }
-    
-    function movePaintRotation(direction) {
-      fetch('/api/move?axis=paintRotation&steps=' + (direction * PAINT_ROTATION_MOTOR_STEPS_PER_CLICK))
-        .catch(error => console.error('Move error:', error));
     }
     
     function setServoAngle(angle) {
@@ -1768,24 +1703,16 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                         '&accelY=' + (motor.accelY || 5000) +
                         '&speedFork=' + (motor.speedFork || 2000) +
                         '&accelFork=' + (motor.accelFork || 5000) +
-                        '&speedPaintRotation=' + (motor.speedPaintRotation || 1000) +
-                        '&accelPaintRotation=' + (motor.accelPaintRotation || 1000) +
                         '&speedStorage=' + (motor.speedStorage || 10000) +
                         '&accelStorage=' + (motor.accelStorage || 10000) +
                         '&storageSteps=' + (motor.storageSteps || STORAGE_MOTOR_STEPS_PER_CLICK_VALUE) +
                         '&storageTrim=' + (motor.storageTrim || 300) +
-                        '&paintRotationSteps=' + (motor.paintRotationSteps || PAINT_ROTATION_MOTOR_STEPS_PER_CLICK_VALUE) +
-                        '&paintRotationRevOutput=' + (motor.paintRotationRevOutput || 38400) +
                         '&servoSpeed=' + (motor.servoSpeed || 30);
             
             fetch(url)
               .then(() => {
                 // Update local variables
                 if (motor.storageSteps) STORAGE_MOTOR_STEPS_PER_CLICK = motor.storageSteps;
-                if (motor.paintRotationSteps) PAINT_ROTATION_MOTOR_STEPS_PER_CLICK = motor.paintRotationSteps;
-                if (motor.speedPaintRotation) currentSpeedPaintRotation = motor.speedPaintRotation;
-                if (motor.accelPaintRotation) currentAccelPaintRotation = motor.accelPaintRotation;
-                if (motor.paintRotationSteps) currentPaintRotationSteps = motor.paintRotationSteps;
                 
                 // Reload motor settings to update UI
                 loadMotorSettings();
