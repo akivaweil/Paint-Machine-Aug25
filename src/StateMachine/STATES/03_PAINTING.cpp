@@ -187,8 +187,8 @@ void updateServoMovement() {
     float degreesPerMs = servoSpeed / 1000.0;  // Convert to degrees per millisecond
     float maxMovement = degreesPerMs * deltaTime;  // Maximum movement this cycle
     
-    // Limit movement per update to prevent jumps (max 1 degree per update)
-    const float maxStepSize = 1.0;
+    // Limit movement per update to prevent jumps (max 1.25 degrees per update for faster movement)
+    const float maxStepSize = 1.25;
     if (maxMovement > maxStepSize) {
         maxMovement = maxStepSize;
     }

@@ -25,7 +25,7 @@
 //║ 🎨 PAINTING STATE CONFIGURATION                                      ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define WAITING_POSITION_DELAY_MS 250  // Delay in milliseconds before turning on paint gun after gantry reaches waiting position
-#define SERVO_FAST_SPEED 150.0          // Temporary servo speed for step 4 (degrees per second)
+#define SERVO_FAST_SPEED 500.0          // Temporary servo speed for step 4 (degrees per second)
 #define LEFT_SIDE_WAIT_MS 20          // Wait time on left side in milliseconds
 #define BACK_SIDE_WAIT_MS 20         // Wait time on back side in milliseconds
 #define RIGHT_SIDE_WAIT_MS 20         // Wait time on right side in milliseconds
