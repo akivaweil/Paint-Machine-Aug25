@@ -430,14 +430,14 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: ROTATE TO LEFT SIDE (90 DEGREE CW TURN) - 2400 STEPS
+    //! STEP 5: ROTATE TO LEFT SIDE (90 DEGREE CW TURN) - 100 STEPS
     //! ************************************************************************
     else if (step == 4) {
         // Initialize paint rotation motor if not already started
         if (paintMotorStartPosition == 0) {
             enablePaintRotationMotor();
             paintMotorStartPosition = getStepperPosition();
-            moveStepper(2400);  // 90 degrees = 0.25 rev = 2400 steps
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);  // 90 degrees = 0.25 rev = 100 steps
         }
         
         // Wait for rotation to complete
@@ -468,12 +468,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: ROTATE TO BACK (180 CW FROM START) - 4800 STEPS TOTAL
+    //! STEP 7: ROTATE TO BACK (180 CW FROM START) - 200 STEPS TOTAL
     //! ************************************************************************
     else if (step == 6) {
-        // Rotate to 180 degrees (2400 more steps from 90, 4800 total from start)
+        // Rotate to 180 degrees (100 more steps from 90, 200 total from start)
         if (!rotationToBackStarted) {
-            moveStepper(2400);
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);
             rotationToBackStarted = true;
         }
         
@@ -505,12 +505,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 9: ROTATE TO RIGHT (270 CW FROM START) - 7200 STEPS TOTAL
+    //! STEP 9: ROTATE TO RIGHT (270 CW FROM START) - 300 STEPS TOTAL
     //! ************************************************************************
     else if (step == 8) {
-        // Rotate to 270 degrees (2400 more steps from 180, 7200 total from start)
+        // Rotate to 270 degrees (100 more steps from 180, 300 total from start)
         if (!rotationToRightStarted) {
-            moveStepper(2400);
+            moveStepper(paintRotationMotorStepsPerRevOutput / 4);
             rotationToRightStarted = true;
         }
         
@@ -542,7 +542,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 11: MOVE SERVO TO 180 DEGREES AND ROTATE 450 DEGREES CW (1.25 REV = 12000 STEPS)
+    //! STEP 11: MOVE SERVO TO 180 DEGREES AND ROTATE 450 DEGREES CW (1.25 REV = 500 STEPS)
     //! ************************************************************************
     else if (step == 10) {
         // Start moving servo to 180 degrees (non-blocking)
@@ -553,7 +553,7 @@ void paintingState() {
         
         // Start rotation (can happen simultaneously with servo movement)
         if (!finalRotationStarted && !isStepperRunning()) {
-            moveStepper(12000);  // 450 degrees = 1.25 rev = 12000 steps
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 1.25));  // 450 degrees = 1.25 rev = 500 steps
             finalRotationStarted = true;
         }
         
