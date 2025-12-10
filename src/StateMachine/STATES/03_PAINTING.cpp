@@ -654,26 +654,23 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 17: MOVE SERVO TO PAINTING ANGLE AND ROTATE 810 DEGREES CW (2.25 REV)
+    //! STEP 17: MOVE SERVO TO 210° AND ROTATE 1 REVOLUTION
     //! ************************************************************************
     else if (step == 15) {
-        // Start moving servo to painting angle (non-blocking)
+        // Start moving servo to step 15 angle (non-blocking)
         if (!servoAt180Complete) {
-            startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+            startServoMoveToAngle(STEP15_SERVO_ANGLE_DEG);
             servoAt180Complete = true;
         }
         
-        // Start rotation (can happen simultaneously with servo movement)
-        if (!finalRotationStarted && !isStepperRunning()) {
+        // Start rotation once servo reaches angle (can happen simultaneously)
+        if (!finalRotationStarted && servoTargetAngle < 0 && !isStepperRunning()) {
             moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP15_FINAL_ROTATION_REV));
             finalRotationStarted = true;
         }
         
-        // Wait for both servo and rotation to complete
-        bool rotationComplete = !isStepperRunning();
-        bool servoComplete = servoTargetAngle < 0;
-        
-        if (rotationComplete && servoComplete) {
+        // Wait for rotation to complete (servo should already be at angle)
+        if (finalRotationStarted && !isStepperRunning()) {
             step = 16;
         } else {
             updateServoMovement();
@@ -684,7 +681,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 18: MOVE SERVO TO SPIN SERVO ANGLE
+    //! STEP 18: MOVE SERVO TO SPIN SERVO ANGLE (170°)
     //! ************************************************************************
     else if (step == 16) {
         // Start moving servo to spin angle (non-blocking)

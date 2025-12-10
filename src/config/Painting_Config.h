@@ -20,7 +20,7 @@
 //║ 🎯 SERVO CONFIGURATION                                               ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define SERVO_HOME_ANGLE 130.0         // Servo home angle (idle position before painting)
-#define SERVO_PAINTING_ANGLE 210.0     // Servo angle during painting operations
+#define SERVO_PAINTING_ANGLE 200.0     // Servo angle during painting operations
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔧 SERVO MOVEMENT PARAMETERS                                         ║
@@ -55,7 +55,7 @@
 //║ 🔄 STEP 7-8: ROTATE TO BACK LEFT AND SERVO MOVEMENT                 ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP7_BACK_LEFT_ROTATION_REV 0.125             // Rotation to back left (45 degrees CW = 0.125 revolutions)
-#define STEP8_BACK_LEFT_WAIT_MS 300                    // Wait time on back left before servo movement (milliseconds)
+#define STEP8_BACK_LEFT_WAIT_MS 50                    // Wait time on back left before servo movement (milliseconds)
 #define STEP8_SERVO_BACK_ANGLE_DEG 160.0               // Servo angle for back left/right positions (degrees)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
@@ -68,7 +68,7 @@
 //║ 🔄 STEP 11-12: ROTATE TO BACK RIGHT AND SERVO MOVEMENT              ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP11_BACK_RIGHT_ROTATION_REV 0.125           // Rotation to back right (45 degrees CW = 0.125 revolutions)
-#define STEP12_BACK_RIGHT_WAIT_MS 300                  // Wait time on back right before servo movement (milliseconds)
+#define STEP12_BACK_RIGHT_WAIT_MS 50                  // Wait time on back right before servo movement (milliseconds)
 #define STEP12_SERVO_BACK_ANGLE_DEG 160.0             // Servo angle for back right position (degrees)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
@@ -80,11 +80,12 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 15: FINAL ROTATION                                          ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP15_FINAL_ROTATION_REV 2.25                 // Final rotation amount (810 degrees = 2.25 revolutions)
+#define STEP15_FINAL_ROTATION_REV 1.0                  // Final rotation amount (1 full revolution)
+#define STEP15_SERVO_ANGLE_DEG 210.0                   // Servo angle during step 15 rotation (degrees)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 16: SPIN SERVO ANGLE                                        ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP16_SPIN_SERVO_ANGLE_DEG 180.0              // Servo angle for spin operation (degrees)
+#define STEP16_SPIN_SERVO_ANGLE_DEG 170.0              // Servo angle for spin operation (degrees)
 
 #endif // PAINTING_CONFIG_H
