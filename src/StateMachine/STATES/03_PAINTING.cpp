@@ -876,7 +876,7 @@ void paintingState() {
             if (!servoReachedHomeInStep17) {
                 turnOffPaintGun();
                 servoReachedHomeInStep17 = true;
-                step = 19;
+                step = 21;
             }
         } else {
             updateServoMovement();
