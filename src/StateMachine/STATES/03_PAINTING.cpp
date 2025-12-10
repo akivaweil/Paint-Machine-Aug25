@@ -232,6 +232,12 @@ void paintingState() {
     static unsigned long servoStartTime = 0;
     static unsigned long servoReachedPaintingAngleTime = 0;
     static bool initial180RotationStarted = false;
+    static bool backLeftWaitComplete = false;
+    static bool backLeftServoTo160Complete = false;
+    static bool backLeftServoBackComplete = false;
+    static bool backRightWaitComplete = false;
+    static bool backRightServoTo160Complete = false;
+    static bool backRightServoBackComplete = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -278,6 +284,12 @@ void paintingState() {
         servoStartTime = 0;
         servoReachedPaintingAngleTime = 0;
         initial180RotationStarted = false;
+        backLeftWaitComplete = false;
+        backLeftServoTo160Complete = false;
+        backLeftServoBackComplete = false;
+        backRightWaitComplete = false;
+        backRightServoTo160Complete = false;
+        backRightServoBackComplete = false;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -314,6 +326,12 @@ void paintingState() {
         servoStartTime = 0;
         servoReachedPaintingAngleTime = 0;
         initial180RotationStarted = false;
+        backLeftWaitComplete = false;
+        backLeftServoTo160Complete = false;
+        backLeftServoBackComplete = false;
+        backRightWaitComplete = false;
+        backRightServoTo160Complete = false;
+        backRightServoBackComplete = false;
     }
     
     //! ************************************************************************
@@ -513,18 +531,38 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 10: WAIT ON BACK LEFT FOR 500MS
+    //! STEP 10: WAIT ON BACK LEFT FOR 500MS, THEN MOVE SERVO TO 160° AND BACK
     //! ************************************************************************
     else if (step == 8) {
-        unsigned long elapsedTime = millis() - waitStartTime;
-        if (elapsedTime >= LEFT_SIDE_WAIT_MS) {
-            step = 9;
-        } else {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            delay(1);
+        // Wait for initial wait time
+        if (!backLeftWaitComplete) {
+            unsigned long elapsedTime = millis() - waitStartTime;
+            if (elapsedTime >= LEFT_SIDE_WAIT_MS) {
+                backLeftWaitComplete = true;
+                // Start moving servo to 160 degrees
+                startServoMoveToAngle(160.0);
+            }
         }
+        // Wait for servo to reach 160 degrees
+        else if (!backLeftServoTo160Complete) {
+            if (servoTargetAngle < 0) {
+                backLeftServoTo160Complete = true;
+                // Start moving servo back to painting angle
+                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+            }
+        }
+        // Wait for servo to return to painting angle
+        else if (!backLeftServoBackComplete) {
+            if (servoTargetAngle < 0) {
+                backLeftServoBackComplete = true;
+                step = 9;
+            }
+        }
+        
+        updateServoMovement();
+        updateOTA();
+        if (cycleCancelled) return;
+        delay(1);
     }
     
     //! ************************************************************************
@@ -587,18 +625,38 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 14: WAIT ON BACK RIGHT FOR 500MS
+    //! STEP 14: WAIT ON BACK RIGHT FOR 500MS, THEN MOVE SERVO TO 160° AND BACK
     //! ************************************************************************
     else if (step == 12) {
-        unsigned long elapsedTime = millis() - waitStartTime;
-        if (elapsedTime >= LEFT_SIDE_WAIT_MS) {
-            step = 13;
-        } else {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            delay(1);
+        // Wait for initial wait time
+        if (!backRightWaitComplete) {
+            unsigned long elapsedTime = millis() - waitStartTime;
+            if (elapsedTime >= LEFT_SIDE_WAIT_MS) {
+                backRightWaitComplete = true;
+                // Start moving servo to 160 degrees
+                startServoMoveToAngle(160.0);
+            }
         }
+        // Wait for servo to reach 160 degrees
+        else if (!backRightServoTo160Complete) {
+            if (servoTargetAngle < 0) {
+                backRightServoTo160Complete = true;
+                // Start moving servo back to painting angle
+                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+            }
+        }
+        // Wait for servo to return to painting angle
+        else if (!backRightServoBackComplete) {
+            if (servoTargetAngle < 0) {
+                backRightServoBackComplete = true;
+                step = 13;
+            }
+        }
+        
+        updateServoMovement();
+        updateOTA();
+        if (cycleCancelled) return;
+        delay(1);
     }
     
     //! ************************************************************************
@@ -725,6 +783,12 @@ void paintingState() {
         servoStartTime = 0;
         servoReachedPaintingAngleTime = 0;
         initial180RotationStarted = false;
+        backLeftWaitComplete = false;
+        backLeftServoTo160Complete = false;
+        backLeftServoBackComplete = false;
+        backRightWaitComplete = false;
+        backRightServoTo160Complete = false;
+        backRightServoBackComplete = false;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
