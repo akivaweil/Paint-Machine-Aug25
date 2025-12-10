@@ -329,6 +329,9 @@ void gantryState() {
     //! STEP 7: LOWER Y BY 0.5 INCHES AT POSITION 2
     //! ************************************************************************
     else if (step == 6) {
+        // Turn on suction before Y lowering occurs
+        digitalWrite(SUCTION_PIN, HIGH);
+        
         // Set speed and acceleration for 0.5 inch movement
         motorY->setSpeed(TEST_Y_SPEED_FORK_EXTENDED);
         motorY->setAcceleration(TEST_Y_ACCEL_FORK_EXTENDED);
