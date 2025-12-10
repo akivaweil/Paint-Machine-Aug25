@@ -201,9 +201,13 @@ void paintingState() {
     static bool initial180RotationStarted = false;
     static bool backLeftWaitComplete = false;
     static bool backLeftServoTo160Complete = false;
+    static bool backLeftPaintDelayComplete = false;
+    static unsigned long backLeftPaintDelayStartTime = 0;
     static bool backLeftServoBackComplete = false;
     static bool backRightWaitComplete = false;
     static bool backRightServoTo160Complete = false;
+    static bool backRightPaintDelayComplete = false;
+    static unsigned long backRightPaintDelayStartTime = 0;
     static bool backRightServoBackComplete = false;
     static bool servoToHomeStarted = false;
     static bool servoReachedHomeInStep17 = false;
@@ -277,9 +281,13 @@ void paintingState() {
         initial180RotationStarted = false;
         backLeftWaitComplete = false;
         backLeftServoTo160Complete = false;
+        backLeftPaintDelayComplete = false;
+        backLeftPaintDelayStartTime = 0;
         backLeftServoBackComplete = false;
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
+        backRightPaintDelayComplete = false;
+        backRightPaintDelayStartTime = 0;
         backRightServoBackComplete = false;
         servoToHomeStarted = false;
         servoReachedHomeInStep17 = false;
@@ -335,9 +343,13 @@ void paintingState() {
         initial180RotationStarted = false;
         backLeftWaitComplete = false;
         backLeftServoTo160Complete = false;
+        backLeftPaintDelayComplete = false;
+        backLeftPaintDelayStartTime = 0;
         backLeftServoBackComplete = false;
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
+        backRightPaintDelayComplete = false;
+        backRightPaintDelayStartTime = 0;
         backRightServoBackComplete = false;
         servoToHomeStarted = false;
         servoReachedHomeInStep17 = false;
@@ -571,6 +583,15 @@ void paintingState() {
         else if (!backLeftServoTo160Complete) {
             if (servoTargetAngle < 0) {
                 backLeftServoTo160Complete = true;
+                // Record time when servo reached back angle
+                backLeftPaintDelayStartTime = millis();
+            }
+        }
+        // Wait for paint delay at back angle (300ms)
+        else if (!backLeftPaintDelayComplete) {
+            unsigned long elapsedTime = millis() - backLeftPaintDelayStartTime;
+            if (elapsedTime >= STEP8_BACK_LEFT_PAINT_DELAY_MS) {
+                backLeftPaintDelayComplete = true;
                 // Start moving servo back to painting angle
                 startServoMoveToAngle(SERVO_PAINTING_ANGLE);
             }
@@ -674,6 +695,15 @@ void paintingState() {
         else if (!backRightServoTo160Complete) {
             if (servoTargetAngle < 0) {
                 backRightServoTo160Complete = true;
+                // Record time when servo reached back angle
+                backRightPaintDelayStartTime = millis();
+            }
+        }
+        // Wait for paint delay at back angle (300ms)
+        else if (!backRightPaintDelayComplete) {
+            unsigned long elapsedTime = millis() - backRightPaintDelayStartTime;
+            if (elapsedTime >= STEP12_BACK_RIGHT_PAINT_DELAY_MS) {
+                backRightPaintDelayComplete = true;
                 // Start moving servo back to painting angle
                 startServoMoveToAngle(SERVO_PAINTING_ANGLE);
             }
@@ -952,9 +982,13 @@ void paintingState() {
         initial180RotationStarted = false;
         backLeftWaitComplete = false;
         backLeftServoTo160Complete = false;
+        backLeftPaintDelayComplete = false;
+        backLeftPaintDelayStartTime = 0;
         backLeftServoBackComplete = false;
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
+        backRightPaintDelayComplete = false;
+        backRightPaintDelayStartTime = 0;
         backRightServoBackComplete = false;
         servoToHomeStarted = false;
         servoReachedHomeInStep17 = false;

@@ -58,12 +58,13 @@
 #define STEP8_BACK_LEFT_WAIT_MS 5                    // Wait time on back left before servo movement (milliseconds)
 #define STEP8_SERVO_BACK_ANGLE_DEG 150.0               // Servo angle for back left/right positions (degrees)
 #define STEP8_BACK_LEFT_SERVO_SPEED 70.0               // Servo movement speed for back left (degrees per second)
+#define STEP8_BACK_LEFT_PAINT_DELAY_MS 300             // Delay at back angle position for painting (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 9-10: ROTATE TO BACK                                        ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP9_BACK_ROTATION_REV 0.125                  // Rotation to back (45 degrees CW = 0.125 revolutions)
-#define STEP10_BACK_SIDE_WAIT_MS 100                   // Wait time on back side before continuing (milliseconds)
+#define STEP10_BACK_SIDE_WAIT_MS 300                   // Wait time on back side before continuing (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 11-12: ROTATE TO BACK RIGHT AND SERVO MOVEMENT              ║
@@ -72,6 +73,7 @@
 #define STEP12_BACK_RIGHT_WAIT_MS 5                  // Wait time on back right before servo movement (milliseconds)
 #define STEP12_SERVO_BACK_ANGLE_DEG 150.0             // Servo angle for back right position (degrees)
 #define STEP12_BACK_RIGHT_SERVO_SPEED 70.0             // Servo movement speed for back right (degrees per second)
+#define STEP12_BACK_RIGHT_PAINT_DELAY_MS 300           // Delay at back angle position for painting (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 13-14: ROTATE TO RIGHT SIDE                                 ║
