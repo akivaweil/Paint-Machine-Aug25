@@ -192,6 +192,8 @@ void paintingState() {
     static bool backRightWaitComplete = false;
     static bool backRightServoTo160Complete = false;
     static bool backRightServoBackComplete = false;
+    static bool servoToHomeStarted = false;
+    static bool servoReachedHomeInStep17 = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -244,6 +246,8 @@ void paintingState() {
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
         backRightServoBackComplete = false;
+        servoToHomeStarted = false;
+        servoReachedHomeInStep17 = false;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -286,6 +290,8 @@ void paintingState() {
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
         backRightServoBackComplete = false;
+        servoToHomeStarted = false;
+        servoReachedHomeInStep17 = false;
     }
     
     //! ************************************************************************
@@ -700,12 +706,35 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: TURN OFF PAINT GUN, SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 19: MOVE SERVO TO HOME POSITION, THEN TURN OFF PAINT GUN
     //! ************************************************************************
     else if (step == 17) {
-        // Turn off paint gun
-        turnOffPaintGun();
+        // Start moving servo to home angle (non-blocking, paint gun still on)
+        if (!servoToHomeStarted) {
+            startServoMoveToAngle(SERVO_HOME_ANGLE);
+            servoToHomeStarted = true;
+        }
         
+        // Wait for servo to reach home
+        if (servoTargetAngle < 0) {
+            // Servo has reached home, turn off paint gun
+            if (!servoReachedHomeInStep17) {
+                turnOffPaintGun();
+                servoReachedHomeInStep17 = true;
+                step = 18;
+            }
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 20: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! ************************************************************************
+    else if (step == 18) {
         // Turn off suction
         turnOffSuction();
         
@@ -738,6 +767,8 @@ void paintingState() {
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
         backRightServoBackComplete = false;
+        servoToHomeStarted = false;
+        servoReachedHomeInStep17 = false;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
