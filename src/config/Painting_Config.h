@@ -93,6 +93,11 @@
 #define STEP16_SPIN_SERVO_ANGLE_DEG 170.0              // Servo angle for spin operation (degrees)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🔄 STEP 18: PAINT GUN REFILL DELAY BEFORE FINAL FRONT PASS          ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define STEP18_PAINT_GUN_OFF_DELAY_MS 500              // Time to turn off paint gun before final front pass (milliseconds)
+
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 17: FINAL FACE COAT                                         ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP17_INITIAL_SERVO_ANGLE_DEG 220.0           // Initial servo angle for final face coat (degrees)
