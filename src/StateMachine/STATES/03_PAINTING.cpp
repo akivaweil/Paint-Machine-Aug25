@@ -196,6 +196,9 @@ void paintingState() {
     static bool servoReachedHomeInStep17 = false;
     static long step15RotationStartPosition = 0;
     static bool step15ServoMovedTo170 = false;
+    static bool step17ServoToHomeStarted = false;
+    static bool step17ServoToHomeComplete = false;
+    static bool step17ServoBackComplete = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -252,6 +255,9 @@ void paintingState() {
         servoReachedHomeInStep17 = false;
         step15RotationStartPosition = 0;
         step15ServoMovedTo170 = false;
+        step17ServoToHomeStarted = false;
+        step17ServoToHomeComplete = false;
+        step17ServoBackComplete = false;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -298,6 +304,9 @@ void paintingState() {
         servoReachedHomeInStep17 = false;
         step15RotationStartPosition = 0;
         step15ServoMovedTo170 = false;
+        step17ServoToHomeStarted = false;
+        step17ServoToHomeComplete = false;
+        step17ServoBackComplete = false;
     }
     
     //! ************************************************************************
@@ -717,9 +726,40 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: MOVE SERVO TO HOME POSITION, THEN TURN OFF PAINT GUN
+    //! STEP 19: FINAL FACE COAT - MOVE SERVO TO HOME AND BACK
     //! ************************************************************************
     else if (step == 17) {
+        // Move servo to home position
+        if (!step17ServoToHomeStarted) {
+            startServoMoveToAngle(SERVO_HOME_ANGLE);
+            step17ServoToHomeStarted = true;
+        }
+        // Wait for servo to reach home
+        else if (!step17ServoToHomeComplete) {
+            if (servoTargetAngle < 0) {
+                step17ServoToHomeComplete = true;
+                // Start moving servo back to painting angle
+                startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
+            }
+        }
+        // Wait for servo to return back
+        else if (!step17ServoBackComplete) {
+            if (servoTargetAngle < 0) {
+                step17ServoBackComplete = true;
+                step = 18;
+            }
+        }
+        
+        updateServoMovement();
+        updateOTA();
+        if (cycleCancelled) return;
+        delay(1);
+    }
+    
+    //! ************************************************************************
+    //! STEP 20: MOVE SERVO TO HOME POSITION, THEN TURN OFF PAINT GUN
+    //! ************************************************************************
+    else if (step == 18) {
         // Start moving servo to home angle (non-blocking, paint gun still on)
         if (!servoToHomeStarted) {
             startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -732,7 +772,7 @@ void paintingState() {
             if (!servoReachedHomeInStep17) {
                 turnOffPaintGun();
                 servoReachedHomeInStep17 = true;
-                step = 18;
+                step = 19;
             }
         } else {
             updateServoMovement();
@@ -743,9 +783,9 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 20: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 21: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
     //! ************************************************************************
-    else if (step == 18) {
+    else if (step == 19) {
         // Turn off suction
         turnOffSuction();
         
@@ -782,6 +822,9 @@ void paintingState() {
         servoReachedHomeInStep17 = false;
         step15RotationStartPosition = 0;
         step15ServoMovedTo170 = false;
+        step17ServoToHomeStarted = false;
+        step17ServoToHomeComplete = false;
+        step17ServoBackComplete = false;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
