@@ -973,18 +973,10 @@ void paintingState() {
                 }
             }
         }
-        // Wait for servo to reach home, then move back
+        // Wait for servo to reach home, then proceed
         else if (!step17ServoToHomeComplete) {
             if (servoTargetAngle < 0) {
                 step17ServoToHomeComplete = true;
-                // Start moving servo back to 190°
-                startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
-            }
-        }
-        // Wait for servo to return back
-        else if (!step17ServoBackComplete) {
-            if (servoTargetAngle < 0) {
-                step17ServoBackComplete = true;
                 // Restore servo speed
                 servoSpeed = savedStep17ServoSpeed;
                 savedStep17ServoSpeed = 0.0;
