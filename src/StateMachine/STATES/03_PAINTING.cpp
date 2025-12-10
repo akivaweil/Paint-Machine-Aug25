@@ -157,6 +157,17 @@ void updateServoMovement() {
     
     // Update servo position
     currentServoAngle += movement;
+    
+    // Prevent overshooting the target
+    if ((movement > 0 && currentServoAngle > servoTargetAngle) || 
+        (movement < 0 && currentServoAngle < servoTargetAngle)) {
+        currentServoAngle = servoTargetAngle;
+    }
+    
+    // Constrain angle to valid range (0-270)
+    if (currentServoAngle < 0) currentServoAngle = 0;
+    if (currentServoAngle > 270) currentServoAngle = 270;
+    
     servo->write(currentServoAngle);
     
     // Update timing
@@ -196,6 +207,8 @@ void paintingState() {
     static bool servoReachedHomeInStep17 = false;
     static long step15RotationStartPosition = 0;
     static bool step15ServoMovedTo170 = false;
+    static bool step17ServoTo190Started = false;
+    static bool step17ServoTo190Complete = false;
     static bool step17ServoToHomeStarted = false;
     static bool step17ServoToHomeComplete = false;
     static bool step17ServoBackComplete = false;
@@ -255,6 +268,8 @@ void paintingState() {
         servoReachedHomeInStep17 = false;
         step15RotationStartPosition = 0;
         step15ServoMovedTo170 = false;
+        step17ServoTo190Started = false;
+        step17ServoTo190Complete = false;
         step17ServoToHomeStarted = false;
         step17ServoToHomeComplete = false;
         step17ServoBackComplete = false;
@@ -304,6 +319,8 @@ void paintingState() {
         servoReachedHomeInStep17 = false;
         step15RotationStartPosition = 0;
         step15ServoMovedTo170 = false;
+        step17ServoTo190Started = false;
+        step17ServoTo190Complete = false;
         step17ServoToHomeStarted = false;
         step17ServoToHomeComplete = false;
         step17ServoBackComplete = false;
@@ -726,20 +743,29 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: FINAL FACE COAT - MOVE SERVO TO HOME AND BACK
+    //! STEP 19: FINAL FACE COAT - MOVE SERVO TO 190°, THEN HOME, THEN BACK
     //! ************************************************************************
     else if (step == 17) {
-        // Move servo to home position
-        if (!step17ServoToHomeStarted) {
-            startServoMoveToAngle(SERVO_HOME_ANGLE);
-            step17ServoToHomeStarted = true;
+        // First move servo to 190°
+        if (!step17ServoTo190Started) {
+            startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
+            step17ServoTo190Started = true;
         }
-        // Wait for servo to reach home
+        // Wait for servo to reach 190°, then move to home
+        else if (!step17ServoTo190Complete) {
+            if (servoTargetAngle < 0) {
+                step17ServoTo190Complete = true;
+                // Start moving servo to home position
+                startServoMoveToAngle(SERVO_HOME_ANGLE);
+                step17ServoToHomeStarted = true;
+            }
+        }
+        // Wait for servo to reach home, then move back
         else if (!step17ServoToHomeComplete) {
             if (servoTargetAngle < 0) {
                 step17ServoToHomeComplete = true;
-                // Start moving servo back to painting angle
-                startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
+                // Start moving servo back to 190°
+                startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
             }
         }
         // Wait for servo to return back
@@ -822,6 +848,8 @@ void paintingState() {
         servoReachedHomeInStep17 = false;
         step15RotationStartPosition = 0;
         step15ServoMovedTo170 = false;
+        step17ServoTo190Started = false;
+        step17ServoTo190Complete = false;
         step17ServoToHomeStarted = false;
         step17ServoToHomeComplete = false;
         step17ServoBackComplete = false;
