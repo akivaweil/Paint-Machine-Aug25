@@ -194,6 +194,8 @@ void paintingState() {
     static bool backRightServoBackComplete = false;
     static bool servoToHomeStarted = false;
     static bool servoReachedHomeInStep17 = false;
+    static long step15RotationStartPosition = 0;
+    static bool step15ServoMovedTo170 = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -248,6 +250,8 @@ void paintingState() {
         backRightServoBackComplete = false;
         servoToHomeStarted = false;
         servoReachedHomeInStep17 = false;
+        step15RotationStartPosition = 0;
+        step15ServoMovedTo170 = false;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -292,6 +296,8 @@ void paintingState() {
         backRightServoBackComplete = false;
         servoToHomeStarted = false;
         servoReachedHomeInStep17 = false;
+        step15RotationStartPosition = 0;
+        step15ServoMovedTo170 = false;
     }
     
     //! ************************************************************************
@@ -654,22 +660,36 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 17: MOVE SERVO TO 210° AND ROTATE 1 REVOLUTION
+    //! STEP 17: MOVE SERVO TO 210°, ROTATE 2.25 REVS, MOVE SERVO TO 170° AFTER 1 REV
     //! ************************************************************************
     else if (step == 15) {
-        // Start moving servo to step 15 angle (non-blocking)
+        // Start moving servo to first angle (210°) (non-blocking)
         if (!servoAt180Complete) {
-            startServoMoveToAngle(STEP15_SERVO_ANGLE_DEG);
+            startServoMoveToAngle(STEP15_FIRST_REV_SERVO_ANGLE_DEG);
             servoAt180Complete = true;
         }
         
         // Start rotation once servo reaches angle (can happen simultaneously)
         if (!finalRotationStarted && servoTargetAngle < 0 && !isStepperRunning()) {
+            step15RotationStartPosition = getStepperPosition();
             moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP15_FINAL_ROTATION_REV));
             finalRotationStarted = true;
         }
         
-        // Wait for rotation to complete (servo should already be at angle)
+        // Check if 1 revolution is complete and move servo to 170°
+        if (finalRotationStarted && !step15ServoMovedTo170) {
+            long currentPosition = getStepperPosition();
+            long positionChange = abs(currentPosition - step15RotationStartPosition);
+            long oneRevSteps = paintRotationMotorStepsPerRevOutput;
+            
+            if (positionChange >= oneRevSteps) {
+                // 1 revolution complete, move servo to 170°
+                startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
+                step15ServoMovedTo170 = true;
+            }
+        }
+        
+        // Wait for full rotation to complete
         if (finalRotationStarted && !isStepperRunning()) {
             step = 16;
         } else {
@@ -681,16 +701,10 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 18: MOVE SERVO TO SPIN SERVO ANGLE (170°)
+    //! STEP 18: WAIT FOR SERVO TO REACH 170° (IF NOT ALREADY THERE)
     //! ************************************************************************
     else if (step == 16) {
-        // Start moving servo to spin angle (non-blocking)
-        if (!servoAtHomeComplete) {
-            startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
-            servoAtHomeComplete = true;
-        }
-        
-        // Wait for servo to reach target
+        // Servo should already be moving to 170° from step 15, just wait for it
         if (servoTargetAngle < 0) {
             // Servo movement complete
             step = 17;
@@ -766,6 +780,8 @@ void paintingState() {
         backRightServoBackComplete = false;
         servoToHomeStarted = false;
         servoReachedHomeInStep17 = false;
+        step15RotationStartPosition = 0;
+        step15ServoMovedTo170 = false;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
