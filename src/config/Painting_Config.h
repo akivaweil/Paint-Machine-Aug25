@@ -20,7 +20,7 @@
 //║ 🎯 SERVO CONFIGURATION                                               ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define SERVO_HOME_ANGLE 130.0         // Servo home angle (idle position before painting)
-#define SERVO_PAINTING_ANGLE 210.0     // Servo angle during painting operations
+#define SERVO_PAINTING_ANGLE 220.0     // Servo angle during painting operations
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔧 SERVO MOVEMENT PARAMETERS                                         ║
@@ -56,7 +56,8 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP7_BACK_LEFT_ROTATION_REV 0.125             // Rotation to back left (45 degrees CW = 0.125 revolutions)
 #define STEP8_BACK_LEFT_WAIT_MS 5                    // Wait time on back left before servo movement (milliseconds)
-#define STEP8_SERVO_BACK_ANGLE_DEG 160.0               // Servo angle for back left/right positions (degrees)
+#define STEP8_SERVO_BACK_ANGLE_DEG 150.0               // Servo angle for back left/right positions (degrees)
+#define STEP8_BACK_LEFT_SERVO_SPEED 70.0               // Servo movement speed for back left (degrees per second)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 9-10: ROTATE TO BACK                                        ║
@@ -69,7 +70,8 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP11_BACK_RIGHT_ROTATION_REV 0.125           // Rotation to back right (45 degrees CW = 0.125 revolutions)
 #define STEP12_BACK_RIGHT_WAIT_MS 5                  // Wait time on back right before servo movement (milliseconds)
-#define STEP12_SERVO_BACK_ANGLE_DEG 160.0             // Servo angle for back right position (degrees)
+#define STEP12_SERVO_BACK_ANGLE_DEG 150.0             // Servo angle for back right position (degrees)
+#define STEP12_BACK_RIGHT_SERVO_SPEED 70.0             // Servo movement speed for back right (degrees per second)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 13-14: ROTATE TO RIGHT SIDE                                 ║
@@ -100,7 +102,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 17: FINAL FACE COAT                                         ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP17_INITIAL_SERVO_ANGLE_DEG 220.0           // Initial servo angle for final face coat (degrees)
+#define STEP17_INITIAL_SERVO_ANGLE_DEG 230.0           // Initial servo angle for final face coat (degrees)
 #define STEP17_INITIAL_ANGLE_WAIT_MS 200              // Wait time at initial angle before moving to home (milliseconds)
 
 #endif // PAINTING_CONFIG_H

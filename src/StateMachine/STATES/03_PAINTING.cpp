@@ -184,6 +184,8 @@ void paintingState() {
     static long paintMotorStartPosition = 0;
     static unsigned long waitingPositionReachedTime = 0;
     static float savedServoSpeed = 0.0;
+    static float savedBackLeftServoSpeed = 0.0;
+    static float savedBackRightServoSpeed = 0.0;
     static unsigned long waitStartTime = 0;
     static bool servoAt210Complete = false;
     static bool servoAt180Complete = false;
@@ -239,6 +241,14 @@ void paintingState() {
             servoSpeed = savedServoSpeed;
             savedServoSpeed = 0.0;
         }
+        if (savedBackLeftServoSpeed > 0) {
+            servoSpeed = savedBackLeftServoSpeed;
+            savedBackLeftServoSpeed = 0.0;
+        }
+        if (savedBackRightServoSpeed > 0) {
+            servoSpeed = savedBackRightServoSpeed;
+            savedBackRightServoSpeed = 0.0;
+        }
         
         // Reset everything
         cycleCancelled = false;
@@ -250,6 +260,8 @@ void paintingState() {
         waitingPositionReachedTime = 0;
         paintMotorStartPosition = 0;
         savedServoSpeed = 0.0;
+        savedBackLeftServoSpeed = 0.0;
+        savedBackRightServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -306,6 +318,8 @@ void paintingState() {
         waitingPositionReachedTime = 0;
         paintMotorStartPosition = 0;
         savedServoSpeed = 0.0;
+        savedBackLeftServoSpeed = 0.0;
+        savedBackRightServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -538,6 +552,12 @@ void paintingState() {
     //! STEP 10: WAIT ON BACK LEFT FOR 500MS, THEN MOVE SERVO TO 160° AND BACK
     //! ************************************************************************
     else if (step == 8) {
+        // Save current servo speed and set to back left speed
+        if (savedBackLeftServoSpeed == 0.0) {
+            savedBackLeftServoSpeed = servoSpeed;
+            servoSpeed = STEP8_BACK_LEFT_SERVO_SPEED;
+        }
+        
         // Wait for initial wait time
         if (!backLeftWaitComplete) {
             unsigned long elapsedTime = millis() - waitStartTime;
@@ -559,6 +579,9 @@ void paintingState() {
         else if (!backLeftServoBackComplete) {
             if (servoTargetAngle < 0) {
                 backLeftServoBackComplete = true;
+                // Restore servo speed
+                servoSpeed = savedBackLeftServoSpeed;
+                savedBackLeftServoSpeed = 0.0;
                 step = 9;
             }
         }
@@ -632,6 +655,12 @@ void paintingState() {
     //! STEP 14: WAIT ON BACK RIGHT FOR 500MS, THEN MOVE SERVO TO 160° AND BACK
     //! ************************************************************************
     else if (step == 12) {
+        // Save current servo speed and set to back right speed
+        if (savedBackRightServoSpeed == 0.0) {
+            savedBackRightServoSpeed = servoSpeed;
+            servoSpeed = STEP12_BACK_RIGHT_SERVO_SPEED;
+        }
+        
         // Wait for initial wait time
         if (!backRightWaitComplete) {
             unsigned long elapsedTime = millis() - waitStartTime;
@@ -653,6 +682,9 @@ void paintingState() {
         else if (!backRightServoBackComplete) {
             if (servoTargetAngle < 0) {
                 backRightServoBackComplete = true;
+                // Restore servo speed
+                servoSpeed = savedBackRightServoSpeed;
+                savedBackRightServoSpeed = 0.0;
                 step = 13;
             }
         }
@@ -903,6 +935,8 @@ void paintingState() {
         waitingPositionReachedTime = 0;
         paintMotorStartPosition = 0;
         savedServoSpeed = 0.0;
+        savedBackLeftServoSpeed = 0.0;
+        savedBackRightServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
