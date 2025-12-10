@@ -79,10 +79,13 @@
 #define STEP12_BACK_RIGHT_PAINT_DELAY_MS 300           // Delay at back angle position for painting (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
-//║ 🔄 STEP 13-14: ROTATE TO RIGHT SIDE                                 ║
+//║ 🔄 STEP 13-14: ROTATE TO RIGHT SIDE AND SERVO MOVEMENT              ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP13_RIGHT_ROTATION_REV 0.125                // Rotation to right side (45 degrees CW = 0.125 revolutions)
-#define STEP14_RIGHT_SIDE_WAIT_MS 500                  // Wait time on right side before continuing (milliseconds)
+#define STEP14_RIGHT_SIDE_WAIT_MS 5                    // Wait time on right side before servo movement (milliseconds)
+#define STEP14_SERVO_RIGHT_ANGLE_DEG 180.0             // Servo angle for right side position (degrees)
+#define STEP14_RIGHT_SERVO_SPEED 70.0                  // Servo movement speed for right side (degrees per second)
+#define STEP14_RIGHT_PAINT_DELAY_MS 300                 // Delay at right angle position for painting (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 15: PAINT GUN REFILL DELAY                                  ║
@@ -109,6 +112,6 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP17_INITIAL_SERVO_ANGLE_DEG 230.0           // Initial servo angle for final face coat (degrees)
 #define STEP17_INITIAL_ANGLE_WAIT_MS 200              // Wait time at initial angle before moving to home (milliseconds)
-#define STEP17_SERVO_SPEED 100.0                       // Servo movement speed for final face coat (degrees per second)
+#define STEP17_SERVO_SPEED 70.0                       // Servo movement speed for final face coat (degrees per second)
 
 #endif // PAINTING_CONFIG_H
