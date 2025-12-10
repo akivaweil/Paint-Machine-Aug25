@@ -186,6 +186,7 @@ void paintingState() {
     static float savedServoSpeed = 0.0;
     static float savedBackLeftServoSpeed = 0.0;
     static float savedBackRightServoSpeed = 0.0;
+    static float savedBackServoSpeed = 0.0;
     static unsigned long waitStartTime = 0;
     static bool servoAt210Complete = false;
     static bool servoAt180Complete = false;
@@ -204,6 +205,11 @@ void paintingState() {
     static bool backLeftPaintDelayComplete = false;
     static unsigned long backLeftPaintDelayStartTime = 0;
     static bool backLeftServoBackComplete = false;
+    static bool backWaitComplete = false;
+    static bool backServoTo160Complete = false;
+    static bool backPaintDelayComplete = false;
+    static unsigned long backPaintDelayStartTime = 0;
+    static bool backServoBackComplete = false;
     static bool backRightWaitComplete = false;
     static bool backRightServoTo160Complete = false;
     static bool backRightPaintDelayComplete = false;
@@ -253,6 +259,10 @@ void paintingState() {
             servoSpeed = savedBackRightServoSpeed;
             savedBackRightServoSpeed = 0.0;
         }
+        if (savedBackServoSpeed > 0) {
+            servoSpeed = savedBackServoSpeed;
+            savedBackServoSpeed = 0.0;
+        }
         
         // Reset everything
         cycleCancelled = false;
@@ -266,6 +276,7 @@ void paintingState() {
         savedServoSpeed = 0.0;
         savedBackLeftServoSpeed = 0.0;
         savedBackRightServoSpeed = 0.0;
+        savedBackServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -284,6 +295,11 @@ void paintingState() {
         backLeftPaintDelayComplete = false;
         backLeftPaintDelayStartTime = 0;
         backLeftServoBackComplete = false;
+        backWaitComplete = false;
+        backServoTo160Complete = false;
+        backPaintDelayComplete = false;
+        backPaintDelayStartTime = 0;
+        backServoBackComplete = false;
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
         backRightPaintDelayComplete = false;
@@ -328,6 +344,7 @@ void paintingState() {
         savedServoSpeed = 0.0;
         savedBackLeftServoSpeed = 0.0;
         savedBackRightServoSpeed = 0.0;
+        savedBackServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -346,6 +363,11 @@ void paintingState() {
         backLeftPaintDelayComplete = false;
         backLeftPaintDelayStartTime = 0;
         backLeftServoBackComplete = false;
+        backWaitComplete = false;
+        backServoTo160Complete = false;
+        backPaintDelayComplete = false;
+        backPaintDelayStartTime = 0;
+        backServoBackComplete = false;
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
         backRightPaintDelayComplete = false;
@@ -636,18 +658,56 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 12: WAIT ON BACK FOR 500MS
+    //! STEP 12: WAIT ON BACK, THEN MOVE SERVO TO 150° AND BACK
     //! ************************************************************************
     else if (step == 10) {
-        unsigned long elapsedTime = millis() - waitStartTime;
-        if (elapsedTime >= STEP10_BACK_SIDE_WAIT_MS) {
-            step = 11;
-        } else {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            delay(1);
+        // Save current servo speed and set to back speed
+        if (savedBackServoSpeed == 0.0) {
+            savedBackServoSpeed = servoSpeed;
+            servoSpeed = STEP10_BACK_SERVO_SPEED;
         }
+        
+        // Wait for initial wait time
+        if (!backWaitComplete) {
+            unsigned long elapsedTime = millis() - waitStartTime;
+            if (elapsedTime >= STEP10_BACK_SIDE_WAIT_MS) {
+                backWaitComplete = true;
+                // Start moving servo to back angle
+                startServoMoveToAngle(STEP10_SERVO_BACK_ANGLE_DEG);
+            }
+        }
+        // Wait for servo to reach 150 degrees
+        else if (!backServoTo160Complete) {
+            if (servoTargetAngle < 0) {
+                backServoTo160Complete = true;
+                // Record time when servo reached back angle
+                backPaintDelayStartTime = millis();
+            }
+        }
+        // Wait for paint delay at back angle (300ms)
+        else if (!backPaintDelayComplete) {
+            unsigned long elapsedTime = millis() - backPaintDelayStartTime;
+            if (elapsedTime >= STEP10_BACK_PAINT_DELAY_MS) {
+                backPaintDelayComplete = true;
+                // Start moving servo back to painting angle
+                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+            }
+        }
+        // Wait for servo to return to painting angle
+        else if (!backServoBackComplete) {
+            if (servoTargetAngle < 0) {
+                backServoBackComplete = true;
+                // Restore servo speed
+                servoSpeed = savedBackServoSpeed;
+                savedBackServoSpeed = 0.0;
+                step = 11;
+            }
+        }
+        
+        updateServoMovement();
+        updateOTA();
+        if (cycleCancelled) return;
+        delay(1);
     }
     
     //! ************************************************************************
@@ -967,6 +1027,7 @@ void paintingState() {
         savedServoSpeed = 0.0;
         savedBackLeftServoSpeed = 0.0;
         savedBackRightServoSpeed = 0.0;
+        savedBackServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -985,6 +1046,11 @@ void paintingState() {
         backLeftPaintDelayComplete = false;
         backLeftPaintDelayStartTime = 0;
         backLeftServoBackComplete = false;
+        backWaitComplete = false;
+        backServoTo160Complete = false;
+        backPaintDelayComplete = false;
+        backPaintDelayStartTime = 0;
+        backServoBackComplete = false;
         backRightWaitComplete = false;
         backRightServoTo160Complete = false;
         backRightPaintDelayComplete = false;
