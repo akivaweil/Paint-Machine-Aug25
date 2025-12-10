@@ -90,6 +90,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 17: FINAL FACE COAT                                         ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP17_INITIAL_SERVO_ANGLE_DEG 200.0           // Initial servo angle for final face coat (degrees)
+#define STEP17_INITIAL_SERVO_ANGLE_DEG 220.0           // Initial servo angle for final face coat (degrees)
+#define STEP17_INITIAL_ANGLE_WAIT_MS 200              // Wait time at initial angle before moving to home (milliseconds)
 
 #endif // PAINTING_CONFIG_H
