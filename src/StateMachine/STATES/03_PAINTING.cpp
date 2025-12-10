@@ -187,6 +187,7 @@ void paintingState() {
     static float savedBackLeftServoSpeed = 0.0;
     static float savedBackRightServoSpeed = 0.0;
     static float savedBackServoSpeed = 0.0;
+    static float savedStep17ServoSpeed = 0.0;
     static unsigned long waitStartTime = 0;
     static bool servoAt210Complete = false;
     static bool servoAt180Complete = false;
@@ -263,6 +264,10 @@ void paintingState() {
             servoSpeed = savedBackServoSpeed;
             savedBackServoSpeed = 0.0;
         }
+        if (savedStep17ServoSpeed > 0) {
+            servoSpeed = savedStep17ServoSpeed;
+            savedStep17ServoSpeed = 0.0;
+        }
         
         // Reset everything
         cycleCancelled = false;
@@ -277,6 +282,7 @@ void paintingState() {
         savedBackLeftServoSpeed = 0.0;
         savedBackRightServoSpeed = 0.0;
         savedBackServoSpeed = 0.0;
+        savedStep17ServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -345,6 +351,7 @@ void paintingState() {
         savedBackLeftServoSpeed = 0.0;
         savedBackRightServoSpeed = 0.0;
         savedBackServoSpeed = 0.0;
+        savedStep17ServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
@@ -937,6 +944,12 @@ void paintingState() {
     //! STEP 21: FINAL FACE COAT - MOVE SERVO TO 220°, WAIT 200MS, THEN HOME, THEN BACK
     //! ************************************************************************
     else if (step == 19) {
+        // Save current servo speed and set to step 17 speed
+        if (savedStep17ServoSpeed == 0.0) {
+            savedStep17ServoSpeed = servoSpeed;
+            servoSpeed = STEP17_SERVO_SPEED;
+        }
+        
         // First move servo to initial angle (220°)
         if (!step17ServoTo190Started) {
             startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
@@ -972,6 +985,9 @@ void paintingState() {
         else if (!step17ServoBackComplete) {
             if (servoTargetAngle < 0) {
                 step17ServoBackComplete = true;
+                // Restore servo speed
+                servoSpeed = savedStep17ServoSpeed;
+                savedStep17ServoSpeed = 0.0;
                 step = 20;
             }
         }
@@ -1028,6 +1044,7 @@ void paintingState() {
         savedBackLeftServoSpeed = 0.0;
         savedBackRightServoSpeed = 0.0;
         savedBackServoSpeed = 0.0;
+        savedStep17ServoSpeed = 0.0;
         waitStartTime = 0;
         servoAt210Complete = false;
         servoAt180Complete = false;
