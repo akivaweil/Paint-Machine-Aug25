@@ -422,14 +422,14 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 1: TURN ON SUCTION AND MOVE GANTRY TO WAITING POSITION (NON-BLOCKING)
+    //! STEP 1: MOVE GANTRY TO WAITING POSITION (NON-BLOCKING), TURN ON SUCTION AS Y LOWERS
     //! ************************************************************************
     if (step == 0) {
-        // Turn on suction
-        turnOnSuction();
-        
         // Start moving to waiting position (non-blocking)
         startMoveToWaitingPosition();
+        
+        // Turn on suction right as Y starts lowering
+        turnOnSuction();
         
         step = 1;
     }
