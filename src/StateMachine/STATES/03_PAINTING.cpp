@@ -8,45 +8,6 @@
 #include "../../config/Pin_Definitions.h"
 #include "Paint_Motor_Controller.h"
 
-// External motor instances (defined in Web_Manager.cpp)
-extern StepperMotor* motorX;
-extern StepperMotor* motorY;
-extern StepperMotor* motorFork;
-
-// External servo and paint gun controls
-extern ServoControl* servo;
-extern float currentServoAngle;
-extern float servoSpeed;
-extern void enablePaintRotationMotor();
-extern void disablePaintRotationMotor();
-extern void setServoAngle(float angle);
-
-// OTA Manager function
-extern void updateOTA();
-
-// State machine function
-extern void setMachineState(int state);
-#define STATE_GANTRY 2
-
-// Cycle control flags
-extern bool cyclePaused;
-extern bool cycleCancelled;
-
-// Test position values (set from web interface)
-extern float testPos2X;
-extern float testPos2Y;
-extern float testPos2Fork;
-
-// Paint rotation motor steps per revolution
-extern long paintRotationMotorStepsPerRevOutput;
-
-// Paint rotation motor speed and acceleration
-extern long motorSpeedPaintRotation;
-extern long motorAccelPaintRotation;
-
-// Test mode flag
-extern bool testModeEnabled;
-
 //* ************************************************************************
 //* ************************ PAINTING STATE ********************************
 //* ************************************************************************
@@ -55,14 +16,9 @@ extern bool testModeEnabled;
 //║ ⚔️ HELPER FUNCTIONS                                                    ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 
-// Forward declarations
-void updateServoMovement();
-
 // Helper function to move Y-axis with speed adjustment based on direction
 static void moveYWithSpeedAdjustment(float inches) {
     if (!motorY) return;
-    
-    extern long motorSpeedY;
     
     // Negative movement = up (away from home), positive = down (toward home)
     if (inches < 0) {
