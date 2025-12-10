@@ -638,7 +638,7 @@ void gantryState() {
                 // Check if there are more columns to test
                 if (testAllCurrentColumnIndex < testAllColumnCount - 1) {
                     // Home X, Y, and Fork axes before moving to next column (preserve column position)
-                    homeAllAxes(false);  // false = don't reset column position
+                    // TEMPORARILY DISABLED: homeAllAxes(false);  // false = don't reset column position
                     
                     // Move to next column
                     testAllCurrentColumnIndex++;
@@ -663,7 +663,7 @@ void gantryState() {
                 } else {
                     // All columns completed - proceed to cleanup
                     // Home all axes (X, Y, and Fork) but preserve column position
-                    homeAllAxes(false);  // false = don't reset column position
+                    // TEMPORARILY DISABLED: homeAllAxes(false);  // false = don't reset column position
                     
                     // Reset test all mode
                     testAllMode = false;
@@ -680,7 +680,7 @@ void gantryState() {
         } else {
             // Single test complete - now do cleanup (homing only happens at the end)
             // Home all axes (X, Y, and Fork) but preserve column position
-            homeAllAxes(false);  // false = don't reset column position
+            // TEMPORARILY DISABLED: homeAllAxes(false);  // false = don't reset column position
             
             // Return to idle
             testStarted = false;

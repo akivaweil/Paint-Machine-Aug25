@@ -82,7 +82,7 @@
 //║ 🔄 STEP 13-14: ROTATE TO RIGHT SIDE                                 ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP13_RIGHT_ROTATION_REV 0.125                // Rotation to right side (45 degrees CW = 0.125 revolutions)
-#define STEP14_RIGHT_SIDE_WAIT_MS 300                  // Wait time on right side before continuing (milliseconds)
+#define STEP14_RIGHT_SIDE_WAIT_MS 500                  // Wait time on right side before continuing (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 15: PAINT GUN REFILL DELAY                                  ║
