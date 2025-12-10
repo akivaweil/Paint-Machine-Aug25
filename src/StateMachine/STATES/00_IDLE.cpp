@@ -26,20 +26,32 @@ void idleState() {
     static bool lastButtonState = LOW;
     static bool isMovingToPosition = false;
     
-    // Move X-axis to pos1/pos4 X position if not already there
+    // Wait for any existing movement to complete before checking position
+    // This ensures we don't interrupt movements from other states
+    if (motorX && motorX->isMotorRunning() && !isMovingToPosition) {
+        updateOTA();
+        delay(1);
+        return;  // Don't do anything else until motor stops
+    }
+    
+    // Move X-axis directly to pos1/pos4 X position if not already there
+    // This calculates the movement directly from current position to target,
+    // avoiding any intermediate offset positions
     if (motorX && !isMovingToPosition) {
-        // Get current X position
+        // Get current X position (wherever we are - could be at waiting position, pos3, etc.)
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         
-        // Calculate target absolute position (negate because positive direction moves toward home switches)
+        // Calculate target absolute position directly to pos1 X
+        // (negate because positive direction moves toward home switches)
         float targetX = -testPos1X;
         
-        // Calculate relative movement needed to reach absolute position
+        // Calculate relative movement needed to reach target directly
         float moveX = targetX - currentX;
         
         // Only move if we're not already at the target position
         if (abs(moveX) > 0.01) {  // 0.01 inch tolerance
             isMovingToPosition = true;
+            // Move directly to target position in one smooth motion (no intermediate stops)
             motorX->moveInches(moveX);
         }
     }
