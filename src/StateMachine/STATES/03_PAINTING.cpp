@@ -678,12 +678,12 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 18: MOVE SERVO TO SERVO HOME POSITION
+    //! STEP 18: MOVE SERVO TO SPIN SERVO ANGLE
     //! ************************************************************************
     else if (step == 16) {
-        // Start moving servo to home angle (non-blocking)
+        // Start moving servo to spin angle (non-blocking)
         if (!servoAtHomeComplete) {
-            startServoMoveToAngle(SERVO_HOME_ANGLE);
+            startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
             servoAtHomeComplete = true;
         }
         

@@ -82,4 +82,9 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP15_FINAL_ROTATION_REV 2.25                 // Final rotation amount (810 degrees = 2.25 revolutions)
 
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🔄 STEP 16: SPIN SERVO ANGLE                                        ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define STEP16_SPIN_SERVO_ANGLE_DEG 180.0              // Servo angle for spin operation (degrees)
+
 #endif // PAINTING_CONFIG_H
