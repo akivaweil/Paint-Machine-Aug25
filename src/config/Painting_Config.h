@@ -78,7 +78,12 @@
 #define STEP14_RIGHT_SIDE_WAIT_MS 300                  // Wait time on right side before continuing (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
-//║ 🔄 STEP 15: FINAL ROTATION                                          ║
+//║ 🔄 STEP 15: PAINT GUN REFILL DELAY                                  ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define STEP15_PAINT_GUN_OFF_DELAY_MS 500              // Time to turn off paint gun for refill (milliseconds)
+
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🔄 STEP 16: FINAL ROTATION                                          ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP15_FINAL_ROTATION_REV 2.25                 // Final rotation amount (810 degrees = 2.25 revolutions)
 #define STEP15_FIRST_REV_SERVO_ANGLE_DEG 210.0         // Servo angle for first 1 revolution (degrees)

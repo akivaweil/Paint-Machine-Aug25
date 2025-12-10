@@ -213,6 +213,8 @@ void paintingState() {
     static bool step17ServoToHomeStarted = false;
     static bool step17ServoToHomeComplete = false;
     static bool step17ServoBackComplete = false;
+    static bool step15PaintGunTurnedOff = false;
+    static unsigned long step15PaintGunOffTime = 0;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -275,6 +277,8 @@ void paintingState() {
         step17ServoToHomeStarted = false;
         step17ServoToHomeComplete = false;
         step17ServoBackComplete = false;
+        step15PaintGunTurnedOff = false;
+        step15PaintGunOffTime = 0;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -327,6 +331,8 @@ void paintingState() {
         step17ServoToHomeStarted = false;
         step17ServoToHomeComplete = false;
         step17ServoBackComplete = false;
+        step15PaintGunTurnedOff = false;
+        step15PaintGunOffTime = 0;
     }
     
     //! ************************************************************************
@@ -689,9 +695,36 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 17: MOVE SERVO TO 210°, ROTATE 2.25 REVS, MOVE SERVO TO 170° AFTER 1 REV
+    //! STEP 17: TURN OFF PAINT GUN FOR 500MS TO REFILL, THEN TURN BACK ON
     //! ************************************************************************
     else if (step == 15) {
+        // Turn off paint gun
+        if (!step15PaintGunTurnedOff) {
+            turnOffPaintGun();
+            step15PaintGunTurnedOff = true;
+            step15PaintGunOffTime = millis();
+        }
+        
+        // Wait for delay period
+        unsigned long elapsedTime = millis() - step15PaintGunOffTime;
+        if (elapsedTime >= STEP15_PAINT_GUN_OFF_DELAY_MS) {
+            // Turn paint gun back on
+            if (!testModeEnabled) {
+                turnOnPaintGun();
+            }
+            step = 16;
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 18: MOVE SERVO TO 210°, ROTATE 2.25 REVS, MOVE SERVO TO 170° AFTER 1 REV
+    //! ************************************************************************
+    else if (step == 16) {
         // Start moving servo to first angle (210°) (non-blocking)
         if (!servoAt180Complete) {
             startServoMoveToAngle(STEP15_FIRST_REV_SERVO_ANGLE_DEG);
@@ -720,22 +753,6 @@ void paintingState() {
         
         // Wait for full rotation to complete
         if (finalRotationStarted && !isStepperRunning()) {
-            step = 16;
-        } else {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            delay(1);
-        }
-    }
-    
-    //! ************************************************************************
-    //! STEP 18: WAIT FOR SERVO TO REACH 170° (IF NOT ALREADY THERE)
-    //! ************************************************************************
-    else if (step == 16) {
-        // Servo should already be moving to 170° from step 15, just wait for it
-        if (servoTargetAngle < 0) {
-            // Servo movement complete
             step = 17;
         } else {
             updateServoMovement();
@@ -746,9 +763,25 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 19: FINAL FACE COAT - MOVE SERVO TO 220°, WAIT 200MS, THEN HOME, THEN BACK
+    //! STEP 19: WAIT FOR SERVO TO REACH 170° (IF NOT ALREADY THERE)
     //! ************************************************************************
     else if (step == 17) {
+        // Servo should already be moving to 170° from step 16, just wait for it
+        if (servoTargetAngle < 0) {
+            // Servo movement complete
+            step = 18;
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 20: FINAL FACE COAT - MOVE SERVO TO 220°, WAIT 200MS, THEN HOME, THEN BACK
+    //! ************************************************************************
+    else if (step == 18) {
         // First move servo to initial angle (220°)
         if (!step17ServoTo190Started) {
             startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
@@ -784,7 +817,7 @@ void paintingState() {
         else if (!step17ServoBackComplete) {
             if (servoTargetAngle < 0) {
                 step17ServoBackComplete = true;
-                step = 18;
+                step = 19;
             }
         }
         
@@ -795,9 +828,9 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 20: MOVE SERVO TO HOME POSITION, THEN TURN OFF PAINT GUN
+    //! STEP 21: MOVE SERVO TO HOME POSITION, THEN TURN OFF PAINT GUN
     //! ************************************************************************
-    else if (step == 18) {
+    else if (step == 19) {
         // Start moving servo to home angle (non-blocking, paint gun still on)
         if (!servoToHomeStarted) {
             startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -821,9 +854,9 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 21: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 22: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
     //! ************************************************************************
-    else if (step == 19) {
+    else if (step == 20) {
         // Turn off suction
         turnOffSuction();
         
@@ -866,6 +899,8 @@ void paintingState() {
         step17ServoToHomeStarted = false;
         step17ServoToHomeComplete = false;
         step17ServoBackComplete = false;
+        step15PaintGunTurnedOff = false;
+        step15PaintGunOffTime = 0;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
