@@ -378,7 +378,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: MOVE SERVO TO PAINTING ANGLE, THEN TURN ON PAINT GUN
+    //! STEP 3: MOVE SERVO TO PAINTING ANGLE AND START INITIAL 180-DEGREE ROTATION (SIMULTANEOUS)
     //! ************************************************************************
     else if (step == 2) {
         // Save current servo speed and set to fast speed
@@ -402,6 +402,12 @@ void paintingState() {
             startServoMoveToAngle(SERVO_PAINTING_ANGLE);
             servoAt210Complete = true;
             servoStartTime = millis();  // Record when servo started moving
+        }
+        
+        // Start initial 180-degree rotation simultaneously (non-blocking)
+        if (!initial180RotationStarted) {
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP4_INITIAL_ROTATION_REV));
+            initial180RotationStarted = true;
         }
         
         // Wait for servo to reach painting angle before turning on paint gun
@@ -430,20 +436,11 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: START INITIAL 180-DEGREE ROTATION AND CONTINUE
+    //! STEP 4: WAIT FOR INITIAL 180-DEGREE ROTATION TO COMPLETE
     //! ************************************************************************
     else if (step == 3) {
-        // After servo reached painting angle, start initial rotation
-        if (!initial180RotationStarted && servoReachedPaintingAngleTime > 0) {
-            unsigned long elapsedTime = millis() - servoReachedPaintingAngleTime;
-            if (elapsedTime >= STEP4_INITIAL_ROTATION_DELAY_MS) {
-                moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP4_INITIAL_ROTATION_REV));
-                initial180RotationStarted = true;
-            }
-        }
-        
-        // Wait for initial rotation delay to pass (servo already at angle, paint gun already on)
-        if (initial180RotationStarted || (servoReachedPaintingAngleTime > 0 && (millis() - servoReachedPaintingAngleTime) >= STEP4_INITIAL_ROTATION_DELAY_MS)) {
+        // Wait for initial rotation to complete
+        if (!isStepperRunning()) {
             step = 4;
         } else {
             updateServoMovement();
