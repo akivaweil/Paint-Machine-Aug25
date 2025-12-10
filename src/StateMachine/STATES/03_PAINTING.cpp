@@ -230,6 +230,7 @@ void paintingState() {
     static unsigned long step15PaintGunOffTime = 0;
     static bool step18PaintGunTurnedOff = false;
     static unsigned long step18PaintGunOffTime = 0;
+    static bool final180RotationStarted = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -325,6 +326,7 @@ void paintingState() {
         step15PaintGunOffTime = 0;
         step18PaintGunTurnedOff = false;
         step18PaintGunOffTime = 0;
+        final180RotationStarted = false;
         
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
@@ -394,6 +396,7 @@ void paintingState() {
         step15PaintGunOffTime = 0;
         step18PaintGunTurnedOff = false;
         step18PaintGunOffTime = 0;
+        final180RotationStarted = false;
     }
     
     //! ************************************************************************
@@ -1017,9 +1020,33 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 23: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 22: FINAL 180-DEGREE ROTATION (PAINT GUN OFF, SUCTION ON)
     //! ************************************************************************
     else if (step == 21) {
+        // Ensure paint gun is off
+        turnOffPaintGun();
+        
+        // Start 180-degree rotation (0.5 revolutions)
+        if (!final180RotationStarted) {
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP4_INITIAL_ROTATION_REV));
+            final180RotationStarted = true;
+        }
+        
+        // Wait for rotation to complete
+        if (!isStepperRunning()) {
+            step = 22;
+        } else {
+            updateServoMovement();
+            updateOTA();
+            if (cycleCancelled) return;
+            delay(1);
+        }
+    }
+    
+    //! ************************************************************************
+    //! STEP 23: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! ************************************************************************
+    else if (step == 22) {
         // Turn off suction
         turnOffSuction();
         
@@ -1079,6 +1106,7 @@ void paintingState() {
         step15PaintGunOffTime = 0;
         step18PaintGunTurnedOff = false;
         step18PaintGunOffTime = 0;
+        final180RotationStarted = false;
         
         // Return to gantry state
         setMachineState(STATE_GANTRY);
