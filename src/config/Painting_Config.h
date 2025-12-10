@@ -87,4 +87,9 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP16_SPIN_SERVO_ANGLE_DEG 170.0              // Servo angle for spin operation (degrees)
 
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🔄 STEP 17: FINAL FACE COAT                                         ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define STEP17_INITIAL_SERVO_ANGLE_DEG 200.0           // Initial servo angle for final face coat (degrees)
+
 #endif // PAINTING_CONFIG_H
