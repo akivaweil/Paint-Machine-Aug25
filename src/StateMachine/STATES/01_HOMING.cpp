@@ -409,15 +409,32 @@ void moveToColumn(int targetColumn) {
     // Now move at homing speed until switch is detected (only if sensor didn't trigger early)
     if (!sensorTriggeredEarly) {
         Serial.println("[COLUMN] Finding switch at homing speed...");
-        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
-        motorStorage->startContinuous(true);  // Clockwise
         
+        // Ensure motor is fully stopped before transitioning
+        motorStorage->forceStop();
+        delay(50);  // Brief delay to allow motor to settle
+        
+        // Set homing speed and acceleration for smooth incremental moves
+        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+        motorStorage->setAcceleration(motorAccelStorage);
+        
+        // Use small incremental moves at homing speed instead of continuous mode for smoother operation
         storagePositionSensor.update();
         while (!storagePositionSensor.read()) {
             storagePositionSensor.update();
-            motorStorage->runContinuous();
+            // Move small increment (10 steps) at homing speed with acceleration
+            motorStorage->moveSteps(10);
+            while (motorStorage->isMotorRunning()) {
+                motorStorage->run();
+                storagePositionSensor.update();
+                if (storagePositionSensor.read()) {
+                    motorStorage->forceStop();
+                    break;
+                }
+                updateOTA();
+                delay(1);
+            }
             updateOTA();
-            delay(1);
         }
     }
     
@@ -512,15 +529,32 @@ void moveStorageClockwise() {
     // Now move at homing speed until switch is detected (only if sensor didn't trigger early)
     if (!sensorTriggeredEarly) {
         Serial.println("[STORAGE] Finding switch at homing speed...");
-        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
-        motorStorage->startContinuous(true);  // Clockwise
         
+        // Ensure motor is fully stopped before transitioning
+        motorStorage->forceStop();
+        delay(50);  // Brief delay to allow motor to settle
+        
+        // Set homing speed and acceleration for smooth incremental moves
+        motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+        motorStorage->setAcceleration(motorAccelStorage);
+        
+        // Use small incremental moves at homing speed instead of continuous mode for smoother operation
         storagePositionSensor.update();
         while (!storagePositionSensor.read()) {
             storagePositionSensor.update();
-            motorStorage->runContinuous();
+            // Move small increment (10 steps) at homing speed with acceleration
+            motorStorage->moveSteps(10);
+            while (motorStorage->isMotorRunning()) {
+                motorStorage->run();
+                storagePositionSensor.update();
+                if (storagePositionSensor.read()) {
+                    motorStorage->forceStop();
+                    break;
+                }
+                updateOTA();
+                delay(1);
+            }
             updateOTA();
-            delay(1);
         }
     }
     
