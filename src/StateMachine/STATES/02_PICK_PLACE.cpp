@@ -94,9 +94,11 @@ static void moveYWithSpeedAdjustment(float inches) {
 void pickPlaceState() {
     static int step = 0;
     static bool testStarted = false;
+    static bool wasCancelled = false;
     
     // Check for cancel at start of function
     if (cycleCancelled) {
+        wasCancelled = true;
         // Cleanup: stop all motors immediately
         if (motorX) motorX->forceStop();
         if (motorY) motorY->forceStop();
@@ -128,24 +130,17 @@ void pickPlaceState() {
         return;
     }
     
-    // Reset state if we're entering after a cancel (testStarted might still be true from previous cycle)
-    // Check if we're actually at home position to determine if we should reset
-    if (testStarted) {
-        // If motors are at home (position near 0), we're not in the middle of a cycle - reset
-        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
-        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
-        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
-        
-        // If all axes are near home (within 0.5 inches), reset the state
-        // This catches cases where we cancelled and homed, but testStarted wasn't reset
-        if (fabs(currentX) < 0.5 && fabs(currentY) < 0.5 && fabs(currentFork) < 0.5) {
-            testStarted = false;
-            step = 0;
-        }
+    // If we were cancelled and are now re-entering pick_place, reset state
+    // This handles the case where painting state cancelled and we're back in pick_place
+    if (wasCancelled && testStarted) {
+        testStarted = false;
+        step = 0;
+        wasCancelled = false;
     }
     
     // Initialize on first entry
     if (!testStarted) {
+        wasCancelled = false;  // Clear cancel flag on new cycle start
         step = 0;
         testStarted = true;
         cyclePaused = false;  // Reset pause flag on new test
@@ -700,6 +695,7 @@ void pickPlaceState() {
                     
                     // Return to idle
                     testStarted = false;
+                    wasCancelled = false;  // Clear cancel flag on normal completion
                     setMachineState(STATE_IDLE);
                 }
             }
@@ -710,6 +706,7 @@ void pickPlaceState() {
             
             // Return to idle
             testStarted = false;
+            wasCancelled = false;  // Clear cancel flag on normal completion
             setMachineState(STATE_IDLE);
         }
     }
