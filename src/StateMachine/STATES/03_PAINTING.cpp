@@ -284,6 +284,9 @@ void paintingState() {
     static bool step18PaintGunTurnedOff = false;
     static unsigned long step18PaintGunOffTime = 0;
     static bool final180RotationStarted = false;
+    static bool step17PaintMotorCWStarted = false;
+    static bool step17PaintMotorCWComplete = false;
+    static bool step17PaintMotorCCWComplete = false;
     
     // Update servo movement (non-blocking, call every cycle)
     updateServoMovement();
@@ -401,6 +404,9 @@ void paintingState() {
         step18PaintGunTurnedOff = false;
         step18PaintGunOffTime = 0;
         final180RotationStarted = false;
+        step17PaintMotorCWStarted = false;
+        step17PaintMotorCWComplete = false;
+        step17PaintMotorCCWComplete = false;
         
         // Reset flags and return to idle (don't reset cycleCancelled here - let pick_place handle it if needed)
         // But since we're going to idle, we should reset it
@@ -480,6 +486,9 @@ void paintingState() {
         step18PaintGunTurnedOff = false;
         step18PaintGunOffTime = 0;
         final180RotationStarted = false;
+        step17PaintMotorCWStarted = false;
+        step17PaintMotorCWComplete = false;
+        step17PaintMotorCCWComplete = false;
     }
     
     //! ************************************************************************
@@ -1209,7 +1218,7 @@ void paintingState() {
             startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
             step17ServoTo190Started = true;
         }
-        // Wait for servo to reach initial angle, then wait 200ms
+        // Wait for servo to reach initial angle, then wait and rotate paint motor
         else if (!step17ServoTo190Complete) {
             if (servoTargetAngle < 0) {
                 // Record time when servo reached initial angle
@@ -1220,10 +1229,31 @@ void paintingState() {
                 // Wait for delay period
                 unsigned long elapsedTime = millis() - step17InitialAngleReachedTime;
                 if (elapsedTime >= STEP17_INITIAL_ANGLE_WAIT_MS) {
-                    step17ServoTo190Complete = true;
-                    // Start moving servo to home position
-                    startServoMoveToAngle(SERVO_HOME_ANGLE);
-                    step17ServoToHomeStarted = true;
+                    // Start paint motor rotation (45 degrees clockwise)
+                    if (!step17PaintMotorCWStarted) {
+                        moveStepper((long)(paintRotationMotorStepsPerRevOutput * 0.125)); // 45 degrees = 0.125 revolutions
+                        step17PaintMotorCWStarted = true;
+                    }
+                    
+                    // Wait for clockwise rotation to complete
+                    if (step17PaintMotorCWStarted && !step17PaintMotorCWComplete) {
+                        if (!isStepperRunning()) {
+                            step17PaintMotorCWComplete = true;
+                            // Start counter-clockwise rotation (back to original position)
+                            moveStepper((long)(paintRotationMotorStepsPerRevOutput * -0.125)); // -45 degrees = -0.125 revolutions
+                        }
+                    }
+                    
+                    // Wait for counter-clockwise rotation to complete
+                    if (step17PaintMotorCWComplete && !step17PaintMotorCCWComplete) {
+                        if (!isStepperRunning()) {
+                            step17PaintMotorCCWComplete = true;
+                            step17ServoTo190Complete = true;
+                            // Start moving servo to home position
+                            startServoMoveToAngle(SERVO_HOME_ANGLE);
+                            step17ServoToHomeStarted = true;
+                        }
+                    }
                 }
             }
         }
@@ -1387,6 +1417,9 @@ void paintingState() {
         step18PaintGunTurnedOff = false;
         step18PaintGunOffTime = 0;
         final180RotationStarted = false;
+        step17PaintMotorCWStarted = false;
+        step17PaintMotorCWComplete = false;
+        step17PaintMotorCCWComplete = false;
         
         // Return to pick and place state
         setMachineState(STATE_PICK_PLACE);
