@@ -2,6 +2,7 @@
 #include <Bounce2.h>
 #include "Web_Manager.h"
 #include "config/Pin_Definitions.h"
+#include "config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
@@ -23,8 +24,10 @@ void initializeSensors() {
     storagePositionSensor.attach(STORAGE_POSITION_SENSOR_PIN, INPUT_PULLDOWN);
     storagePositionSensor.interval(5);  // 5ms debounce
     
-    // Initialize Square Present Sensor (active LOW with pullup)
-    pinMode(SQUARE_PRESENT_SENSOR_PIN, INPUT_PULLUP);
+    // Initialize Ultrasonic Sensor
+    pinMode(ULTRASONIC_TRIG_PIN, OUTPUT);
+    pinMode(ULTRASONIC_ECHO_PIN, INPUT);
+    digitalWrite(ULTRASONIC_TRIG_PIN, LOW);
     
     // Initialize Servo
     if (servo == nullptr) {
@@ -110,6 +113,30 @@ bool isPaintRotationMotorRunning() {
     return isStepperRunning();
 }
 
+// Check if square is present using ultrasonic sensor
+// Returns true if distance is less than threshold (square present)
+bool isSquarePresent() {
+    // Clear trigger pin
+    digitalWrite(ULTRASONIC_TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    
+    // Send 10us trigger pulse
+    digitalWrite(ULTRASONIC_TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(ULTRASONIC_TRIG_PIN, LOW);
+    
+    // Read echo pulse duration (timeout after 30000us = ~500cm max range)
+    long pulseDuration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH, 30000);
+    
+    // Calculate distance in cm
+    // Speed of sound = 343 m/s = 0.034 cm/us
+    // Distance = (pulse duration * speed) / 2 (divide by 2 because sound travels to object and back)
+    float distanceCm = (pulseDuration * 0.034) / 2.0;
+    
+    // Return true if distance is less than threshold (square present)
+    return (distanceCm > 0 && distanceCm < ULTRASONIC_SQUARE_PRESENT_THRESHOLD_CM);
+}
+
 // Initialize motors
 void initializeMotors() {
     // Initialize paint rotation motor controller FIRST to ensure it gets resources
@@ -143,7 +170,7 @@ String getSensorStatesJSON() {
     bool forkHome = homeSwitchFork ? homeSwitchFork->read() : false;
     bool testButton = digitalRead(TEST_BUTTON_PIN); // Active HIGH
     bool storagePosition = storagePositionSensor.read(); // Active HIGH
-    bool squarePresent = !digitalRead(SQUARE_PRESENT_SENSOR_PIN); // Active LOW, invert so true = present
+    bool squarePresent = isSquarePresent(); // Ultrasonic sensor - true if distance < threshold
     
     String json = "{";
     json += "\"xHome1\":" + String(xHome1 ? "true" : "false") + ",";

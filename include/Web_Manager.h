@@ -88,6 +88,7 @@ extern void setServoAngle(float angle);
 extern void enablePaintRotationMotor();
 extern void disablePaintRotationMotor();
 extern bool isPaintRotationMotorRunning();
+extern bool isSquarePresent();
 extern String getSensorStatesJSON();
 
 // API Routes function

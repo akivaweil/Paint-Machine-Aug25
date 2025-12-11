@@ -223,29 +223,8 @@ void pickPlaceState() {
             delay(1);
         }
         
-        // Check if square is present (sensor is active LOW) - only if square sensing is enabled
-        // If no square present, retract fork and skip to end of position 4 (step 18)
-        extern bool squareSensingEnabled;
-        if (squareSensingEnabled && digitalRead(SQUARE_PRESENT_SENSOR_PIN) != LOW) {
-            // Retract fork before skipping
-            motorFork->moveInches(testPos1Fork);
-            
-            // Wait for fork motor to finish retracting (check home sensor as safety)
-            while (motorFork->isMotorRunning()) {
-                if (homeSwitchFork && homeSwitchFork->read()) {
-                    motorFork->forceStop();
-                    break;
-                }
-                updateOTA();
-                delay(1);
-            }
-            
-            CHECK_PAUSE_AND_CANCEL();
-            step = 15;
-        } else {
-            CHECK_PAUSE_AND_CANCEL();
-            step = 2;
-        }
+        CHECK_PAUSE_AND_CANCEL();
+        step = 2;
     }
     
     //! ************************************************************************
@@ -286,8 +265,17 @@ void pickPlaceState() {
             updateOTA();
             delay(1);
         }
-        CHECK_PAUSE_AND_CANCEL();
-        step = 4;
+        
+        // Check if square is present (ultrasonic sensor) - only if square sensing is enabled
+        // If no square present, skip to end of position 4 (step 15)
+        extern bool squareSensingEnabled;
+        if (squareSensingEnabled && !isSquarePresent()) {
+            CHECK_PAUSE_AND_CANCEL();
+            step = 15;
+        } else {
+            CHECK_PAUSE_AND_CANCEL();
+            step = 4;
+        }
     }
     
     //! ************************************************************************

@@ -123,13 +123,6 @@ void homeForkAxis() {
     // Stop motor
     motorFork->stopContinuous();
     
-    // Move 0 inches away from home (no offset)
-    motorFork->moveInches(0);
-    while (motorFork->isMotorRunning()) {
-        updateOTA(); // Allow OTA updates during homing
-        delay(1);
-    }
-    
     // Set home offset as position zero
     motorFork->resetPosition();
     

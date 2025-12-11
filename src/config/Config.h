@@ -80,4 +80,9 @@
 #define TEST_Y_SPEED_FORK_EXTENDED 7000       // Y-axis speed when fork is extended (steps per second)
 #define TEST_Y_ACCEL_FORK_EXTENDED 7000       // Y-axis acceleration when fork is extended (steps per second squared)
 
+//╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
+//║ 🔍 SENSOR SETTINGS                                                   ║
+//╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
+#define ULTRASONIC_SQUARE_PRESENT_THRESHOLD_CM 7.0  // Distance threshold in cm (square present if distance < threshold)
+
 #endif // CONFIG_H 

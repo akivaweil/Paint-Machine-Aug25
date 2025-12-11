@@ -44,7 +44,8 @@
 //║ 🔍 SENSORS                                                           ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STORAGE_POSITION_SENSOR_PIN 2      // Active HIGH with pulldown
-#define SQUARE_PRESENT_SENSOR_PIN 16       // Active LOW with pullup
+#define ULTRASONIC_TRIG_PIN 15             // Ultrasonic sensor trigger pin
+#define ULTRASONIC_ECHO_PIN 16             // Ultrasonic sensor echo pin
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 PAINTING COMPONENTS                                               ║
