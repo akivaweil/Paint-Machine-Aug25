@@ -34,24 +34,26 @@ void idleState() {
         return;  // Don't do anything else until motor stops
     }
     
-    // Move X-axis directly to pos1/pos4 X position if not already there
-    // This calculates the movement directly from current position to target,
-    // avoiding any intermediate offset positions
+    // Move X-axis to position calculated by adding offset distance and pos1 X position
+    // After homing: motor position 0 = physical -0.5 inches from home switch
+    // Target physical position: -0.5 + testPos1X
+    // Relative move needed: testPos1X inches from current position
     if (motorX && !isMovingToPosition) {
         // Get current X position (wherever we are - could be at waiting position, pos3, etc.)
         float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
         
-        // Calculate target absolute position directly to pos1 X
-        // (negate because positive direction moves toward home switches)
-        float targetX = -testPos1X;
+        // Calculate target position: offset distance (-0.5) + pos1 X position
+        // After homing, position 0 corresponds to -0.5 inches physically
+        // To reach physical position (-0.5 + testPos1X), move testPos1X inches from current
+        float targetX = testPos1X;
         
-        // Calculate relative movement needed to reach target directly
+        // Calculate relative movement needed to reach target
         float moveX = targetX - currentX;
         
         // Only move if we're not already at the target position
         if (abs(moveX) > 0.01) {  // 0.01 inch tolerance
             isMovingToPosition = true;
-            // Move directly to target position in one smooth motion (no intermediate stops)
+            // Move to target position
             motorX->moveInches(moveX);
         }
     }
@@ -63,6 +65,8 @@ void idleState() {
             delay(1);
         } else {
             isMovingToPosition = false;
+            // Set X position to pos1 X value after movement completes
+            motorX->setCurrentPosition(motorX->inchesToSteps(testPos1X));
         }
     }
     
