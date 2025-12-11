@@ -267,11 +267,28 @@ void pickPlaceState() {
         }
         
         // Check if square is present (ultrasonic sensor) - only if square sensing is enabled
-        // If no square present, skip to end of position 4 (step 15)
+        // Check multiple times over 100ms - if square detected at any point, proceed
+        // If no square present after all checks, skip to end of position 4 (step 15)
         extern bool squareSensingEnabled;
-        if (squareSensingEnabled && !isSquarePresent()) {
-            CHECK_PAUSE_AND_CANCEL();
-            step = 15;
+        bool squareDetected = false;
+        if (squareSensingEnabled) {
+            unsigned long startTime = millis();
+            while (millis() - startTime < 100) {
+                if (isSquarePresent()) {
+                    squareDetected = true;
+                    break;
+                }
+                updateOTA();
+                delay(5);  // Small delay between checks
+            }
+            
+            if (!squareDetected) {
+                CHECK_PAUSE_AND_CANCEL();
+                step = 15;
+            } else {
+                CHECK_PAUSE_AND_CANCEL();
+                step = 4;
+            }
         } else {
             CHECK_PAUSE_AND_CANCEL();
             step = 4;
