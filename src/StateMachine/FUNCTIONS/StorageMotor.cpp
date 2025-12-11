@@ -42,9 +42,9 @@ void StorageMotor::overrideSpeed(long speed) {
 void StorageMotor::step() {
     if (stepper) {
         if (continuousDirection) {
-            stepper->move(1);
-        } else {
             stepper->move(-1);
+        } else {
+            stepper->move(1);
         }
     }
 }
@@ -55,7 +55,7 @@ void StorageMotor::moveSteps(long steps) {
             stopContinuous();
         }
         continuousMode = false;
-        stepper->move(steps);
+        stepper->move(-steps);
     } else if (stepper && steps == 0) {
         stepper->stop();
         continuousMode = false;
@@ -65,7 +65,7 @@ void StorageMotor::moveSteps(long steps) {
 void StorageMotor::moveStepsSmooth(long steps) {
     if (stepper && steps != 0) {
         continuousMode = false;
-        stepper->move(steps);
+        stepper->move(-steps);
     } else if (stepper && steps == 0) {
         stepper->stop();
         continuousMode = false;
@@ -123,17 +123,17 @@ void StorageMotor::setStepsPerInch(float stepsPerInch) {
 
 void StorageMotor::startContinuous(bool positive) {
     continuousMode = true;
-    continuousDirection = positive;
+    continuousDirection = !positive;
     rampStep = 0;
     lastRampTime = millis();
     if (stepper) {
         // Start at lower speed to prevent brownout, will ramp up in runContinuous()
         long startSpeed = STORAGE_MOTOR_CONTINUOUS_START_SPEED;
         if (positive) {
-            stepper->setSpeed(startSpeed);
+            stepper->setSpeed(-startSpeed);
             stepper->runSpeed();
         } else {
-            stepper->setSpeed(-startSpeed);
+            stepper->setSpeed(startSpeed);
             stepper->runSpeed();
         }
     }
@@ -171,9 +171,9 @@ void StorageMotor::runContinuous() {
         }
         
         if (continuousDirection) {
-            stepper->setSpeed(currentSpeed);
-        } else {
             stepper->setSpeed(-currentSpeed);
+        } else {
+            stepper->setSpeed(currentSpeed);
         }
         stepper->runSpeed();
     }
