@@ -39,6 +39,11 @@ void waitForMotor(StepperMotor* motor) {
         updateServoMovement();  // Update servo while waiting
         updateOTA();
         if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
+        if (cycleCancelled) return;
         delay(1);
     }
 }
@@ -48,6 +53,11 @@ void waitForMotors(StepperMotor* motor1, StepperMotor* motor2) {
     while ((motor1 && motor1->isMotorRunning()) || (motor2 && motor2->isMotorRunning())) {
         updateServoMovement();  // Update servo while waiting
         updateOTA();
+        if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
         if (cycleCancelled) return;
         delay(1);
     }
@@ -441,6 +451,11 @@ void paintingState() {
             updateServoMovement();
             updateOTA();
             if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
+            if (cycleCancelled) return;
             
             motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
             delay(1);
@@ -458,6 +473,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -517,6 +537,11 @@ void paintingState() {
             updateServoMovement();
             updateOTA();
             if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
+            if (cycleCancelled) return;
             delay(1);
         }
     }
@@ -532,6 +557,11 @@ void paintingState() {
             updateServoMovement();
             updateOTA();
             if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
+            if (cycleCancelled) return;
             delay(1);
         }
     }
@@ -544,6 +574,11 @@ void paintingState() {
         if (initial180RotationStarted && isStepperRunning()) {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         } else {
@@ -570,6 +605,11 @@ void paintingState() {
             updateServoMovement();
             updateOTA();
             if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
+            if (cycleCancelled) return;
             delay(1);
         }
     }
@@ -584,6 +624,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -606,6 +651,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -661,6 +711,11 @@ void paintingState() {
         updateServoMovement();
         updateOTA();
         if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
+        if (cycleCancelled) return;
         delay(1);
     }
     
@@ -681,6 +736,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -736,6 +796,11 @@ void paintingState() {
         updateServoMovement();
         updateOTA();
         if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
+        if (cycleCancelled) return;
         delay(1);
     }
     
@@ -756,6 +821,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -811,6 +881,11 @@ void paintingState() {
         updateServoMovement();
         updateOTA();
         if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
+        if (cycleCancelled) return;
         delay(1);
     }
     
@@ -831,6 +906,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -886,6 +966,11 @@ void paintingState() {
         updateServoMovement();
         updateOTA();
         if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
+        if (cycleCancelled) return;
         delay(1);
     }
     
@@ -911,6 +996,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -953,6 +1043,11 @@ void paintingState() {
             updateServoMovement();
             updateOTA();
             if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
+            if (cycleCancelled) return;
             delay(1);
         }
     }
@@ -968,6 +1063,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -995,6 +1095,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1047,6 +1152,11 @@ void paintingState() {
         updateServoMovement();
         updateOTA();
         if (cycleCancelled) return;
+        while (cyclePaused && !cycleCancelled) {
+            updateOTA();
+            delay(10);
+        }
+        if (cycleCancelled) return;
         delay(1);
     }
     
@@ -1072,6 +1182,11 @@ void paintingState() {
             updateServoMovement();
             updateOTA();
             if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
+            if (cycleCancelled) return;
             delay(1);
         }
     }
@@ -1095,6 +1210,11 @@ void paintingState() {
         } else {
             updateServoMovement();
             updateOTA();
+            if (cycleCancelled) return;
+            while (cyclePaused && !cycleCancelled) {
+                updateOTA();
+                delay(10);
+            }
             if (cycleCancelled) return;
             delay(1);
         }

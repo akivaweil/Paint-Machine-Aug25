@@ -34,7 +34,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 📍 STEP 0-1: MOVEMENT TO WAITING POSITION                           ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP1_WAITING_POSITION_X_OFFSET_INCHES 5.0     // X-axis offset from position 3 to waiting position (inches)
+#define STEP1_WAITING_POSITION_X_OFFSET_INCHES 7.0     // X-axis offset from position 3 to waiting position (inches)
 #define STEP1_WAITING_POSITION_Y_OFFSET_INCHES 0.5     // Y-axis offset from position 3 to waiting position (inches)
 #define STEP2_WAITING_POSITION_DELAY_MS 250            // Delay after motors reach waiting position before turning on paint gun (milliseconds)
 
