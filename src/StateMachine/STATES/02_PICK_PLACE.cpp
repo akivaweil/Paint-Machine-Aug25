@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "StateMachine/STATES/02_GANTRY.h"
+#include "StateMachine/STATES/02_PICK_PLACE.h"
 #include "../../config/Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
@@ -68,7 +68,7 @@ extern int testAllCurrentColumnIndex;  // Current column index in the test seque
 #include "../../config/Pin_Definitions.h"
 
 //* ************************************************************************
-//* ************************ GANTRY STATE *********************************
+//* ************************ PICK AND PLACE STATE *************************
 //* ************************************************************************
 
 // Helper function to move Y-axis with speed adjustment based on direction
@@ -90,7 +90,7 @@ static void moveYWithSpeedAdjustment(float inches) {
     motorY->moveInches(inches);
 }
 
-void gantryState() {
+void pickPlaceState() {
     static int step = 0;
     static bool testStarted = false;
     
@@ -691,4 +691,3 @@ void gantryState() {
         }
     }
 }
-

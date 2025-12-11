@@ -32,11 +32,11 @@
 #define SERVO_MAX_STEP_SIZE_DEG 1.25                    // Maximum movement per update to prevent jumps (degrees)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
-//║ 📍 STEP 0-1: GANTRY MOVEMENT TO WAITING POSITION                     ║
+//║ 📍 STEP 0-1: MOVEMENT TO WAITING POSITION                           ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP1_WAITING_POSITION_X_OFFSET_INCHES 5.0     // X-axis offset from position 3 to waiting position (inches)
 #define STEP1_WAITING_POSITION_Y_OFFSET_INCHES 0.5     // Y-axis offset from position 3 to waiting position (inches)
-#define STEP2_WAITING_POSITION_DELAY_MS 250            // Delay after gantry reaches waiting position before turning on paint gun (milliseconds)
+#define STEP2_WAITING_POSITION_DELAY_MS 250            // Delay after motors reach waiting position before turning on paint gun (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🎨 STEP 2-3: SERVO TO PAINTING ANGLE AND INITIAL SETUP               ║
@@ -112,6 +112,6 @@
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 #define STEP17_INITIAL_SERVO_ANGLE_DEG 230.0           // Initial servo angle for final face coat (degrees)
 #define STEP17_INITIAL_ANGLE_WAIT_MS 200              // Wait time at initial angle before moving to home (milliseconds)
-#define STEP17_SERVO_SPEED 70.0                       // Servo movement speed for final face coat (degrees per second)
+#define STEP17_SERVO_SPEED 50.0                       // Servo movement speed for final face coat (degrees per second)
 
 #endif // PAINTING_CONFIG_H

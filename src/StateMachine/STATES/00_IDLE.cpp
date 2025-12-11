@@ -9,7 +9,7 @@ extern void updateOTA();
 
 // State machine function
 extern void setMachineState(int state);
-#define STATE_GANTRY 2
+#define STATE_PICK_PLACE 2
 
 // External motor instances (defined in Web_Manager.cpp)
 extern StepperMotor* motorX;
@@ -75,7 +75,7 @@ void idleState() {
             // Button is active HIGH (pulldown), so check for rising edge
             if (lastButtonState == LOW && buttonState == HIGH) {
                 // Button pressed - start test cycle
-                setMachineState(STATE_GANTRY);
+                setMachineState(STATE_PICK_PLACE);
             }
             
             lastButtonState = buttonState;

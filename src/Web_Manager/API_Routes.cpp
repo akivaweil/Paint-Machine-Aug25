@@ -6,7 +6,7 @@
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/StorageMotor.h"
 #include "StateMachine/STATES/01_HOMING.h"
-#include "StateMachine/STATES/02_GANTRY.h"
+#include "StateMachine/STATES/02_PICK_PLACE.h"
 #include "Paint_Motor_Controller.h"
 
 // Include HTML content (needed for sensors_html)
@@ -294,7 +294,7 @@ void setupAPIRoutes() {
             // Save values to persistent storage
             saveTestPositions();
             
-            // Start gantry state (STATE_GANTRY = 2)
+            // Start pick and place state (STATE_PICK_PLACE = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
@@ -353,7 +353,7 @@ void setupAPIRoutes() {
             // Save values to persistent storage
             saveTestPositions();
             
-            // Start gantry state (STATE_GANTRY = 2)
+            // Start pick and place state (STATE_PICK_PLACE = 2)
             extern void setMachineState(int state);
             setMachineState(2);
             
@@ -588,7 +588,7 @@ void setupAPIRoutes() {
         int state = getMachineState();
         String stateStr = "IDLE";
         if (state == 0) stateStr = "HOMING";
-        else if (state == 2) stateStr = "GANTRY";
+        else if (state == 2) stateStr = "PICK_PLACE";
         
         String json = "{";
         json += "\"state\":\"" + stateStr + "\",";

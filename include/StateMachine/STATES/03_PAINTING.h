@@ -9,7 +9,7 @@
 
 // State machine function
 extern void setMachineState(int state);
-#define STATE_GANTRY 2
+#define STATE_PICK_PLACE 2
 
 // External motor instances (defined in Web_Manager.cpp)
 class StepperMotor;

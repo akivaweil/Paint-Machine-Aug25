@@ -347,8 +347,8 @@ void paintingState() {
         // Move servo back to home angle
         startServoMoveToAngle(SERVO_HOME_ANGLE);
         
-        // Return to gantry state
-        setMachineState(STATE_GANTRY);
+        // Return to pick and place state
+        setMachineState(STATE_PICK_PLACE);
         return;
     }
     
@@ -422,7 +422,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 1: MOVE GANTRY TO WAITING POSITION (NON-BLOCKING)
+    //! STEP 1: MOVE TO WAITING POSITION (NON-BLOCKING)
     //! ************************************************************************
     if (step == 0) {
         // Start moving to waiting position (non-blocking)
@@ -432,7 +432,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: WAIT FOR GANTRY TO REACH WAITING POSITION, THEN WAIT 250MS
+    //! STEP 2: WAIT FOR MOTORS TO REACH WAITING POSITION, THEN WAIT 250MS
     //! ************************************************************************
     else if (step == 1) {
         // Wait for motors to reach waiting position
@@ -1101,7 +1101,7 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 23: TURN OFF SUCTION, CLEANUP AND RETURN TO GANTRY STATE
+    //! STEP 23: TURN OFF SUCTION, CLEANUP AND RETURN TO PICK AND PLACE STATE
     //! ************************************************************************
     else if (step == 22) {
         // Turn off suction
@@ -1171,7 +1171,7 @@ void paintingState() {
         step18PaintGunOffTime = 0;
         final180RotationStarted = false;
         
-        // Return to gantry state
-        setMachineState(STATE_GANTRY);
+        // Return to pick and place state
+        setMachineState(STATE_PICK_PLACE);
     }
 }
