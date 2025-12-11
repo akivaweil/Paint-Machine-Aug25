@@ -3,6 +3,7 @@
 #include "../../config/Config.h"
 #include "../../config/Painting_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
+#include "StateMachine/STATES/01_HOMING.h"
 #include "Web_Manager.h"
 #include "ServoControl.h"
 #include "../../config/Pin_Definitions.h"
@@ -11,6 +12,10 @@
 //* ************************************************************************
 //* ************************ PAINTING STATE ********************************
 //* ************************************************************************
+
+// State definitions
+#define STATE_IDLE 1
+#define STATE_PICK_PLACE 2
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ ⚔️ HELPER FUNCTIONS                                                    ║
@@ -33,6 +38,9 @@ static void moveYWithSpeedAdjustment(float inches) {
     motorY->moveInches(inches);
 }
 
+// Forward declaration
+static void handlePause();
+
 // Wait for a motor to finish moving
 void waitForMotor(StepperMotor* motor) {
     while (motor && motor->isMotorRunning()) {
@@ -40,9 +48,11 @@ void waitForMotor(StepperMotor* motor) {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -55,9 +65,11 @@ void waitForMotors(StepperMotor* motor1, StepperMotor* motor2) {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -81,6 +93,31 @@ void turnOnSuction() {
 // Turn off suction
 void turnOffSuction() {
     digitalWrite(SUCTION_PIN, LOW);
+}
+
+// Handle pause with paint gun control
+static bool paintGunWasOnBeforePause = false;
+static bool wasPaused = false;
+static void handlePause() {
+    // Entering pause - turn off paint gun if it's on
+    if (cyclePaused && !wasPaused) {
+        if (digitalRead(PAINT_GUN_PIN) == HIGH) {
+            paintGunWasOnBeforePause = true;
+            turnOffPaintGun();
+        }
+        wasPaused = true;
+    }
+    // Exiting pause - turn paint gun back on if it was on before
+    else if (!cyclePaused && wasPaused) {
+        if (paintGunWasOnBeforePause) {
+            paintGunWasOnBeforePause = false;
+            extern bool testModeEnabled;
+            if (!testModeEnabled) {
+                turnOnPaintGun();
+            }
+        }
+        wasPaused = false;
+    }
 }
 
 // Start moving to waiting position (5 inches right of position 3) - non-blocking
@@ -264,6 +301,15 @@ void paintingState() {
         turnOffPaintGun();
         turnOffSuction();
         
+        // Immediately move servo to home angle
+        if (servo) {
+            currentServoAngle = SERVO_HOME_ANGLE;
+            servo->write(SERVO_HOME_ANGLE);
+        }
+        
+        // Home all gantry motors (preserve column position)
+        homeAllAxes(false);
+        
         // Restore servo speed if it was changed
         if (savedServoSpeed > 0) {
             servoSpeed = savedServoSpeed;
@@ -293,6 +339,8 @@ void paintingState() {
         // Reset everything
         cycleCancelled = false;
         cyclePaused = false;
+        paintGunWasOnBeforePause = false;
+        wasPaused = false;
         paintingStarted = false;
         step = 0;
         servoTargetAngle = -1.0;  // Clear servo target
@@ -354,19 +402,22 @@ void paintingState() {
         step18PaintGunOffTime = 0;
         final180RotationStarted = false;
         
-        // Move servo back to home angle
-        startServoMoveToAngle(SERVO_HOME_ANGLE);
+        // Reset flags and return to idle (don't reset cycleCancelled here - let pick_place handle it if needed)
+        // But since we're going to idle, we should reset it
+        cycleCancelled = false;
         
-        // Return to pick and place state
-        setMachineState(STATE_PICK_PLACE);
+        // Return to idle state
+        setMachineState(STATE_IDLE);
         return;
     }
     
     // Handle pause
     while (cyclePaused && !cycleCancelled) {
+        handlePause();
         updateOTA();
         delay(10);
     }
+    handlePause();
     if (cycleCancelled) return;
     
     // Initialize on first entry
@@ -452,9 +503,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             
             motorsRunning = (motorX && motorX->isMotorRunning()) || (motorY && motorY->isMotorRunning());
@@ -475,9 +528,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -538,9 +593,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -558,9 +615,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -576,9 +635,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         } else {
@@ -606,9 +667,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -626,9 +689,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -653,9 +718,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -712,9 +779,11 @@ void paintingState() {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -738,9 +807,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -797,9 +868,11 @@ void paintingState() {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -823,9 +896,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -882,9 +957,11 @@ void paintingState() {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -908,9 +985,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -967,9 +1046,11 @@ void paintingState() {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -998,9 +1079,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1044,9 +1127,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1065,9 +1150,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1097,9 +1184,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1153,9 +1242,11 @@ void paintingState() {
         updateOTA();
         if (cycleCancelled) return;
         while (cyclePaused && !cycleCancelled) {
+            handlePause();
             updateOTA();
             delay(10);
         }
+        handlePause();
         if (cycleCancelled) return;
         delay(1);
     }
@@ -1183,9 +1274,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1212,9 +1305,11 @@ void paintingState() {
             updateOTA();
             if (cycleCancelled) return;
             while (cyclePaused && !cycleCancelled) {
+                handlePause();
                 updateOTA();
                 delay(10);
             }
+            handlePause();
             if (cycleCancelled) return;
             delay(1);
         }
@@ -1233,6 +1328,8 @@ void paintingState() {
         
         // Reset state
         paintingStarted = false;
+        paintGunWasOnBeforePause = false;
+        wasPaused = false;
         step = 0;
         waitingPositionReachedTime = 0;
         paintMotorStartPosition = 0;

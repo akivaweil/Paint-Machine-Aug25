@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "StateMachine/STATES/02_PICK_PLACE.h"
 #include "../../config/Config.h"
+#include "../../config/Painting_Config.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "StateMachine/STATES/01_HOMING.h"
@@ -107,6 +108,12 @@ void pickPlaceState() {
         digitalWrite(PAINT_GUN_PIN, LOW);
         digitalWrite(SUCTION_PIN, LOW);
         
+        // Immediately move servo to home angle
+        if (servo) {
+            currentServoAngle = SERVO_HOME_ANGLE;
+            servo->write(SERVO_HOME_ANGLE);
+        }
+        
         // Home all motors (preserve column position)
         homeAllAxes(false);
         
@@ -119,6 +126,22 @@ void pickPlaceState() {
         // Return to idle
         setMachineState(STATE_IDLE);
         return;
+    }
+    
+    // Reset state if we're entering after a cancel (testStarted might still be true from previous cycle)
+    // Check if we're actually at home position to determine if we should reset
+    if (testStarted) {
+        // If motors are at home (position near 0), we're not in the middle of a cycle - reset
+        float currentX = motorX->stepsToInches(motorX->getCurrentPosition());
+        float currentY = motorY->stepsToInches(motorY->getCurrentPosition());
+        float currentFork = motorFork->stepsToInches(motorFork->getCurrentPosition());
+        
+        // If all axes are near home (within 0.5 inches), reset the state
+        // This catches cases where we cancelled and homed, but testStarted wasn't reset
+        if (fabs(currentX) < 0.5 && fabs(currentY) < 0.5 && fabs(currentFork) < 0.5) {
+            testStarted = false;
+            step = 0;
+        }
     }
     
     // Initialize on first entry
