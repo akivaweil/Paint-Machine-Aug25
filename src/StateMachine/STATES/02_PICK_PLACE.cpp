@@ -387,12 +387,19 @@ void pickPlaceState() {
         }
         CHECK_PAUSE_AND_CANCEL();
         
-        // Set step to 8 for when we return from painting state
-        step = 8;
-        
-        // Transition to painting state
-        setMachineState(STATE_PAINTING);
-        return;
+        // Check if skip painting is enabled
+        extern bool skipPaintingEnabled;
+        if (skipPaintingEnabled) {
+            // Skip painting state - go directly to step 8 (position 3)
+            step = 8;
+        } else {
+            // Set step to 8 for when we return from painting state
+            step = 8;
+            
+            // Transition to painting state
+            setMachineState(STATE_PAINTING);
+            return;
+        }
     }
     
     //! ************************************************************************

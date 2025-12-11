@@ -72,6 +72,9 @@ bool squareSensingEnabled = true;  // Default to enabled
 // Test mode toggle (disables paint gun and pressure pot during paint cycle)
 bool testModeEnabled = false;  // Default to disabled
 
+// Skip painting toggle (skips painting state entirely during cycle)
+bool skipPaintingEnabled = false;  // Default to disabled
+
 // Cycle control state
 bool cyclePaused = false;  // Tracks if cycle is paused
 bool cycleCancelled = false;  // Tracks if cycle should be cancelled
@@ -128,6 +131,9 @@ void initializeWebServer() {
     
     // Load saved test mode state
     loadTestModeState();
+    
+    // Load saved skip painting state
+    loadSkipPaintingState();
     
     // Initialize sensor pins
     initializeSensors();

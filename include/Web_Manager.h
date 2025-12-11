@@ -45,6 +45,7 @@ extern int testAllStartColumn;
 extern int testAllCurrentColumnIndex;
 extern bool squareSensingEnabled;
 extern bool testModeEnabled;
+extern bool skipPaintingEnabled;
 extern long motorSpeedX;
 extern long motorSpeedY;
 extern long motorSpeedFork;
@@ -80,6 +81,8 @@ extern void saveSquareSensingState();
 extern void loadSquareSensingState();
 extern void saveTestModeState();
 extern void loadTestModeState();
+extern void saveSkipPaintingState();
+extern void loadSkipPaintingState();
 
 // Hardware functions
 extern void initializeSensors();

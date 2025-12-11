@@ -582,6 +582,22 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for skip painting toggle
+    server.on("/api/skipPainting", HTTP_GET, [](AsyncWebServerRequest *request){
+        if (request->hasParam("enabled")) {
+            int enabled = request->getParam("enabled")->value().toInt();
+            skipPaintingEnabled = (enabled == 1);
+            saveSkipPaintingState();
+            String json = "{\"enabled\":" + String(skipPaintingEnabled ? "true" : "false") + "}";
+            request->send(200, "application/json", json);
+            Serial.printf("Web Request: Skip painting %s\n", skipPaintingEnabled ? "ENABLED" : "DISABLED");
+        } else {
+            // Return current state if no parameter provided
+            String json = "{\"enabled\":" + String(skipPaintingEnabled ? "true" : "false") + "}";
+            request->send(200, "application/json", json);
+        }
+    });
+    
     // API endpoint to get cycle state
     server.on("/api/cycle/state", HTTP_GET, [](AsyncWebServerRequest *request){
         extern int getMachineState();

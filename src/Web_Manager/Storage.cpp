@@ -113,3 +113,17 @@ void loadTestModeState() {
     preferences.end();
 }
 
+// Save skip painting toggle state to non-volatile storage
+void saveSkipPaintingState() {
+    preferences.begin("testSeq", false);
+    preferences.putBool("skipPainting", skipPaintingEnabled);
+    preferences.end();
+}
+
+// Load skip painting toggle state from non-volatile storage
+void loadSkipPaintingState() {
+    preferences.begin("testSeq", true);
+    skipPaintingEnabled = preferences.getBool("skipPainting", false);  // Default to disabled
+    preferences.end();
+}
+

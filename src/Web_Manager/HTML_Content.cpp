@@ -795,6 +795,13 @@ const char sensors_html[] PROGMEM = R"rawliteral(
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Skip Painting:</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="skipPaintingToggle" onchange="toggleSkipPainting()">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
               </div>
             </div>
             <div class="button-container">
@@ -1312,6 +1319,7 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     loadDeviceStates();
     loadSquareSensingState();
     loadTestModeState();
+    loadSkipPaintingState();
     
     // Cycle control state polling
     let cycleStateInterval = null;
@@ -1663,6 +1671,17 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         .catch(error => console.error('Test mode toggle error:', error));
     }
     
+    function toggleSkipPainting() {
+      const toggle = document.getElementById('skipPaintingToggle');
+      const enabled = toggle.checked;
+      fetch('/api/skipPainting?enabled=' + (enabled ? '1' : '0'))
+        .then(response => response.json())
+        .then(data => {
+          console.log('Skip painting:', data.enabled ? 'ON' : 'OFF');
+        })
+        .catch(error => console.error('Skip painting toggle error:', error));
+    }
+    
     // Load square sensing toggle state on page load
     function loadSquareSensingState() {
       fetch('/api/squareSensing')
@@ -1687,6 +1706,19 @@ const char sensors_html[] PROGMEM = R"rawliteral(
           }
         })
         .catch(error => console.error('Error loading test mode state:', error));
+    }
+    
+    // Load skip painting toggle state on page load
+    function loadSkipPaintingState() {
+      fetch('/api/skipPainting')
+        .then(response => response.json())
+        .then(data => {
+          const toggle = document.getElementById('skipPaintingToggle');
+          if (toggle) {
+            toggle.checked = data.enabled;
+          }
+        })
+        .catch(error => console.error('Error loading skip painting state:', error));
     }
     
     // Keyboard controls
@@ -1715,13 +1747,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
         fetch('/api/motor/settings').then(r => r.json()),
         fetch('/api/test/positions').then(r => r.json()),
         fetch('/api/squareSensing').then(r => r.json()),
-        fetch('/api/testMode').then(r => r.json())
-      ]).then(([motorSettings, testPositions, squareSensing, testMode]) => {
+        fetch('/api/testMode').then(r => r.json()),
+        fetch('/api/skipPainting').then(r => r.json())
+      ]).then(([motorSettings, testPositions, squareSensing, testMode, skipPainting]) => {
         const allSettings = {
           motor: motorSettings,
           testPositions: testPositions,
           squareSensing: squareSensing.enabled,
-          testMode: testMode.enabled
+          testMode: testMode.enabled,
+          skipPainting: skipPainting.enabled
         };
         
         const jsonStr = JSON.stringify(allSettings, null, 2);
@@ -1816,6 +1850,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
               .then(() => {
                 // Reload test mode state to update UI
                 loadTestModeState();
+              });
+          }
+          
+          // Upload skip painting state
+          if (settings.skipPainting !== undefined) {
+            fetch('/api/skipPainting?enabled=' + (settings.skipPainting ? '1' : '0'))
+              .then(() => {
+                // Reload skip painting state to update UI
+                loadSkipPaintingState();
               });
           }
           
