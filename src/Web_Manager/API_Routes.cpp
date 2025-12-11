@@ -589,6 +589,7 @@ void setupAPIRoutes() {
         String stateStr = "IDLE";
         if (state == 0) stateStr = "HOMING";
         else if (state == 2) stateStr = "PICK_PLACE";
+        else if (state == 3) stateStr = "PAINTING";
         
         String json = "{";
         json += "\"state\":\"" + stateStr + "\",";
