@@ -16,6 +16,7 @@ StorageMotor::StorageMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     
     // Create AccelStepper instance (DRIVER mode: step and direction pins)
     stepper = new AccelStepper(AccelStepper::DRIVER, step, dir);
+    stepper->setPinsInverted(true, false, false);  // Invert direction pin
     stepper->setMaxSpeed(maxSpd);
     stepper->setAcceleration(maxAcc);
     stepper->setCurrentPosition(0);
@@ -123,7 +124,7 @@ void StorageMotor::setStepsPerInch(float stepsPerInch) {
 
 void StorageMotor::startContinuous(bool positive) {
     continuousMode = true;
-    continuousDirection = !positive;
+    continuousDirection = positive;
     rampStep = 0;
     lastRampTime = millis();
     if (stepper) {
