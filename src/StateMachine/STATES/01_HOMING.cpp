@@ -195,7 +195,7 @@ void homeAllAxes(bool resetColumn) {
     
     // Start storage motor clockwise to find nearest column (only on first boot and if not already at a column)
     if (motorStorage && resetColumn && !storageHomed) {
-        motorStorage->startContinuous(true);
+        motorStorage->startContinuous(false);
     }
     
     // Keep moving until all home switches/sensors are triggered
