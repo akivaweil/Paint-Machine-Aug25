@@ -117,10 +117,19 @@ void setupAPIRoutes() {
                     long steps = request->getParam("steps")->value().toInt();
                     axisName = "Storage Motor";
                     if (motorStorage) {
+                        // Enable motor for movement (checks if homed)
+                        motorStorage->enableMotor();
                         // Stop any continuous movement and ensure motor is stopped
                         motorStorage->stopContinuous();
                         motorStorage->forceStop();
                         motorStorage->moveSteps(steps);
+                        // Wait for movement to complete
+                        while (motorStorage->isMotorRunning()) {
+                            motorStorage->run();
+                            delay(1);
+                        }
+                        // Disable motor after movement completes
+                        motorStorage->disableMotor();
                         request->send(200, "text/plain", "OK");
                         Serial.printf("Web Request: Move %s by %ld steps\n", axisName, steps);
                     } else {

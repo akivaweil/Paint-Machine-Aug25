@@ -1297,7 +1297,7 @@ void paintingState() {
             if (!servoReachedHomeInStep17) {
                 turnOffPaintGun();
                 servoReachedHomeInStep17 = true;
-                step = 21;
+                step = 21;  // Go to step 21 (final 180-degree rotation)
             }
         } else {
             updateServoMovement();
@@ -1315,21 +1315,22 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 22: FINAL 180-DEGREE ROTATION (PAINT GUN OFF, SUCTION ON)
+    //! STEP 21: FINAL 180-DEGREE ROTATION (PAINT GUN OFF, SUCTION ON)
     //! ************************************************************************
     else if (step == 21) {
-        // Ensure paint gun is off
-        turnOffPaintGun();
+        // Turn on suction
+        turnOnSuction();
         
-        // Start 180-degree rotation (0.5 revolutions)
+        // Rotate 180 degrees (0.5 revolutions)
         if (!final180RotationStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP4_INITIAL_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 0.5));
             final180RotationStarted = true;
         }
         
         // Wait for rotation to complete
         if (!isStepperRunning()) {
-            step = 22;
+            final180RotationStarted = false;  // Reset for next cycle
+            step = 23;  // Skip step 22, go to cleanup
         } else {
             updateServoMovement();
             updateOTA();
@@ -1346,9 +1347,169 @@ void paintingState() {
     }
     
     //! ************************************************************************
+    //! STEP 22: TURN OFF SUCTION, CLEANUP AND RETURN TO PICK AND PLACE STATE - SKIPPED FOR NOW
+    //! ************************************************************************
+    // else if (step == 22) {
+    //     // Turn off suction
+    //     turnOffSuction();
+    //     
+    //     // Stop and disable paint rotation motor
+    //     stopStepper();
+    //     disablePaintRotationMotor();
+    //     
+    //     // Reset state
+    //     paintingStarted = false;
+    //     paintGunWasOnBeforePause = false;
+    //     wasPaused = false;
+    //     step = 0;
+    //     waitingPositionReachedTime = 0;
+    //     paintMotorStartPosition = 0;
+    //     savedServoSpeed = 0.0;
+    //     savedBackLeftServoSpeed = 0.0;
+    //     savedBackRightServoSpeed = 0.0;
+    //     savedBackServoSpeed = 0.0;
+    //     savedRightServoSpeed = 0.0;
+    //     savedStep17ServoSpeed = 0.0;
+    //     waitStartTime = 0;
+    //     servoAt210Complete = false;
+    //     servoAt180Complete = false;
+    //     servoAtHomeComplete = false;
+    //     rotationToLeftStarted = false;
+    //     rotationToBackLeftStarted = false;
+    //     rotationToBackStarted = false;
+    //     rotationToBackRightStarted = false;
+    //     rotationToRightStarted = false;
+    //     finalRotationStarted = false;
+    //     servoStartTime = 0;
+    //     servoReachedPaintingAngleTime = 0;
+    //     initial180RotationStarted = false;
+    //     backLeftWaitComplete = false;
+    //     backLeftServoTo160Complete = false;
+    //     backLeftPaintDelayComplete = false;
+    //     backLeftPaintDelayStartTime = 0;
+    //     backLeftServoBackComplete = false;
+    //     backWaitComplete = false;
+    //     backServoTo160Complete = false;
+    //     backPaintDelayComplete = false;
+    //     backPaintDelayStartTime = 0;
+    //     backServoBackComplete = false;
+    //     backRightWaitComplete = false;
+    //     backRightServoTo160Complete = false;
+    //     backRightPaintDelayComplete = false;
+    //     backRightPaintDelayStartTime = 0;
+    //     backRightServoBackComplete = false;
+    //     rightWaitComplete = false;
+    //     rightServoTo180Complete = false;
+    //     rightPaintDelayComplete = false;
+    //     rightPaintDelayStartTime = 0;
+    //     rightServoBackComplete = false;
+    //     servoToHomeStarted = false;
+    //     servoReachedHomeInStep17 = false;
+    //     step15RotationStartPosition = 0;
+    //     step15ServoMovedTo170 = false;
+    //     step17ServoTo190Started = false;
+    //     step17ServoTo190Complete = false;
+    //     step17InitialAngleReachedTime = 0;
+    //     step17ServoToHomeStarted = false;
+    //     step17ServoToHomeComplete = false;
+    //     step17ServoBackComplete = false;
+    //     step15PaintGunTurnedOff = false;
+    //     step15PaintGunOffTime = 0;
+    //     step18PaintGunTurnedOff = false;
+    //     step18PaintGunOffTime = 0;
+    //     final180RotationStarted = false;
+    //     step17PaintMotorCWStarted = false;
+    //     step17PaintMotorCWComplete = false;
+    //     step17PaintMotorCCWComplete = false;
+    //     
+    //     // Return to pick and place state
+    //     setMachineState(STATE_PICK_PLACE);
+    // }
+    
+    //! ************************************************************************
+    //! STEP 22: TURN OFF SUCTION, CLEANUP AND RETURN TO PICK AND PLACE STATE - SKIPPED FOR NOW
+    //! ************************************************************************
+    // else if (step == 22) {
+    //     // Turn off suction
+    //     turnOffSuction();
+    //     
+    //     // Stop and disable paint rotation motor
+    //     stopStepper();
+    //     disablePaintRotationMotor();
+    //     
+    //     // Reset state
+    //     paintingStarted = false;
+    //     paintGunWasOnBeforePause = false;
+    //     wasPaused = false;
+    //     step = 0;
+    //     waitingPositionReachedTime = 0;
+    //     paintMotorStartPosition = 0;
+    //     savedServoSpeed = 0.0;
+    //     savedBackLeftServoSpeed = 0.0;
+    //     savedBackRightServoSpeed = 0.0;
+    //     savedBackServoSpeed = 0.0;
+    //     savedRightServoSpeed = 0.0;
+    //     savedStep17ServoSpeed = 0.0;
+    //     waitStartTime = 0;
+    //     servoAt210Complete = false;
+    //     servoAt180Complete = false;
+    //     servoAtHomeComplete = false;
+    //     rotationToLeftStarted = false;
+    //     rotationToBackLeftStarted = false;
+    //     rotationToBackStarted = false;
+    //     rotationToBackRightStarted = false;
+    //     rotationToRightStarted = false;
+    //     finalRotationStarted = false;
+    //     servoStartTime = 0;
+    //     servoReachedPaintingAngleTime = 0;
+    //     initial180RotationStarted = false;
+    //     backLeftWaitComplete = false;
+    //     backLeftServoTo160Complete = false;
+    //     backLeftPaintDelayComplete = false;
+    //     backLeftPaintDelayStartTime = 0;
+    //     backLeftServoBackComplete = false;
+    //     backWaitComplete = false;
+    //     backServoTo160Complete = false;
+    //     backPaintDelayComplete = false;
+    //     backPaintDelayStartTime = 0;
+    //     backServoBackComplete = false;
+    //     backRightWaitComplete = false;
+    //     backRightServoTo160Complete = false;
+    //     backRightPaintDelayComplete = false;
+    //     backRightPaintDelayStartTime = 0;
+    //     backRightServoBackComplete = false;
+    //     rightWaitComplete = false;
+    //     rightServoTo180Complete = false;
+    //     rightPaintDelayComplete = false;
+    //     rightPaintDelayStartTime = 0;
+    //     rightServoBackComplete = false;
+    //     servoToHomeStarted = false;
+    //     servoReachedHomeInStep17 = false;
+    //     step15RotationStartPosition = 0;
+    //     step15ServoMovedTo170 = false;
+    //     step17ServoTo190Started = false;
+    //     step17ServoTo190Complete = false;
+    //     step17InitialAngleReachedTime = 0;
+    //     step17ServoToHomeStarted = false;
+    //     step17ServoToHomeComplete = false;
+    //     step17ServoBackComplete = false;
+    //     step15PaintGunTurnedOff = false;
+    //     step15PaintGunOffTime = 0;
+    //     step18PaintGunTurnedOff = false;
+    //     step18PaintGunOffTime = 0;
+    //     final180RotationStarted = false;
+    //     step17PaintMotorCWStarted = false;
+    //     step17PaintMotorCWComplete = false;
+    //     step17PaintMotorCCWComplete = false;
+    //     
+    //     // Return to pick and place state
+    //     setMachineState(STATE_PICK_PLACE);
+    // }
+    
+    //! ************************************************************************
     //! STEP 23: TURN OFF SUCTION, CLEANUP AND RETURN TO PICK AND PLACE STATE
     //! ************************************************************************
-    else if (step == 22) {
+    else if (step == 23) {
         // Turn off suction
         turnOffSuction();
         

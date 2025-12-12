@@ -1,11 +1,12 @@
 #include "../../../include/StateMachine/FUNCTIONS/StorageMotor.h"
 #include "../../config/Config.h"
+#include "../../config/Pin_Definitions.h"
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ ⚙️ STORAGE MOTOR CONTROLLER (AccelStepper)                           ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
 
-StorageMotor::StorageMotor(uint8_t step, uint8_t dir, float stepsPerInch, long maxSpd, long maxAcc) {
+StorageMotor::StorageMotor(uint8_t step, uint8_t dir, uint8_t enable, float stepsPerInch, long maxSpd, long maxAcc) {
     this->stepsPerInch = stepsPerInch;
     this->maxSpeed = maxSpd;
     this->maxAccel = maxAcc;
@@ -13,10 +14,15 @@ StorageMotor::StorageMotor(uint8_t step, uint8_t dir, float stepsPerInch, long m
     this->continuousDirection = true;
     this->rampStep = 0;
     this->lastRampTime = 0;
+    this->enablePin = enable;
+    this->motorEnabled = false;
+    
+    // Initialize enable pin (active LOW: HIGH = disabled, LOW = enabled)
+    pinMode(enablePin, OUTPUT);
+    digitalWrite(enablePin, HIGH);  // Start disabled
     
     // Create AccelStepper instance (DRIVER mode: step and direction pins)
     stepper = new AccelStepper(AccelStepper::DRIVER, step, dir);
-    stepper->setPinsInverted(true, false, false);  // Invert direction pin
     stepper->setMaxSpeed(maxSpd);
     stepper->setAcceleration(maxAcc);
     stepper->setCurrentPosition(0);
@@ -178,6 +184,27 @@ void StorageMotor::runContinuous() {
         }
         stepper->runSpeed();
     }
+}
+
+void StorageMotor::enableMotor(bool bypassHomingCheck) {
+    // Check if storage motor is homed before enabling (unless bypassing for homing)
+    if (!bypassHomingCheck) {
+        extern int currentColumn;  // Declared in Web_Manager.cpp
+        if (currentColumn < 0) {
+            // Storage not homed - do not enable motor
+            return;
+        }
+    }
+    
+    // Enable motor (active LOW: LOW = enabled)
+    digitalWrite(enablePin, LOW);
+    motorEnabled = true;
+}
+
+void StorageMotor::disableMotor() {
+    // Disable motor (active LOW: HIGH = disabled)
+    digitalWrite(enablePin, HIGH);
+    motorEnabled = false;
 }
 
 void StorageMotor::run() {

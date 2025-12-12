@@ -90,7 +90,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 15: PAINT GUN REFILL DELAY                                  ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP15_PAINT_GUN_OFF_DELAY_MS 500              // Time to turn off paint gun for refill (milliseconds)
+#define STEP15_PAINT_GUN_OFF_DELAY_MS 5              // Time to turn off paint gun for refill (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 16: FINAL ROTATION                                          ║
@@ -105,7 +105,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 18: PAINT GUN REFILL DELAY BEFORE FINAL FRONT PASS          ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP18_PAINT_GUN_OFF_DELAY_MS 500              // Time to turn off paint gun before final front pass (milliseconds)
+#define STEP18_PAINT_GUN_OFF_DELAY_MS 5              // Time to turn off paint gun before final front pass (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 17: FINAL FACE COAT                                         ║

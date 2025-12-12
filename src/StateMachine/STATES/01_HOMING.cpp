@@ -188,6 +188,8 @@ void homeAllAxes(bool resetColumn) {
     // Storage motor uses homing speed (only if homing)
     if (motorStorage && resetColumn && !storageHomed) {
         motorStorage->setSpeed(STORAGE_MOTOR_HOMING_SPEED);
+        // Enable storage motor for homing (bypass homing check during homing)
+        motorStorage->enableMotor(true);
     }
     
     // Start continuous movement for X and Y toward home (positive direction)
@@ -303,6 +305,8 @@ void homeAllAxes(bool resetColumn) {
     motorY->setSpeed(Y_MAX_SPEED);
     if (motorStorage) {
         motorStorage->setSpeed(STORAGE_MOTOR_SPEED);
+        // Disable storage motor after homing completes (will be enabled during run cycles)
+        motorStorage->disableMotor();
     }
     
     Serial.println("[HOMING] ========== Homing sequence complete ==========");
@@ -347,6 +351,9 @@ void moveToColumn(int targetColumn) {
     
     Serial.printf("[COLUMN] Moving %ld steps (%d columns × %ld steps/column)\n", 
                   mainSteps, columnsToMove, STORAGE_COLUMN_SPACING_STEPS);
+    
+    // Enable storage motor for movement (checks if homed)
+    motorStorage->enableMotor();
     
     // Use storage motor speed and acceleration from dashboard settings
     extern long motorSpeedStorage;  // Declared in Web_Manager.cpp
@@ -446,6 +453,9 @@ void moveToColumn(int targetColumn) {
     // Update current column to target
     currentColumn = targetColumn;
     
+    // Disable storage motor after movement completes
+    motorStorage->disableMotor();
+    
     Serial.printf("[COLUMN] Successfully moved to column %c\n", 'A' + currentColumn);
 }
 
@@ -461,6 +471,9 @@ void moveStorageClockwise() {
     }
     
     Serial.println("[STORAGE] Moving storage motor clockwise one column...");
+    
+    // Enable storage motor for movement (checks if homed)
+    motorStorage->enableMotor();
     
     // Calculate column spacing distance
     long mainSteps = STORAGE_COLUMN_SPACING_STEPS;
@@ -562,6 +575,9 @@ void moveStorageClockwise() {
     } else {
         motorStorage->stopContinuous();
     }
+    
+    // Disable storage motor after movement completes
+    motorStorage->disableMotor();
     
     Serial.println("[STORAGE] Successfully moved one column clockwise");
 }

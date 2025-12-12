@@ -153,7 +153,7 @@ void initializeMotors() {
         motorFork = new StepperMotor(FORK_STEP_PIN, FORK_DIR_PIN, STEPS_PER_INCH, FORK_MAX_SPEED, FORK_MAX_ACCEL);
     }
     if (motorStorage == nullptr) {
-        motorStorage = new StorageMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STEPS_PER_INCH, motorSpeedStorage, motorAccelStorage);
+        motorStorage = new StorageMotor(STORAGE_STEP_PIN, STORAGE_DIR_PIN, STORAGE_ENABLE_PIN, STEPS_PER_INCH, motorSpeedStorage, motorAccelStorage);
     }
 }
 

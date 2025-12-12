@@ -7,6 +7,7 @@
 class StorageMotor {
 private:
     AccelStepper* stepper;
+    uint8_t enablePin;
     
     // Motor parameters
     float stepsPerInch;
@@ -18,10 +19,11 @@ private:
     bool continuousDirection;
     long rampStep;
     unsigned long lastRampTime;
+    bool motorEnabled;
 
 public:
     // Constructor
-    StorageMotor(uint8_t step, uint8_t dir, float stepsPerInch, long maxSpd, long maxAcc);
+    StorageMotor(uint8_t step, uint8_t dir, uint8_t enable, float stepsPerInch, long maxSpd, long maxAcc);
 
     // Basic motor control
     void setSpeed(long speed);
@@ -54,6 +56,13 @@ public:
     
     // Update steps per inch
     void setStepsPerInch(float stepsPerInch);
+    
+    // Enable/disable motor (enable pin is active LOW)
+    // enableMotor() checks if storage is homed before enabling
+    // enableMotor(true) bypasses homing check (for use during homing)
+    void enableMotor(bool bypassHomingCheck = false);
+    void disableMotor();
+    bool isEnabled() const { return motorEnabled; }
     
     // Must be called in loop() for AccelStepper to work
     void run();
