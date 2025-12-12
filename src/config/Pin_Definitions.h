@@ -26,7 +26,7 @@
 // Storage Motor
 #define STORAGE_STEP_PIN 21
 #define STORAGE_DIR_PIN 47
-#define STORAGE_ENABLE_PIN 3
+#define STORAGE_ENABLE_PIN 1
 
 // Paint Rotation Motor
 #define PAINT_ROTATION_STEP_PIN 14

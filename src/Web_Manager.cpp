@@ -56,7 +56,8 @@ float testPos2Fork = 0.0;
 int selectedPosition1Height = 8;  // Default to a8 (lowest position)
 
 // Column tracking (0-5, where 0 = column A, 5 = column F)
-int currentColumn = 0;  // Current column position (set during homing)
+// -1 indicates storage has not been homed
+int currentColumn = -1;  // Current column position (set during homing, -1 = not homed)
 int selectedColumn = 0;  // Selected column for test cycle (default: column A)
 
 // Test All mode tracking

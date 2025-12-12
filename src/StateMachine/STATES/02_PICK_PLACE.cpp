@@ -157,8 +157,16 @@ void pickPlaceState() {
         }
         
         //! ************************************************************************
-        //! STEP 0: MOVE STORAGE MOTOR TO SELECTED COLUMN
+        //! STEP 0: HOME STORAGE MOTOR IF NOT HOMED, THEN MOVE TO SELECTED COLUMN
         //! ************************************************************************
+        // Check if storage motor needs homing before starting run cycle
+        extern int currentColumn;  // Declared in Web_Manager.cpp
+        if (currentColumn < 0) {
+            Serial.println("[PICK_PLACE] Storage motor not homed - homing before run cycle...");
+            homeAllAxes(true);  // Home all axes including storage (resetColumn = true)
+        }
+        
+        // Move storage motor to selected column
         moveToColumn(selectedColumn);
         
         // Move servo to servo home angle at the beginning
