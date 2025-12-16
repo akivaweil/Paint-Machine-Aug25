@@ -64,6 +64,51 @@ extern float servoSpeed;
 extern bool cyclePaused;
 extern bool cycleCancelled;
 
+// Painting configuration settings (runtime adjustable)
+extern float paintingConfigServoHomeAngle;
+extern float paintingConfigServoPaintingAngle;
+extern unsigned long paintingConfigServoUpdateIntervalMs;
+extern float paintingConfigServoTargetReachedThresholdDeg;
+extern float paintingConfigServoFarFromTargetThresholdDeg;
+extern float paintingConfigServoMinMovementDeg;
+extern float paintingConfigServoMaxStepSizeDeg;
+extern float paintingConfigStep1WaitingPositionXOffsetInches;
+extern float paintingConfigStep1WaitingPositionYOffsetInches;
+extern unsigned long paintingConfigStep2WaitingPositionDelayMs;
+extern float paintingConfigStep3ServoFastSpeed;
+extern unsigned long paintingConfigStep4InitialRotationDelayMs;
+extern float paintingConfigStep4InitialRotationRev;
+extern float paintingConfigStep5LeftRotationRev;
+extern unsigned long paintingConfigStep6LeftSideWaitMs;
+extern float paintingConfigStep7BackLeftRotationRev;
+extern unsigned long paintingConfigStep8BackLeftWaitMs;
+extern float paintingConfigStep8ServoBackAngleDeg;
+extern float paintingConfigStep8BackLeftServoSpeed;
+extern unsigned long paintingConfigStep8BackLeftPaintDelayMs;
+extern float paintingConfigStep9BackRotationRev;
+extern unsigned long paintingConfigStep10BackSideWaitMs;
+extern float paintingConfigStep10ServoBackAngleDeg;
+extern float paintingConfigStep10BackServoSpeed;
+extern unsigned long paintingConfigStep10BackPaintDelayMs;
+extern float paintingConfigStep11BackRightRotationRev;
+extern unsigned long paintingConfigStep12BackRightWaitMs;
+extern float paintingConfigStep12ServoBackAngleDeg;
+extern float paintingConfigStep12BackRightServoSpeed;
+extern unsigned long paintingConfigStep12BackRightPaintDelayMs;
+extern float paintingConfigStep13RightRotationRev;
+extern unsigned long paintingConfigStep14RightSideWaitMs;
+extern float paintingConfigStep14ServoRightAngleDeg;
+extern float paintingConfigStep14RightServoSpeed;
+extern unsigned long paintingConfigStep14RightPaintDelayMs;
+extern unsigned long paintingConfigStep15PaintGunOffDelayMs;
+extern float paintingConfigStep15FinalRotationRev;
+extern float paintingConfigStep15FirstRevServoAngleDeg;
+extern float paintingConfigStep16SpinServoAngleDeg;
+extern unsigned long paintingConfigStep18PaintGunOffDelayMs;
+extern float paintingConfigStep17InitialServoAngleDeg;
+extern unsigned long paintingConfigStep17InitialAngleWaitMs;
+extern float paintingConfigStep17ServoSpeed;
+
 // External HTML content
 extern const char sensors_html[] PROGMEM;
 
@@ -83,6 +128,8 @@ extern void saveTestModeState();
 extern void loadTestModeState();
 extern void saveSkipPaintingState();
 extern void loadSkipPaintingState();
+extern void savePaintingConfig();
+extern void loadPaintingConfig();
 
 // Hardware functions
 extern void initializeSensors();

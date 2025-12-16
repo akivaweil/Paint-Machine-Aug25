@@ -1075,6 +1075,238 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       </div>
     </div>
     
+        <div class="card">
+      <div class="collapsible-header" id="paintingConfigHeader" onclick="togglePaintingConfig()">
+            <div class="card-header-content">
+              <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-primary) 0%, #ff8f5a 100%);">🎨</div>
+              <span class="card-title">Painting Configuration</span>
+            </div>
+            <span class="chevron">&darr;</span>
+      </div>
+      <div class="collapsible-content" id="paintingConfigContent">
+            <div class="card-body">
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Servo Configuration</h3>
+            <div class="input-row">
+              <label>Home Angle:</label>
+              <input type="number" id="paintingConfigServoHomeAngle" step="0.1" min="0" max="270" placeholder="130.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Painting Angle:</label>
+              <input type="number" id="paintingConfigServoPaintingAngle" step="0.1" min="0" max="270" placeholder="230.0" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Servo Movement Parameters</h3>
+            <div class="input-row">
+              <label>Update Interval (ms):</label>
+              <input type="number" id="paintingConfigServoUpdateIntervalMs" step="1" min="1" max="100" placeholder="10" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Target Reached Threshold (deg):</label>
+              <input type="number" id="paintingConfigServoTargetReachedThresholdDeg" step="0.1" min="0" max="10" placeholder="0.1" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Far From Target Threshold (deg):</label>
+              <input type="number" id="paintingConfigServoFarFromTargetThresholdDeg" step="0.1" min="0" max="10" placeholder="0.5" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Min Movement (deg):</label>
+              <input type="number" id="paintingConfigServoMinMovementDeg" step="0.1" min="0" max="10" placeholder="0.2" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Max Step Size (deg):</label>
+              <input type="number" id="paintingConfigServoMaxStepSizeDeg" step="0.1" min="0" max="10" placeholder="1.25" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Step 1: Waiting Position</h3>
+            <div class="input-row">
+              <label>X Offset (inches):</label>
+              <input type="number" id="paintingConfigStep1WaitingPositionXOffsetInches" step="0.1" min="0" max="20" placeholder="7.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Y Offset (inches):</label>
+              <input type="number" id="paintingConfigStep1WaitingPositionYOffsetInches" step="0.1" min="0" max="20" placeholder="0.5" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Delay (ms):</label>
+              <input type="number" id="paintingConfigStep2WaitingPositionDelayMs" step="10" min="0" max="5000" placeholder="250" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Step 3-4: Initial Setup</h3>
+            <div class="input-row">
+              <label>Servo Fast Speed:</label>
+              <input type="number" id="paintingConfigStep3ServoFastSpeed" step="1" min="1" max="1000" placeholder="500.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Initial Rotation Delay (ms):</label>
+              <input type="number" id="paintingConfigStep4InitialRotationDelayMs" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Initial Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep4InitialRotationRev" step="0.01" min="0" max="10" placeholder="0.5" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Step 5-6: Left Side</h3>
+            <div class="input-row">
+              <label>Left Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep5LeftRotationRev" step="0.01" min="0" max="10" placeholder="0.75" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Left Side Wait (ms):</label>
+              <input type="number" id="paintingConfigStep6LeftSideWaitMs" step="10" min="0" max="5000" placeholder="100" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Step 7-8: Back Left</h3>
+            <div class="input-row">
+              <label>Back Left Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep7BackLeftRotationRev" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Left Wait (ms):</label>
+              <input type="number" id="paintingConfigStep8BackLeftWaitMs" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Left Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep8ServoBackAngleDeg" step="0.1" min="0" max="270" placeholder="160.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Left Servo Speed:</label>
+              <input type="number" id="paintingConfigStep8BackLeftServoSpeed" step="1" min="1" max="1000" placeholder="80.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Left Paint Delay (ms):</label>
+              <input type="number" id="paintingConfigStep8BackLeftPaintDelayMs" step="10" min="0" max="5000" placeholder="50" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Step 9-10: Back</h3>
+            <div class="input-row">
+              <label>Back Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep9BackRotationRev" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Side Wait (ms):</label>
+              <input type="number" id="paintingConfigStep10BackSideWaitMs" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep10ServoBackAngleDeg" step="0.1" min="0" max="270" placeholder="160.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Servo Speed:</label>
+              <input type="number" id="paintingConfigStep10BackServoSpeed" step="1" min="1" max="1000" placeholder="80.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Paint Delay (ms):</label>
+              <input type="number" id="paintingConfigStep10BackPaintDelayMs" step="10" min="0" max="5000" placeholder="50" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Step 11-12: Back Right</h3>
+            <div class="input-row">
+              <label>Back Right Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep11BackRightRotationRev" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Right Wait (ms):</label>
+              <input type="number" id="paintingConfigStep12BackRightWaitMs" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Right Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep12ServoBackAngleDeg" step="0.1" min="0" max="270" placeholder="160.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Right Servo Speed:</label>
+              <input type="number" id="paintingConfigStep12BackRightServoSpeed" step="1" min="1" max="1000" placeholder="80.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Right Paint Delay (ms):</label>
+              <input type="number" id="paintingConfigStep12BackRightPaintDelayMs" step="10" min="0" max="5000" placeholder="50" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Step 13-14: Right Side</h3>
+            <div class="input-row">
+              <label>Right Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep13RightRotationRev" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right Side Wait (ms):</label>
+              <input type="number" id="paintingConfigStep14RightSideWaitMs" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep14ServoRightAngleDeg" step="0.1" min="0" max="270" placeholder="180.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right Servo Speed:</label>
+              <input type="number" id="paintingConfigStep14RightServoSpeed" step="1" min="1" max="1000" placeholder="80.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right Paint Delay (ms):</label>
+              <input type="number" id="paintingConfigStep14RightPaintDelayMs" step="10" min="0" max="5000" placeholder="50" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Step 15-16: Final Rotation</h3>
+            <div class="input-row">
+              <label>Paint Gun Off Delay (ms):</label>
+              <input type="number" id="paintingConfigStep15PaintGunOffDelayMs" step="10" min="0" max="5000" placeholder="100" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Final Rotation (rev):</label>
+              <input type="number" id="paintingConfigStep15FinalRotationRev" step="0.01" min="0" max="10" placeholder="2.25" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>First Rev Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep15FirstRevServoAngleDeg" step="0.1" min="0" max="270" placeholder="230.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Spin Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep16SpinServoAngleDeg" step="0.1" min="0" max="270" placeholder="200.0" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Step 17-18: Final Face Coat</h3>
+            <div class="input-row">
+              <label>Initial Servo Angle (deg):</label>
+              <input type="number" id="paintingConfigStep17InitialServoAngleDeg" step="0.1" min="0" max="270" placeholder="230.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Initial Angle Wait (ms):</label>
+              <input type="number" id="paintingConfigStep17InitialAngleWaitMs" step="10" min="0" max="5000" placeholder="300" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Step 17 Servo Speed:</label>
+              <input type="number" id="paintingConfigStep17ServoSpeed" step="1" min="1" max="1000" placeholder="100.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Step 18 Paint Gun Off Delay (ms):</label>
+              <input type="number" id="paintingConfigStep18PaintGunOffDelayMs" step="1" min="0" max="5000" placeholder="5" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="last-update" id="lastUpdate">Last update: --</div>
       </div>
     </div>
@@ -1313,9 +1545,170 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       saveMotorSettings();
     }
     
+    // Load painting configuration settings on page load
+    function loadPaintingConfig() {
+      fetch('/api/painting/config')
+        .then(response => response.json())
+        .then(data => {
+          if (data.servoHomeAngle !== undefined) document.getElementById('paintingConfigServoHomeAngle').value = data.servoHomeAngle;
+          if (data.servoPaintingAngle !== undefined) document.getElementById('paintingConfigServoPaintingAngle').value = data.servoPaintingAngle;
+          if (data.servoUpdateIntervalMs !== undefined) document.getElementById('paintingConfigServoUpdateIntervalMs').value = data.servoUpdateIntervalMs;
+          if (data.servoTargetReachedThresholdDeg !== undefined) document.getElementById('paintingConfigServoTargetReachedThresholdDeg').value = data.servoTargetReachedThresholdDeg;
+          if (data.servoFarFromTargetThresholdDeg !== undefined) document.getElementById('paintingConfigServoFarFromTargetThresholdDeg').value = data.servoFarFromTargetThresholdDeg;
+          if (data.servoMinMovementDeg !== undefined) document.getElementById('paintingConfigServoMinMovementDeg').value = data.servoMinMovementDeg;
+          if (data.servoMaxStepSizeDeg !== undefined) document.getElementById('paintingConfigServoMaxStepSizeDeg').value = data.servoMaxStepSizeDeg;
+          if (data.step1WaitingPositionXOffsetInches !== undefined) document.getElementById('paintingConfigStep1WaitingPositionXOffsetInches').value = data.step1WaitingPositionXOffsetInches;
+          if (data.step1WaitingPositionYOffsetInches !== undefined) document.getElementById('paintingConfigStep1WaitingPositionYOffsetInches').value = data.step1WaitingPositionYOffsetInches;
+          if (data.step2WaitingPositionDelayMs !== undefined) document.getElementById('paintingConfigStep2WaitingPositionDelayMs').value = data.step2WaitingPositionDelayMs;
+          if (data.step3ServoFastSpeed !== undefined) document.getElementById('paintingConfigStep3ServoFastSpeed').value = data.step3ServoFastSpeed;
+          if (data.step4InitialRotationDelayMs !== undefined) document.getElementById('paintingConfigStep4InitialRotationDelayMs').value = data.step4InitialRotationDelayMs;
+          if (data.step4InitialRotationRev !== undefined) document.getElementById('paintingConfigStep4InitialRotationRev').value = data.step4InitialRotationRev;
+          if (data.step5LeftRotationRev !== undefined) document.getElementById('paintingConfigStep5LeftRotationRev').value = data.step5LeftRotationRev;
+          if (data.step6LeftSideWaitMs !== undefined) document.getElementById('paintingConfigStep6LeftSideWaitMs').value = data.step6LeftSideWaitMs;
+          if (data.step7BackLeftRotationRev !== undefined) document.getElementById('paintingConfigStep7BackLeftRotationRev').value = data.step7BackLeftRotationRev;
+          if (data.step8BackLeftWaitMs !== undefined) document.getElementById('paintingConfigStep8BackLeftWaitMs').value = data.step8BackLeftWaitMs;
+          if (data.step8ServoBackAngleDeg !== undefined) document.getElementById('paintingConfigStep8ServoBackAngleDeg').value = data.step8ServoBackAngleDeg;
+          if (data.step8BackLeftServoSpeed !== undefined) document.getElementById('paintingConfigStep8BackLeftServoSpeed').value = data.step8BackLeftServoSpeed;
+          if (data.step8BackLeftPaintDelayMs !== undefined) document.getElementById('paintingConfigStep8BackLeftPaintDelayMs').value = data.step8BackLeftPaintDelayMs;
+          if (data.step9BackRotationRev !== undefined) document.getElementById('paintingConfigStep9BackRotationRev').value = data.step9BackRotationRev;
+          if (data.step10BackSideWaitMs !== undefined) document.getElementById('paintingConfigStep10BackSideWaitMs').value = data.step10BackSideWaitMs;
+          if (data.step10ServoBackAngleDeg !== undefined) document.getElementById('paintingConfigStep10ServoBackAngleDeg').value = data.step10ServoBackAngleDeg;
+          if (data.step10BackServoSpeed !== undefined) document.getElementById('paintingConfigStep10BackServoSpeed').value = data.step10BackServoSpeed;
+          if (data.step10BackPaintDelayMs !== undefined) document.getElementById('paintingConfigStep10BackPaintDelayMs').value = data.step10BackPaintDelayMs;
+          if (data.step11BackRightRotationRev !== undefined) document.getElementById('paintingConfigStep11BackRightRotationRev').value = data.step11BackRightRotationRev;
+          if (data.step12BackRightWaitMs !== undefined) document.getElementById('paintingConfigStep12BackRightWaitMs').value = data.step12BackRightWaitMs;
+          if (data.step12ServoBackAngleDeg !== undefined) document.getElementById('paintingConfigStep12ServoBackAngleDeg').value = data.step12ServoBackAngleDeg;
+          if (data.step12BackRightServoSpeed !== undefined) document.getElementById('paintingConfigStep12BackRightServoSpeed').value = data.step12BackRightServoSpeed;
+          if (data.step12BackRightPaintDelayMs !== undefined) document.getElementById('paintingConfigStep12BackRightPaintDelayMs').value = data.step12BackRightPaintDelayMs;
+          if (data.step13RightRotationRev !== undefined) document.getElementById('paintingConfigStep13RightRotationRev').value = data.step13RightRotationRev;
+          if (data.step14RightSideWaitMs !== undefined) document.getElementById('paintingConfigStep14RightSideWaitMs').value = data.step14RightSideWaitMs;
+          if (data.step14ServoRightAngleDeg !== undefined) document.getElementById('paintingConfigStep14ServoRightAngleDeg').value = data.step14ServoRightAngleDeg;
+          if (data.step14RightServoSpeed !== undefined) document.getElementById('paintingConfigStep14RightServoSpeed').value = data.step14RightServoSpeed;
+          if (data.step14RightPaintDelayMs !== undefined) document.getElementById('paintingConfigStep14RightPaintDelayMs').value = data.step14RightPaintDelayMs;
+          if (data.step15PaintGunOffDelayMs !== undefined) document.getElementById('paintingConfigStep15PaintGunOffDelayMs').value = data.step15PaintGunOffDelayMs;
+          if (data.step15FinalRotationRev !== undefined) document.getElementById('paintingConfigStep15FinalRotationRev').value = data.step15FinalRotationRev;
+          if (data.step15FirstRevServoAngleDeg !== undefined) document.getElementById('paintingConfigStep15FirstRevServoAngleDeg').value = data.step15FirstRevServoAngleDeg;
+          if (data.step16SpinServoAngleDeg !== undefined) document.getElementById('paintingConfigStep16SpinServoAngleDeg').value = data.step16SpinServoAngleDeg;
+          if (data.step18PaintGunOffDelayMs !== undefined) document.getElementById('paintingConfigStep18PaintGunOffDelayMs').value = data.step18PaintGunOffDelayMs;
+          if (data.step17InitialServoAngleDeg !== undefined) document.getElementById('paintingConfigStep17InitialServoAngleDeg').value = data.step17InitialServoAngleDeg;
+          if (data.step17InitialAngleWaitMs !== undefined) document.getElementById('paintingConfigStep17InitialAngleWaitMs').value = data.step17InitialAngleWaitMs;
+          if (data.step17ServoSpeed !== undefined) document.getElementById('paintingConfigStep17ServoSpeed').value = data.step17ServoSpeed;
+        })
+        .catch(error => {
+          console.error('Error loading painting config:', error);
+        });
+    }
+    
+    // Save painting configuration settings (called from auto-save)
+    function savePaintingConfig() {
+      const params = new URLSearchParams();
+      const servoHomeAngle = parseFloat(document.getElementById('paintingConfigServoHomeAngle').value);
+      const servoPaintingAngle = parseFloat(document.getElementById('paintingConfigServoPaintingAngle').value);
+      const servoUpdateIntervalMs = parseInt(document.getElementById('paintingConfigServoUpdateIntervalMs').value);
+      const servoTargetReachedThresholdDeg = parseFloat(document.getElementById('paintingConfigServoTargetReachedThresholdDeg').value);
+      const servoFarFromTargetThresholdDeg = parseFloat(document.getElementById('paintingConfigServoFarFromTargetThresholdDeg').value);
+      const servoMinMovementDeg = parseFloat(document.getElementById('paintingConfigServoMinMovementDeg').value);
+      const servoMaxStepSizeDeg = parseFloat(document.getElementById('paintingConfigServoMaxStepSizeDeg').value);
+      const step1WaitingPositionXOffsetInches = parseFloat(document.getElementById('paintingConfigStep1WaitingPositionXOffsetInches').value);
+      const step1WaitingPositionYOffsetInches = parseFloat(document.getElementById('paintingConfigStep1WaitingPositionYOffsetInches').value);
+      const step2WaitingPositionDelayMs = parseInt(document.getElementById('paintingConfigStep2WaitingPositionDelayMs').value);
+      const step3ServoFastSpeed = parseFloat(document.getElementById('paintingConfigStep3ServoFastSpeed').value);
+      const step4InitialRotationDelayMs = parseInt(document.getElementById('paintingConfigStep4InitialRotationDelayMs').value);
+      const step4InitialRotationRev = parseFloat(document.getElementById('paintingConfigStep4InitialRotationRev').value);
+      const step5LeftRotationRev = parseFloat(document.getElementById('paintingConfigStep5LeftRotationRev').value);
+      const step6LeftSideWaitMs = parseInt(document.getElementById('paintingConfigStep6LeftSideWaitMs').value);
+      const step7BackLeftRotationRev = parseFloat(document.getElementById('paintingConfigStep7BackLeftRotationRev').value);
+      const step8BackLeftWaitMs = parseInt(document.getElementById('paintingConfigStep8BackLeftWaitMs').value);
+      const step8ServoBackAngleDeg = parseFloat(document.getElementById('paintingConfigStep8ServoBackAngleDeg').value);
+      const step8BackLeftServoSpeed = parseFloat(document.getElementById('paintingConfigStep8BackLeftServoSpeed').value);
+      const step8BackLeftPaintDelayMs = parseInt(document.getElementById('paintingConfigStep8BackLeftPaintDelayMs').value);
+      const step9BackRotationRev = parseFloat(document.getElementById('paintingConfigStep9BackRotationRev').value);
+      const step10BackSideWaitMs = parseInt(document.getElementById('paintingConfigStep10BackSideWaitMs').value);
+      const step10ServoBackAngleDeg = parseFloat(document.getElementById('paintingConfigStep10ServoBackAngleDeg').value);
+      const step10BackServoSpeed = parseFloat(document.getElementById('paintingConfigStep10BackServoSpeed').value);
+      const step10BackPaintDelayMs = parseInt(document.getElementById('paintingConfigStep10BackPaintDelayMs').value);
+      const step11BackRightRotationRev = parseFloat(document.getElementById('paintingConfigStep11BackRightRotationRev').value);
+      const step12BackRightWaitMs = parseInt(document.getElementById('paintingConfigStep12BackRightWaitMs').value);
+      const step12ServoBackAngleDeg = parseFloat(document.getElementById('paintingConfigStep12ServoBackAngleDeg').value);
+      const step12BackRightServoSpeed = parseFloat(document.getElementById('paintingConfigStep12BackRightServoSpeed').value);
+      const step12BackRightPaintDelayMs = parseInt(document.getElementById('paintingConfigStep12BackRightPaintDelayMs').value);
+      const step13RightRotationRev = parseFloat(document.getElementById('paintingConfigStep13RightRotationRev').value);
+      const step14RightSideWaitMs = parseInt(document.getElementById('paintingConfigStep14RightSideWaitMs').value);
+      const step14ServoRightAngleDeg = parseFloat(document.getElementById('paintingConfigStep14ServoRightAngleDeg').value);
+      const step14RightServoSpeed = parseFloat(document.getElementById('paintingConfigStep14RightServoSpeed').value);
+      const step14RightPaintDelayMs = parseInt(document.getElementById('paintingConfigStep14RightPaintDelayMs').value);
+      const step15PaintGunOffDelayMs = parseInt(document.getElementById('paintingConfigStep15PaintGunOffDelayMs').value);
+      const step15FinalRotationRev = parseFloat(document.getElementById('paintingConfigStep15FinalRotationRev').value);
+      const step15FirstRevServoAngleDeg = parseFloat(document.getElementById('paintingConfigStep15FirstRevServoAngleDeg').value);
+      const step16SpinServoAngleDeg = parseFloat(document.getElementById('paintingConfigStep16SpinServoAngleDeg').value);
+      const step18PaintGunOffDelayMs = parseInt(document.getElementById('paintingConfigStep18PaintGunOffDelayMs').value);
+      const step17InitialServoAngleDeg = parseFloat(document.getElementById('paintingConfigStep17InitialServoAngleDeg').value);
+      const step17InitialAngleWaitMs = parseInt(document.getElementById('paintingConfigStep17InitialAngleWaitMs').value);
+      const step17ServoSpeed = parseFloat(document.getElementById('paintingConfigStep17ServoSpeed').value);
+      
+      if (!isNaN(servoHomeAngle)) params.append('servoHomeAngle', servoHomeAngle);
+      if (!isNaN(servoPaintingAngle)) params.append('servoPaintingAngle', servoPaintingAngle);
+      if (!isNaN(servoUpdateIntervalMs)) params.append('servoUpdateIntervalMs', servoUpdateIntervalMs);
+      if (!isNaN(servoTargetReachedThresholdDeg)) params.append('servoTargetReachedThresholdDeg', servoTargetReachedThresholdDeg);
+      if (!isNaN(servoFarFromTargetThresholdDeg)) params.append('servoFarFromTargetThresholdDeg', servoFarFromTargetThresholdDeg);
+      if (!isNaN(servoMinMovementDeg)) params.append('servoMinMovementDeg', servoMinMovementDeg);
+      if (!isNaN(servoMaxStepSizeDeg)) params.append('servoMaxStepSizeDeg', servoMaxStepSizeDeg);
+      if (!isNaN(step1WaitingPositionXOffsetInches)) params.append('step1WaitingPositionXOffsetInches', step1WaitingPositionXOffsetInches);
+      if (!isNaN(step1WaitingPositionYOffsetInches)) params.append('step1WaitingPositionYOffsetInches', step1WaitingPositionYOffsetInches);
+      if (!isNaN(step2WaitingPositionDelayMs)) params.append('step2WaitingPositionDelayMs', step2WaitingPositionDelayMs);
+      if (!isNaN(step3ServoFastSpeed)) params.append('step3ServoFastSpeed', step3ServoFastSpeed);
+      if (!isNaN(step4InitialRotationDelayMs)) params.append('step4InitialRotationDelayMs', step4InitialRotationDelayMs);
+      if (!isNaN(step4InitialRotationRev)) params.append('step4InitialRotationRev', step4InitialRotationRev);
+      if (!isNaN(step5LeftRotationRev)) params.append('step5LeftRotationRev', step5LeftRotationRev);
+      if (!isNaN(step6LeftSideWaitMs)) params.append('step6LeftSideWaitMs', step6LeftSideWaitMs);
+      if (!isNaN(step7BackLeftRotationRev)) params.append('step7BackLeftRotationRev', step7BackLeftRotationRev);
+      if (!isNaN(step8BackLeftWaitMs)) params.append('step8BackLeftWaitMs', step8BackLeftWaitMs);
+      if (!isNaN(step8ServoBackAngleDeg)) params.append('step8ServoBackAngleDeg', step8ServoBackAngleDeg);
+      if (!isNaN(step8BackLeftServoSpeed)) params.append('step8BackLeftServoSpeed', step8BackLeftServoSpeed);
+      if (!isNaN(step8BackLeftPaintDelayMs)) params.append('step8BackLeftPaintDelayMs', step8BackLeftPaintDelayMs);
+      if (!isNaN(step9BackRotationRev)) params.append('step9BackRotationRev', step9BackRotationRev);
+      if (!isNaN(step10BackSideWaitMs)) params.append('step10BackSideWaitMs', step10BackSideWaitMs);
+      if (!isNaN(step10ServoBackAngleDeg)) params.append('step10ServoBackAngleDeg', step10ServoBackAngleDeg);
+      if (!isNaN(step10BackServoSpeed)) params.append('step10BackServoSpeed', step10BackServoSpeed);
+      if (!isNaN(step10BackPaintDelayMs)) params.append('step10BackPaintDelayMs', step10BackPaintDelayMs);
+      if (!isNaN(step11BackRightRotationRev)) params.append('step11BackRightRotationRev', step11BackRightRotationRev);
+      if (!isNaN(step12BackRightWaitMs)) params.append('step12BackRightWaitMs', step12BackRightWaitMs);
+      if (!isNaN(step12ServoBackAngleDeg)) params.append('step12ServoBackAngleDeg', step12ServoBackAngleDeg);
+      if (!isNaN(step12BackRightServoSpeed)) params.append('step12BackRightServoSpeed', step12BackRightServoSpeed);
+      if (!isNaN(step12BackRightPaintDelayMs)) params.append('step12BackRightPaintDelayMs', step12BackRightPaintDelayMs);
+      if (!isNaN(step13RightRotationRev)) params.append('step13RightRotationRev', step13RightRotationRev);
+      if (!isNaN(step14RightSideWaitMs)) params.append('step14RightSideWaitMs', step14RightSideWaitMs);
+      if (!isNaN(step14ServoRightAngleDeg)) params.append('step14ServoRightAngleDeg', step14ServoRightAngleDeg);
+      if (!isNaN(step14RightServoSpeed)) params.append('step14RightServoSpeed', step14RightServoSpeed);
+      if (!isNaN(step14RightPaintDelayMs)) params.append('step14RightPaintDelayMs', step14RightPaintDelayMs);
+      if (!isNaN(step15PaintGunOffDelayMs)) params.append('step15PaintGunOffDelayMs', step15PaintGunOffDelayMs);
+      if (!isNaN(step15FinalRotationRev)) params.append('step15FinalRotationRev', step15FinalRotationRev);
+      if (!isNaN(step15FirstRevServoAngleDeg)) params.append('step15FirstRevServoAngleDeg', step15FirstRevServoAngleDeg);
+      if (!isNaN(step16SpinServoAngleDeg)) params.append('step16SpinServoAngleDeg', step16SpinServoAngleDeg);
+      if (!isNaN(step18PaintGunOffDelayMs)) params.append('step18PaintGunOffDelayMs', step18PaintGunOffDelayMs);
+      if (!isNaN(step17InitialServoAngleDeg)) params.append('step17InitialServoAngleDeg', step17InitialServoAngleDeg);
+      if (!isNaN(step17InitialAngleWaitMs)) params.append('step17InitialAngleWaitMs', step17InitialAngleWaitMs);
+      if (!isNaN(step17ServoSpeed)) params.append('step17ServoSpeed', step17ServoSpeed);
+      
+      fetch('/api/painting/config?' + params.toString())
+        .then(response => response.text())
+        .then(data => {
+          console.log('Painting config saved:', data);
+        })
+        .catch(error => {
+          console.error('Error saving painting config:', error);
+        });
+    }
+    
+    // Auto-save function called on blur
+    function autoSavePaintingConfig() {
+      savePaintingConfig();
+    }
+    
     // Load positions and settings when page loads
     loadTestPositions();
     loadMotorSettings();
+    loadPaintingConfig();
     loadDeviceStates();
     loadSquareSensingState();
     loadTestModeState();
@@ -1571,6 +1964,15 @@ const char sensors_html[] PROGMEM = R"rawliteral(
     function toggleMotorSettings() {
       const content = document.getElementById('motorSettingsContent');
       const header = document.getElementById('motorSettingsHeader');
+      if (content && header) {
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+      }
+    }
+    
+    function togglePaintingConfig() {
+      const content = document.getElementById('paintingConfigContent');
+      const header = document.getElementById('paintingConfigHeader');
       if (content && header) {
         content.classList.toggle('expanded');
         header.classList.toggle('active');

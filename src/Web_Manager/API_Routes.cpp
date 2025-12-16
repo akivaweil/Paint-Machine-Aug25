@@ -638,5 +638,219 @@ void setupAPIRoutes() {
         request->send(200, "text/plain", "OK");
         Serial.println("Web Request: Cycle CANCELLED");
     });
+    
+    // API endpoint for painting configuration settings (GET to retrieve, GET with params to set)
+    server.on("/api/painting/config", HTTP_GET, [](AsyncWebServerRequest *request){
+        extern void savePaintingConfig();
+        
+        // Check if parameters are provided to set values
+        if (request->hasParam("servoHomeAngle")) {
+            paintingConfigServoHomeAngle = request->getParam("servoHomeAngle")->value().toFloat();
+        }
+        if (request->hasParam("servoPaintingAngle")) {
+            paintingConfigServoPaintingAngle = request->getParam("servoPaintingAngle")->value().toFloat();
+        }
+        if (request->hasParam("servoUpdateIntervalMs")) {
+            paintingConfigServoUpdateIntervalMs = request->getParam("servoUpdateIntervalMs")->value().toInt();
+        }
+        if (request->hasParam("servoTargetReachedThresholdDeg")) {
+            paintingConfigServoTargetReachedThresholdDeg = request->getParam("servoTargetReachedThresholdDeg")->value().toFloat();
+        }
+        if (request->hasParam("servoFarFromTargetThresholdDeg")) {
+            paintingConfigServoFarFromTargetThresholdDeg = request->getParam("servoFarFromTargetThresholdDeg")->value().toFloat();
+        }
+        if (request->hasParam("servoMinMovementDeg")) {
+            paintingConfigServoMinMovementDeg = request->getParam("servoMinMovementDeg")->value().toFloat();
+        }
+        if (request->hasParam("servoMaxStepSizeDeg")) {
+            paintingConfigServoMaxStepSizeDeg = request->getParam("servoMaxStepSizeDeg")->value().toFloat();
+        }
+        if (request->hasParam("step1WaitingPositionXOffsetInches")) {
+            paintingConfigStep1WaitingPositionXOffsetInches = request->getParam("step1WaitingPositionXOffsetInches")->value().toFloat();
+        }
+        if (request->hasParam("step1WaitingPositionYOffsetInches")) {
+            paintingConfigStep1WaitingPositionYOffsetInches = request->getParam("step1WaitingPositionYOffsetInches")->value().toFloat();
+        }
+        if (request->hasParam("step2WaitingPositionDelayMs")) {
+            paintingConfigStep2WaitingPositionDelayMs = request->getParam("step2WaitingPositionDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step3ServoFastSpeed")) {
+            paintingConfigStep3ServoFastSpeed = request->getParam("step3ServoFastSpeed")->value().toFloat();
+        }
+        if (request->hasParam("step4InitialRotationDelayMs")) {
+            paintingConfigStep4InitialRotationDelayMs = request->getParam("step4InitialRotationDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step4InitialRotationRev")) {
+            paintingConfigStep4InitialRotationRev = request->getParam("step4InitialRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step5LeftRotationRev")) {
+            paintingConfigStep5LeftRotationRev = request->getParam("step5LeftRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step6LeftSideWaitMs")) {
+            paintingConfigStep6LeftSideWaitMs = request->getParam("step6LeftSideWaitMs")->value().toInt();
+        }
+        if (request->hasParam("step7BackLeftRotationRev")) {
+            paintingConfigStep7BackLeftRotationRev = request->getParam("step7BackLeftRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step8BackLeftWaitMs")) {
+            paintingConfigStep8BackLeftWaitMs = request->getParam("step8BackLeftWaitMs")->value().toInt();
+        }
+        if (request->hasParam("step8ServoBackAngleDeg")) {
+            paintingConfigStep8ServoBackAngleDeg = request->getParam("step8ServoBackAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step8BackLeftServoSpeed")) {
+            paintingConfigStep8BackLeftServoSpeed = request->getParam("step8BackLeftServoSpeed")->value().toFloat();
+        }
+        if (request->hasParam("step8BackLeftPaintDelayMs")) {
+            paintingConfigStep8BackLeftPaintDelayMs = request->getParam("step8BackLeftPaintDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step9BackRotationRev")) {
+            paintingConfigStep9BackRotationRev = request->getParam("step9BackRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step10BackSideWaitMs")) {
+            paintingConfigStep10BackSideWaitMs = request->getParam("step10BackSideWaitMs")->value().toInt();
+        }
+        if (request->hasParam("step10ServoBackAngleDeg")) {
+            paintingConfigStep10ServoBackAngleDeg = request->getParam("step10ServoBackAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step10BackServoSpeed")) {
+            paintingConfigStep10BackServoSpeed = request->getParam("step10BackServoSpeed")->value().toFloat();
+        }
+        if (request->hasParam("step10BackPaintDelayMs")) {
+            paintingConfigStep10BackPaintDelayMs = request->getParam("step10BackPaintDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step11BackRightRotationRev")) {
+            paintingConfigStep11BackRightRotationRev = request->getParam("step11BackRightRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step12BackRightWaitMs")) {
+            paintingConfigStep12BackRightWaitMs = request->getParam("step12BackRightWaitMs")->value().toInt();
+        }
+        if (request->hasParam("step12ServoBackAngleDeg")) {
+            paintingConfigStep12ServoBackAngleDeg = request->getParam("step12ServoBackAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step12BackRightServoSpeed")) {
+            paintingConfigStep12BackRightServoSpeed = request->getParam("step12BackRightServoSpeed")->value().toFloat();
+        }
+        if (request->hasParam("step12BackRightPaintDelayMs")) {
+            paintingConfigStep12BackRightPaintDelayMs = request->getParam("step12BackRightPaintDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step13RightRotationRev")) {
+            paintingConfigStep13RightRotationRev = request->getParam("step13RightRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step14RightSideWaitMs")) {
+            paintingConfigStep14RightSideWaitMs = request->getParam("step14RightSideWaitMs")->value().toInt();
+        }
+        if (request->hasParam("step14ServoRightAngleDeg")) {
+            paintingConfigStep14ServoRightAngleDeg = request->getParam("step14ServoRightAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step14RightServoSpeed")) {
+            paintingConfigStep14RightServoSpeed = request->getParam("step14RightServoSpeed")->value().toFloat();
+        }
+        if (request->hasParam("step14RightPaintDelayMs")) {
+            paintingConfigStep14RightPaintDelayMs = request->getParam("step14RightPaintDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step15PaintGunOffDelayMs")) {
+            paintingConfigStep15PaintGunOffDelayMs = request->getParam("step15PaintGunOffDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step15FinalRotationRev")) {
+            paintingConfigStep15FinalRotationRev = request->getParam("step15FinalRotationRev")->value().toFloat();
+        }
+        if (request->hasParam("step15FirstRevServoAngleDeg")) {
+            paintingConfigStep15FirstRevServoAngleDeg = request->getParam("step15FirstRevServoAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step16SpinServoAngleDeg")) {
+            paintingConfigStep16SpinServoAngleDeg = request->getParam("step16SpinServoAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step18PaintGunOffDelayMs")) {
+            paintingConfigStep18PaintGunOffDelayMs = request->getParam("step18PaintGunOffDelayMs")->value().toInt();
+        }
+        if (request->hasParam("step17InitialServoAngleDeg")) {
+            paintingConfigStep17InitialServoAngleDeg = request->getParam("step17InitialServoAngleDeg")->value().toFloat();
+        }
+        if (request->hasParam("step17InitialAngleWaitMs")) {
+            paintingConfigStep17InitialAngleWaitMs = request->getParam("step17InitialAngleWaitMs")->value().toInt();
+        }
+        if (request->hasParam("step17ServoSpeed")) {
+            paintingConfigStep17ServoSpeed = request->getParam("step17ServoSpeed")->value().toFloat();
+        }
+        
+        // If any parameters were provided, save settings
+        bool hasParams = request->hasParam("servoHomeAngle") || request->hasParam("servoPaintingAngle") || 
+                         request->hasParam("servoUpdateIntervalMs") || request->hasParam("servoTargetReachedThresholdDeg") ||
+                         request->hasParam("servoFarFromTargetThresholdDeg") || request->hasParam("servoMinMovementDeg") ||
+                         request->hasParam("servoMaxStepSizeDeg") || request->hasParam("step1WaitingPositionXOffsetInches") ||
+                         request->hasParam("step1WaitingPositionYOffsetInches") || request->hasParam("step2WaitingPositionDelayMs") ||
+                         request->hasParam("step3ServoFastSpeed") || request->hasParam("step4InitialRotationDelayMs") ||
+                         request->hasParam("step4InitialRotationRev") || request->hasParam("step5LeftRotationRev") ||
+                         request->hasParam("step6LeftSideWaitMs") || request->hasParam("step7BackLeftRotationRev") ||
+                         request->hasParam("step8BackLeftWaitMs") || request->hasParam("step8ServoBackAngleDeg") ||
+                         request->hasParam("step8BackLeftServoSpeed") || request->hasParam("step8BackLeftPaintDelayMs") ||
+                         request->hasParam("step9BackRotationRev") || request->hasParam("step10BackSideWaitMs") ||
+                         request->hasParam("step10ServoBackAngleDeg") || request->hasParam("step10BackServoSpeed") ||
+                         request->hasParam("step10BackPaintDelayMs") || request->hasParam("step11BackRightRotationRev") ||
+                         request->hasParam("step12BackRightWaitMs") || request->hasParam("step12ServoBackAngleDeg") ||
+                         request->hasParam("step12BackRightServoSpeed") || request->hasParam("step12BackRightPaintDelayMs") ||
+                         request->hasParam("step13RightRotationRev") || request->hasParam("step14RightSideWaitMs") ||
+                         request->hasParam("step14ServoRightAngleDeg") || request->hasParam("step14RightServoSpeed") ||
+                         request->hasParam("step14RightPaintDelayMs") || request->hasParam("step15PaintGunOffDelayMs") ||
+                         request->hasParam("step15FinalRotationRev") || request->hasParam("step15FirstRevServoAngleDeg") ||
+                         request->hasParam("step16SpinServoAngleDeg") || request->hasParam("step18PaintGunOffDelayMs") ||
+                         request->hasParam("step17InitialServoAngleDeg") || request->hasParam("step17InitialAngleWaitMs") ||
+                         request->hasParam("step17ServoSpeed");
+        
+        if (hasParams) {
+            savePaintingConfig();
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Painting config settings updated");
+        } else {
+            // Return current settings if no parameters provided
+            String json = "{";
+            json += "\"servoHomeAngle\":" + String(paintingConfigServoHomeAngle) + ",";
+            json += "\"servoPaintingAngle\":" + String(paintingConfigServoPaintingAngle) + ",";
+            json += "\"servoUpdateIntervalMs\":" + String(paintingConfigServoUpdateIntervalMs) + ",";
+            json += "\"servoTargetReachedThresholdDeg\":" + String(paintingConfigServoTargetReachedThresholdDeg) + ",";
+            json += "\"servoFarFromTargetThresholdDeg\":" + String(paintingConfigServoFarFromTargetThresholdDeg) + ",";
+            json += "\"servoMinMovementDeg\":" + String(paintingConfigServoMinMovementDeg) + ",";
+            json += "\"servoMaxStepSizeDeg\":" + String(paintingConfigServoMaxStepSizeDeg) + ",";
+            json += "\"step1WaitingPositionXOffsetInches\":" + String(paintingConfigStep1WaitingPositionXOffsetInches) + ",";
+            json += "\"step1WaitingPositionYOffsetInches\":" + String(paintingConfigStep1WaitingPositionYOffsetInches) + ",";
+            json += "\"step2WaitingPositionDelayMs\":" + String(paintingConfigStep2WaitingPositionDelayMs) + ",";
+            json += "\"step3ServoFastSpeed\":" + String(paintingConfigStep3ServoFastSpeed) + ",";
+            json += "\"step4InitialRotationDelayMs\":" + String(paintingConfigStep4InitialRotationDelayMs) + ",";
+            json += "\"step4InitialRotationRev\":" + String(paintingConfigStep4InitialRotationRev) + ",";
+            json += "\"step5LeftRotationRev\":" + String(paintingConfigStep5LeftRotationRev) + ",";
+            json += "\"step6LeftSideWaitMs\":" + String(paintingConfigStep6LeftSideWaitMs) + ",";
+            json += "\"step7BackLeftRotationRev\":" + String(paintingConfigStep7BackLeftRotationRev) + ",";
+            json += "\"step8BackLeftWaitMs\":" + String(paintingConfigStep8BackLeftWaitMs) + ",";
+            json += "\"step8ServoBackAngleDeg\":" + String(paintingConfigStep8ServoBackAngleDeg) + ",";
+            json += "\"step8BackLeftServoSpeed\":" + String(paintingConfigStep8BackLeftServoSpeed) + ",";
+            json += "\"step8BackLeftPaintDelayMs\":" + String(paintingConfigStep8BackLeftPaintDelayMs) + ",";
+            json += "\"step9BackRotationRev\":" + String(paintingConfigStep9BackRotationRev) + ",";
+            json += "\"step10BackSideWaitMs\":" + String(paintingConfigStep10BackSideWaitMs) + ",";
+            json += "\"step10ServoBackAngleDeg\":" + String(paintingConfigStep10ServoBackAngleDeg) + ",";
+            json += "\"step10BackServoSpeed\":" + String(paintingConfigStep10BackServoSpeed) + ",";
+            json += "\"step10BackPaintDelayMs\":" + String(paintingConfigStep10BackPaintDelayMs) + ",";
+            json += "\"step11BackRightRotationRev\":" + String(paintingConfigStep11BackRightRotationRev) + ",";
+            json += "\"step12BackRightWaitMs\":" + String(paintingConfigStep12BackRightWaitMs) + ",";
+            json += "\"step12ServoBackAngleDeg\":" + String(paintingConfigStep12ServoBackAngleDeg) + ",";
+            json += "\"step12BackRightServoSpeed\":" + String(paintingConfigStep12BackRightServoSpeed) + ",";
+            json += "\"step12BackRightPaintDelayMs\":" + String(paintingConfigStep12BackRightPaintDelayMs) + ",";
+            json += "\"step13RightRotationRev\":" + String(paintingConfigStep13RightRotationRev) + ",";
+            json += "\"step14RightSideWaitMs\":" + String(paintingConfigStep14RightSideWaitMs) + ",";
+            json += "\"step14ServoRightAngleDeg\":" + String(paintingConfigStep14ServoRightAngleDeg) + ",";
+            json += "\"step14RightServoSpeed\":" + String(paintingConfigStep14RightServoSpeed) + ",";
+            json += "\"step14RightPaintDelayMs\":" + String(paintingConfigStep14RightPaintDelayMs) + ",";
+            json += "\"step15PaintGunOffDelayMs\":" + String(paintingConfigStep15PaintGunOffDelayMs) + ",";
+            json += "\"step15FinalRotationRev\":" + String(paintingConfigStep15FinalRotationRev) + ",";
+            json += "\"step15FirstRevServoAngleDeg\":" + String(paintingConfigStep15FirstRevServoAngleDeg) + ",";
+            json += "\"step16SpinServoAngleDeg\":" + String(paintingConfigStep16SpinServoAngleDeg) + ",";
+            json += "\"step18PaintGunOffDelayMs\":" + String(paintingConfigStep18PaintGunOffDelayMs) + ",";
+            json += "\"step17InitialServoAngleDeg\":" + String(paintingConfigStep17InitialServoAngleDeg) + ",";
+            json += "\"step17InitialAngleWaitMs\":" + String(paintingConfigStep17InitialAngleWaitMs) + ",";
+            json += "\"step17ServoSpeed\":" + String(paintingConfigStep17ServoSpeed);
+            json += "}";
+            request->send(200, "application/json", json);
+        }
+    });
 }
 

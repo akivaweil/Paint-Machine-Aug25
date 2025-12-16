@@ -97,6 +97,51 @@ long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
 float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
 
+// Painting configuration settings (runtime adjustable)
+float paintingConfigServoHomeAngle = SERVO_HOME_ANGLE;
+float paintingConfigServoPaintingAngle = SERVO_PAINTING_ANGLE;
+unsigned long paintingConfigServoUpdateIntervalMs = SERVO_UPDATE_INTERVAL_MS;
+float paintingConfigServoTargetReachedThresholdDeg = SERVO_TARGET_REACHED_THRESHOLD_DEG;
+float paintingConfigServoFarFromTargetThresholdDeg = SERVO_FAR_FROM_TARGET_THRESHOLD_DEG;
+float paintingConfigServoMinMovementDeg = SERVO_MIN_MOVEMENT_DEG;
+float paintingConfigServoMaxStepSizeDeg = SERVO_MAX_STEP_SIZE_DEG;
+float paintingConfigStep1WaitingPositionXOffsetInches = STEP1_WAITING_POSITION_X_OFFSET_INCHES;
+float paintingConfigStep1WaitingPositionYOffsetInches = STEP1_WAITING_POSITION_Y_OFFSET_INCHES;
+unsigned long paintingConfigStep2WaitingPositionDelayMs = STEP2_WAITING_POSITION_DELAY_MS;
+float paintingConfigStep3ServoFastSpeed = STEP3_SERVO_FAST_SPEED;
+unsigned long paintingConfigStep4InitialRotationDelayMs = STEP4_INITIAL_ROTATION_DELAY_MS;
+float paintingConfigStep4InitialRotationRev = STEP4_INITIAL_ROTATION_REV;
+float paintingConfigStep5LeftRotationRev = STEP5_LEFT_ROTATION_REV;
+unsigned long paintingConfigStep6LeftSideWaitMs = STEP6_LEFT_SIDE_WAIT_MS;
+float paintingConfigStep7BackLeftRotationRev = STEP7_BACK_LEFT_ROTATION_REV;
+unsigned long paintingConfigStep8BackLeftWaitMs = STEP8_BACK_LEFT_WAIT_MS;
+float paintingConfigStep8ServoBackAngleDeg = STEP8_SERVO_BACK_ANGLE_DEG;
+float paintingConfigStep8BackLeftServoSpeed = STEP8_BACK_LEFT_SERVO_SPEED;
+unsigned long paintingConfigStep8BackLeftPaintDelayMs = STEP8_BACK_LEFT_PAINT_DELAY_MS;
+float paintingConfigStep9BackRotationRev = STEP9_BACK_ROTATION_REV;
+unsigned long paintingConfigStep10BackSideWaitMs = STEP10_BACK_SIDE_WAIT_MS;
+float paintingConfigStep10ServoBackAngleDeg = STEP10_SERVO_BACK_ANGLE_DEG;
+float paintingConfigStep10BackServoSpeed = STEP10_BACK_SERVO_SPEED;
+unsigned long paintingConfigStep10BackPaintDelayMs = STEP10_BACK_PAINT_DELAY_MS;
+float paintingConfigStep11BackRightRotationRev = STEP11_BACK_RIGHT_ROTATION_REV;
+unsigned long paintingConfigStep12BackRightWaitMs = STEP12_BACK_RIGHT_WAIT_MS;
+float paintingConfigStep12ServoBackAngleDeg = STEP12_SERVO_BACK_ANGLE_DEG;
+float paintingConfigStep12BackRightServoSpeed = STEP12_BACK_RIGHT_SERVO_SPEED;
+unsigned long paintingConfigStep12BackRightPaintDelayMs = STEP12_BACK_RIGHT_PAINT_DELAY_MS;
+float paintingConfigStep13RightRotationRev = STEP13_RIGHT_ROTATION_REV;
+unsigned long paintingConfigStep14RightSideWaitMs = STEP14_RIGHT_SIDE_WAIT_MS;
+float paintingConfigStep14ServoRightAngleDeg = STEP14_SERVO_RIGHT_ANGLE_DEG;
+float paintingConfigStep14RightServoSpeed = STEP14_RIGHT_SERVO_SPEED;
+unsigned long paintingConfigStep14RightPaintDelayMs = STEP14_RIGHT_PAINT_DELAY_MS;
+unsigned long paintingConfigStep15PaintGunOffDelayMs = STEP15_PAINT_GUN_OFF_DELAY_MS;
+float paintingConfigStep15FinalRotationRev = STEP15_FINAL_ROTATION_REV;
+float paintingConfigStep15FirstRevServoAngleDeg = STEP15_FIRST_REV_SERVO_ANGLE_DEG;
+float paintingConfigStep16SpinServoAngleDeg = STEP16_SPIN_SERVO_ANGLE_DEG;
+unsigned long paintingConfigStep18PaintGunOffDelayMs = STEP18_PAINT_GUN_OFF_DELAY_MS;
+float paintingConfigStep17InitialServoAngleDeg = STEP17_INITIAL_SERVO_ANGLE_DEG;
+unsigned long paintingConfigStep17InitialAngleWaitMs = STEP17_INITIAL_ANGLE_WAIT_MS;
+float paintingConfigStep17ServoSpeed = STEP17_SERVO_SPEED;
+
 // Apply motor settings to motors
 void applyMotorSettings() {
     if (motorX) {
@@ -135,6 +180,9 @@ void initializeWebServer() {
     
     // Load saved skip painting state
     loadSkipPaintingState();
+    
+    // Load saved painting config
+    loadPaintingConfig();
     
     // Initialize sensor pins
     initializeSensors();

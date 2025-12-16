@@ -130,8 +130,8 @@ void startMoveToWaitingPosition() {
     
     // Calculate target position (offset from pos3)
     // Position 3 is: X = -testPos2X, Y = -testPos2Y + 0.5
-    float targetX = -testPos2X + STEP1_WAITING_POSITION_X_OFFSET_INCHES;
-    float targetY = -testPos2Y + STEP1_WAITING_POSITION_Y_OFFSET_INCHES;
+    float targetX = -testPos2X + paintingConfigStep1WaitingPositionXOffsetInches;
+    float targetY = -testPos2Y + paintingConfigStep1WaitingPositionYOffsetInches;
     
     // Calculate movement needed
     float moveX = targetX - currentX;
@@ -164,7 +164,7 @@ void updateServoMovement() {
     
     // Check if we've reached the target
     float diff = servoTargetAngle - currentServoAngle;
-    if (abs(diff) < SERVO_TARGET_REACHED_THRESHOLD_DEG) {
+    if (abs(diff) < paintingConfigServoTargetReachedThresholdDeg) {
         currentServoAngle = servoTargetAngle;
         servo->write(currentServoAngle);
         servoTargetAngle = -1.0;  // Clear target
@@ -180,7 +180,7 @@ void updateServoMovement() {
     }
     
     unsigned long deltaTime = currentTime - lastServoUpdateTime;
-    if (deltaTime < SERVO_UPDATE_INTERVAL_MS) {
+    if (deltaTime < paintingConfigServoUpdateIntervalMs) {
         return;  // Not time to update yet
     }
     
@@ -190,13 +190,13 @@ void updateServoMovement() {
     float maxMovement = degreesPerMs * deltaTime;  // Maximum movement this cycle
     
     // Limit movement per update to prevent jumps
-    if (maxMovement > SERVO_MAX_STEP_SIZE_DEG) {
-        maxMovement = SERVO_MAX_STEP_SIZE_DEG;
+    if (maxMovement > paintingConfigServoMaxStepSizeDeg) {
+        maxMovement = paintingConfigServoMaxStepSizeDeg;
     }
     
     // Ensure minimum movement if we're far from target
-    if (abs(diff) > SERVO_FAR_FROM_TARGET_THRESHOLD_DEG && maxMovement < SERVO_MIN_MOVEMENT_DEG) {
-        maxMovement = SERVO_MIN_MOVEMENT_DEG;  // Minimum movement to ensure progress
+    if (abs(diff) > paintingConfigServoFarFromTargetThresholdDeg && maxMovement < paintingConfigServoMinMovementDeg) {
+        maxMovement = paintingConfigServoMinMovementDeg;  // Minimum movement to ensure progress
     }
     
     // Calculate direction and movement
@@ -306,8 +306,8 @@ void paintingState() {
         
         // Immediately move servo to home angle
         if (servo) {
-            currentServoAngle = SERVO_HOME_ANGLE;
-            servo->write(SERVO_HOME_ANGLE);
+            currentServoAngle = paintingConfigServoHomeAngle;
+            servo->write(paintingConfigServoHomeAngle);
         }
         
         // Home all gantry motors (preserve column position)
@@ -530,7 +530,7 @@ void paintingState() {
         
         // Wait after motors reach waiting position
         unsigned long elapsedTime = millis() - waitingPositionReachedTime;
-        if (elapsedTime >= STEP2_WAITING_POSITION_DELAY_MS) {
+        if (elapsedTime >= paintingConfigStep2WaitingPositionDelayMs) {
             step = 2;
         } else {
             updateServoMovement();
@@ -554,7 +554,7 @@ void paintingState() {
         // Save current servo speed and set to fast speed
         if (savedServoSpeed == 0.0) {
             savedServoSpeed = servoSpeed;
-            servoSpeed = STEP3_SERVO_FAST_SPEED;
+            servoSpeed = paintingConfigStep3ServoFastSpeed;
         }
         
         // Initialize paint rotation motor if not already started
@@ -569,14 +569,14 @@ void paintingState() {
         
         // Start moving servo to painting angle (non-blocking)
         if (!servoAt210Complete) {
-            startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+            startServoMoveToAngle(paintingConfigServoPaintingAngle);
             servoAt210Complete = true;
             servoStartTime = millis();  // Record when servo started moving
         }
         
         // Start initial 180-degree rotation simultaneously (non-blocking)
         if (!initial180RotationStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP4_INITIAL_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep4InitialRotationRev));
             initial180RotationStarted = true;
         }
         
@@ -663,7 +663,7 @@ void paintingState() {
     else if (step == 5) {
         // Rotate full rotation CW (1.0 revolutions clockwise instead of 90 degrees CCW)
         if (!rotationToLeftStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP5_LEFT_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep5LeftRotationRev));
             rotationToLeftStarted = true;
         }
         
@@ -691,7 +691,7 @@ void paintingState() {
     //! ************************************************************************
     else if (step == 6) {
         unsigned long elapsedTime = millis() - waitStartTime;
-        if (elapsedTime >= STEP6_LEFT_SIDE_WAIT_MS) {
+        if (elapsedTime >= paintingConfigStep6LeftSideWaitMs) {
             step = 7;
         } else {
             updateServoMovement();
@@ -714,7 +714,7 @@ void paintingState() {
     else if (step == 7) {
         // Rotate to 135 degrees (45 more degrees from 90, 135 total from start)
         if (!rotationToBackLeftStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP7_BACK_LEFT_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep7BackLeftRotationRev));
             rotationToBackLeftStarted = true;
         }
         
@@ -744,16 +744,16 @@ void paintingState() {
         // Save current servo speed and set to back left speed
         if (savedBackLeftServoSpeed == 0.0) {
             savedBackLeftServoSpeed = servoSpeed;
-            servoSpeed = STEP8_BACK_LEFT_SERVO_SPEED;
+            servoSpeed = paintingConfigStep8BackLeftServoSpeed;
         }
         
         // Wait for initial wait time
         if (!backLeftWaitComplete) {
             unsigned long elapsedTime = millis() - waitStartTime;
-            if (elapsedTime >= STEP8_BACK_LEFT_WAIT_MS) {
+            if (elapsedTime >= paintingConfigStep8BackLeftWaitMs) {
                 backLeftWaitComplete = true;
                 // Start moving servo to back angle
-                startServoMoveToAngle(STEP8_SERVO_BACK_ANGLE_DEG);
+                startServoMoveToAngle(paintingConfigStep8ServoBackAngleDeg);
             }
         }
         // Wait for servo to reach 160 degrees
@@ -767,10 +767,10 @@ void paintingState() {
         // Wait for paint delay at back angle (300ms)
         else if (!backLeftPaintDelayComplete) {
             unsigned long elapsedTime = millis() - backLeftPaintDelayStartTime;
-            if (elapsedTime >= STEP8_BACK_LEFT_PAINT_DELAY_MS) {
+            if (elapsedTime >= paintingConfigStep8BackLeftPaintDelayMs) {
                 backLeftPaintDelayComplete = true;
                 // Start moving servo back to painting angle
-                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+                startServoMoveToAngle(paintingConfigServoPaintingAngle);
             }
         }
         // Wait for servo to return to painting angle
@@ -803,7 +803,7 @@ void paintingState() {
     else if (step == 9) {
         // Rotate to 180 degrees (45 more degrees from 135, 180 total from start)
         if (!rotationToBackStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP9_BACK_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep9BackRotationRev));
             rotationToBackStarted = true;
         }
         
@@ -833,16 +833,16 @@ void paintingState() {
         // Save current servo speed and set to back speed
         if (savedBackServoSpeed == 0.0) {
             savedBackServoSpeed = servoSpeed;
-            servoSpeed = STEP10_BACK_SERVO_SPEED;
+            servoSpeed = paintingConfigStep10BackServoSpeed;
         }
         
         // Wait for initial wait time
         if (!backWaitComplete) {
             unsigned long elapsedTime = millis() - waitStartTime;
-            if (elapsedTime >= STEP10_BACK_SIDE_WAIT_MS) {
+            if (elapsedTime >= paintingConfigStep10BackSideWaitMs) {
                 backWaitComplete = true;
                 // Start moving servo to back angle
-                startServoMoveToAngle(STEP10_SERVO_BACK_ANGLE_DEG);
+                startServoMoveToAngle(paintingConfigStep10ServoBackAngleDeg);
             }
         }
         // Wait for servo to reach 150 degrees
@@ -856,10 +856,10 @@ void paintingState() {
         // Wait for paint delay at back angle (300ms)
         else if (!backPaintDelayComplete) {
             unsigned long elapsedTime = millis() - backPaintDelayStartTime;
-            if (elapsedTime >= STEP10_BACK_PAINT_DELAY_MS) {
+            if (elapsedTime >= paintingConfigStep10BackPaintDelayMs) {
                 backPaintDelayComplete = true;
                 // Start moving servo back to painting angle
-                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+                startServoMoveToAngle(paintingConfigServoPaintingAngle);
             }
         }
         // Wait for servo to return to painting angle
@@ -892,7 +892,7 @@ void paintingState() {
     else if (step == 11) {
         // Rotate to 225 degrees (45 more degrees from 180, 225 total from start)
         if (!rotationToBackRightStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP11_BACK_RIGHT_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep11BackRightRotationRev));
             rotationToBackRightStarted = true;
         }
         
@@ -922,16 +922,16 @@ void paintingState() {
         // Save current servo speed and set to back right speed
         if (savedBackRightServoSpeed == 0.0) {
             savedBackRightServoSpeed = servoSpeed;
-            servoSpeed = STEP12_BACK_RIGHT_SERVO_SPEED;
+            servoSpeed = paintingConfigStep12BackRightServoSpeed;
         }
         
         // Wait for initial wait time
         if (!backRightWaitComplete) {
             unsigned long elapsedTime = millis() - waitStartTime;
-            if (elapsedTime >= STEP12_BACK_RIGHT_WAIT_MS) {
+            if (elapsedTime >= paintingConfigStep12BackRightWaitMs) {
                 backRightWaitComplete = true;
                 // Start moving servo to back angle
-                startServoMoveToAngle(STEP12_SERVO_BACK_ANGLE_DEG);
+                startServoMoveToAngle(paintingConfigStep12ServoBackAngleDeg);
             }
         }
         // Wait for servo to reach 160 degrees
@@ -945,10 +945,10 @@ void paintingState() {
         // Wait for paint delay at back angle (300ms)
         else if (!backRightPaintDelayComplete) {
             unsigned long elapsedTime = millis() - backRightPaintDelayStartTime;
-            if (elapsedTime >= STEP12_BACK_RIGHT_PAINT_DELAY_MS) {
+            if (elapsedTime >= paintingConfigStep12BackRightPaintDelayMs) {
                 backRightPaintDelayComplete = true;
                 // Start moving servo back to painting angle
-                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+                startServoMoveToAngle(paintingConfigServoPaintingAngle);
             }
         }
         // Wait for servo to return to painting angle
@@ -981,7 +981,7 @@ void paintingState() {
     else if (step == 13) {
         // Rotate to 270 degrees (45 more degrees from 225, 270 total from start)
         if (!rotationToRightStarted) {
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP13_RIGHT_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep13RightRotationRev));
             rotationToRightStarted = true;
         }
         
@@ -1011,16 +1011,16 @@ void paintingState() {
         // Save current servo speed and set to right speed
         if (savedRightServoSpeed == 0.0) {
             savedRightServoSpeed = servoSpeed;
-            servoSpeed = STEP14_RIGHT_SERVO_SPEED;
+            servoSpeed = paintingConfigStep14RightServoSpeed;
         }
         
         // Wait for initial wait time
         if (!rightWaitComplete) {
             unsigned long elapsedTime = millis() - waitStartTime;
-            if (elapsedTime >= STEP14_RIGHT_SIDE_WAIT_MS) {
+            if (elapsedTime >= paintingConfigStep14RightSideWaitMs) {
                 rightWaitComplete = true;
                 // Start moving servo to right angle
-                startServoMoveToAngle(STEP14_SERVO_RIGHT_ANGLE_DEG);
+                startServoMoveToAngle(paintingConfigStep14ServoRightAngleDeg);
             }
         }
         // Wait for servo to reach 180 degrees
@@ -1034,10 +1034,10 @@ void paintingState() {
         // Wait for paint delay at right angle (300ms)
         else if (!rightPaintDelayComplete) {
             unsigned long elapsedTime = millis() - rightPaintDelayStartTime;
-            if (elapsedTime >= STEP14_RIGHT_PAINT_DELAY_MS) {
+            if (elapsedTime >= paintingConfigStep14RightPaintDelayMs) {
                 rightPaintDelayComplete = true;
                 // Start moving servo back to painting angle
-                startServoMoveToAngle(SERVO_PAINTING_ANGLE);
+                startServoMoveToAngle(paintingConfigServoPaintingAngle);
             }
         }
         // Wait for servo to return to painting angle
@@ -1077,7 +1077,7 @@ void paintingState() {
         
         // Wait for delay period
         unsigned long elapsedTime = millis() - step15PaintGunOffTime;
-        if (elapsedTime >= STEP15_PAINT_GUN_OFF_DELAY_MS) {
+        if (elapsedTime >= paintingConfigStep15PaintGunOffDelayMs) {
             // Turn paint gun back on
             if (!testModeEnabled) {
                 turnOnPaintGun();
@@ -1104,14 +1104,14 @@ void paintingState() {
     else if (step == 16) {
         // Start moving servo to first angle (210°) (non-blocking)
         if (!servoAt180Complete) {
-            startServoMoveToAngle(STEP15_FIRST_REV_SERVO_ANGLE_DEG);
+            startServoMoveToAngle(paintingConfigStep15FirstRevServoAngleDeg);
             servoAt180Complete = true;
         }
         
         // Start rotation once servo reaches angle (can happen simultaneously)
         if (!finalRotationStarted && servoTargetAngle < 0 && !isStepperRunning()) {
             step15RotationStartPosition = getStepperPosition();
-            moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP15_FINAL_ROTATION_REV));
+            moveStepper((long)(paintRotationMotorStepsPerRevOutput * paintingConfigStep15FinalRotationRev));
             finalRotationStarted = true;
         }
         
@@ -1123,7 +1123,7 @@ void paintingState() {
             
             if (positionChange >= oneRevSteps) {
                 // 1 revolution complete, move servo to 170°
-                startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
+                startServoMoveToAngle(paintingConfigStep16SpinServoAngleDeg);
                 step15ServoMovedTo170 = true;
             }
         }
@@ -1182,7 +1182,7 @@ void paintingState() {
         
         // Wait for delay period
         unsigned long elapsedTime = millis() - step18PaintGunOffTime;
-        if (elapsedTime >= STEP18_PAINT_GUN_OFF_DELAY_MS) {
+        if (elapsedTime >= paintingConfigStep18PaintGunOffDelayMs) {
             // Turn paint gun back on
             if (!testModeEnabled) {
                 turnOnPaintGun();
@@ -1210,12 +1210,12 @@ void paintingState() {
         // Save current servo speed and set to step 17 speed
         if (savedStep17ServoSpeed == 0.0) {
             savedStep17ServoSpeed = servoSpeed;
-            servoSpeed = STEP17_SERVO_SPEED;
+            servoSpeed = paintingConfigStep17ServoSpeed;
         }
         
         // First move servo to initial angle (220°)
         if (!step17ServoTo190Started) {
-            startServoMoveToAngle(STEP17_INITIAL_SERVO_ANGLE_DEG);
+            startServoMoveToAngle(paintingConfigStep17InitialServoAngleDeg);
             step17ServoTo190Started = true;
         }
         // Wait for servo to reach initial angle, then wait and rotate paint motor
@@ -1228,7 +1228,7 @@ void paintingState() {
                 
                 // Wait for delay period
                 unsigned long elapsedTime = millis() - step17InitialAngleReachedTime;
-                if (elapsedTime >= STEP17_INITIAL_ANGLE_WAIT_MS) {
+                if (elapsedTime >= paintingConfigStep17InitialAngleWaitMs) {
                     // Start paint motor rotation (45 degrees clockwise)
                     if (!step17PaintMotorCWStarted) {
                         moveStepper((long)(paintRotationMotorStepsPerRevOutput * 0.125)); // 45 degrees = 0.125 revolutions
@@ -1250,7 +1250,7 @@ void paintingState() {
                             step17PaintMotorCCWComplete = true;
                             step17ServoTo190Complete = true;
                             // Start moving servo to home position
-                            startServoMoveToAngle(SERVO_HOME_ANGLE);
+                            startServoMoveToAngle(paintingConfigServoHomeAngle);
                             step17ServoToHomeStarted = true;
                         }
                     }
@@ -1287,7 +1287,7 @@ void paintingState() {
     else if (step == 20) {
         // Start moving servo to home angle (non-blocking, paint gun still on)
         if (!servoToHomeStarted) {
-            startServoMoveToAngle(SERVO_HOME_ANGLE);
+            startServoMoveToAngle(paintingConfigServoHomeAngle);
             servoToHomeStarted = true;
         }
         
