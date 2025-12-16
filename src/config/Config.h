@@ -83,6 +83,6 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔍 SENSOR SETTINGS                                                   ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define ULTRASONIC_SQUARE_PRESENT_THRESHOLD_CM 9.0  // Distance threshold in cm (square present if distance < threshold)
+#define ULTRASONIC_SQUARE_PRESENT_THRESHOLD_CM 8.75  // Distance threshold in cm (square present if distance < threshold)
 
 #endif // CONFIG_H 

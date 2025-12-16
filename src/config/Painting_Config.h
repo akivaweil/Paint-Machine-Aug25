@@ -48,7 +48,7 @@
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ 🔄 STEP 5-6: ROTATE TO LEFT SIDE                                    ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝
-#define STEP5_LEFT_ROTATION_REV 1.0                    // Rotation to left side (full rotation CW = 1.0 revolutions instead of 90 degrees CCW)
+#define STEP5_LEFT_ROTATION_REV 0.75                   // Rotation to left side (270 degrees CW = 0.75 revolutions instead of 90 degrees CCW)
 #define STEP6_LEFT_SIDE_WAIT_MS 100                    // Wait time on left side before continuing (milliseconds)
 
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
