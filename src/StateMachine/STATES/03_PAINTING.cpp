@@ -658,10 +658,10 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 7: ROTATE TO LEFT SIDE (90 DEGREE CCW TURN)
+    //! STEP 7: ROTATE TO LEFT SIDE (FULL ROTATION CW)
     //! ************************************************************************
     else if (step == 5) {
-        // Rotate to 90 degrees CCW (90 degrees counter-clockwise from start)
+        // Rotate full rotation CW (1.0 revolutions clockwise instead of 90 degrees CCW)
         if (!rotationToLeftStarted) {
             moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP5_LEFT_ROTATION_REV));
             rotationToLeftStarted = true;
@@ -1239,12 +1239,12 @@ void paintingState() {
                     if (step17PaintMotorCWStarted && !step17PaintMotorCWComplete) {
                         if (!isStepperRunning()) {
                             step17PaintMotorCWComplete = true;
-                            // Start counter-clockwise rotation (back to original position)
-                            moveStepper((long)(paintRotationMotorStepsPerRevOutput * -0.125)); // -45 degrees = -0.125 revolutions
+                            // Start clockwise rotation to return to original position (0.875 rev = 1.0 - 0.125)
+                            moveStepper((long)(paintRotationMotorStepsPerRevOutput * 0.875)); // 315 degrees = 0.875 revolutions
                         }
                     }
                     
-                    // Wait for counter-clockwise rotation to complete
+                    // Wait for clockwise return rotation to complete
                     if (step17PaintMotorCWComplete && !step17PaintMotorCCWComplete) {
                         if (!isStepperRunning()) {
                             step17PaintMotorCCWComplete = true;
