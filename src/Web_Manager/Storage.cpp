@@ -127,3 +127,101 @@ void loadSkipPaintingState() {
     preferences.end();
 }
 
+// Save painting configuration to non-volatile storage
+void savePaintingConfig() {
+    preferences.begin("paintCfg", false);
+    preferences.putFloat("svHomeAng", cfgServoHomeAngle);
+    preferences.putFloat("svPaintAng", cfgServoPaintingAngle);
+    preferences.putULong("svUpdInt", cfgServoUpdateIntervalMs);
+    preferences.putFloat("svTgtThr", cfgServoTargetReachedThresholdDeg);
+    preferences.putFloat("svFarThr", cfgServoFarFromTargetThresholdDeg);
+    preferences.putFloat("svMinMov", cfgServoMinMovementDeg);
+    preferences.putFloat("svMaxStp", cfgServoMaxStepSizeDeg);
+    preferences.putFloat("step1XOff", cfgStep1WaitingPositionXOffsetInches);
+    preferences.putFloat("step1YOff", cfgStep1WaitingPositionYOffsetInches);
+    preferences.putULong("step2Del", cfgStep2WaitingPositionDelayMs);
+    preferences.putFloat("step3Fast", cfgStep3ServoFastSpeed);
+    preferences.putULong("step4Del", cfgStep4InitialRotationDelayMs);
+    preferences.putFloat("step4Rot", cfgStep4InitialRotationRev);
+    preferences.putFloat("step5Rot", cfgStep5LeftRotationRev);
+    preferences.putULong("step6Wait", cfgStep6LeftSideWaitMs);
+    preferences.putFloat("step7Rot", cfgStep7BackLeftRotationRev);
+    preferences.putULong("step8Wait", cfgStep8BackLeftWaitMs);
+    preferences.putFloat("step8Ang", cfgStep8ServoBackAngleDeg);
+    preferences.putFloat("step8Spd", cfgStep8BackLeftServoSpeed);
+    preferences.putULong("step8Del", cfgStep8BackLeftPaintDelayMs);
+    preferences.putFloat("step9Rot", cfgStep9BackRotationRev);
+    preferences.putULong("step10Wait", cfgStep10BackSideWaitMs);
+    preferences.putFloat("step10Ang", cfgStep10ServoBackAngleDeg);
+    preferences.putFloat("step10Spd", cfgStep10BackServoSpeed);
+    preferences.putULong("step10Del", cfgStep10BackPaintDelayMs);
+    preferences.putFloat("step11Rot", cfgStep11BackRightRotationRev);
+    preferences.putULong("step12Wait", cfgStep12BackRightWaitMs);
+    preferences.putFloat("step12Ang", cfgStep12ServoBackAngleDeg);
+    preferences.putFloat("step12Spd", cfgStep12BackRightServoSpeed);
+    preferences.putULong("step12Del", cfgStep12BackRightPaintDelayMs);
+    preferences.putFloat("step13Rot", cfgStep13RightRotationRev);
+    preferences.putULong("step14Wait", cfgStep14RightSideWaitMs);
+    preferences.putFloat("step14Ang", cfgStep14ServoRightAngleDeg);
+    preferences.putFloat("step14Spd", cfgStep14RightServoSpeed);
+    preferences.putULong("step14Del", cfgStep14RightPaintDelayMs);
+    preferences.putULong("step15Del", cfgStep15PaintGunOffDelayMs);
+    preferences.putFloat("step15Rot", cfgStep15FinalRotationRev);
+    preferences.putFloat("step15Ang", cfgStep15FirstRevServoAngleDeg);
+    preferences.putFloat("step16Ang", cfgStep16SpinServoAngleDeg);
+    preferences.putULong("step18Del", cfgStep18PaintGunOffDelayMs);
+    preferences.putFloat("step17Ang", cfgStep17InitialServoAngleDeg);
+    preferences.putULong("step17Wait", cfgStep17InitialAngleWaitMs);
+    preferences.putFloat("step17Spd", cfgStep17ServoSpeed);
+    preferences.end();
+}
+
+// Load painting configuration from non-volatile storage
+void loadPaintingConfig() {
+    preferences.begin("paintCfg", true);
+    cfgServoHomeAngle = preferences.getFloat("svHomeAng", SERVO_HOME_ANGLE);
+    cfgServoPaintingAngle = preferences.getFloat("svPaintAng", SERVO_PAINTING_ANGLE);
+    cfgServoUpdateIntervalMs = preferences.getULong("svUpdInt", SERVO_UPDATE_INTERVAL_MS);
+    cfgServoTargetReachedThresholdDeg = preferences.getFloat("svTgtThr", SERVO_TARGET_REACHED_THRESHOLD_DEG);
+    cfgServoFarFromTargetThresholdDeg = preferences.getFloat("svFarThr", SERVO_FAR_FROM_TARGET_THRESHOLD_DEG);
+    cfgServoMinMovementDeg = preferences.getFloat("svMinMov", SERVO_MIN_MOVEMENT_DEG);
+    cfgServoMaxStepSizeDeg = preferences.getFloat("svMaxStp", SERVO_MAX_STEP_SIZE_DEG);
+    cfgStep1WaitingPositionXOffsetInches = preferences.getFloat("step1XOff", STEP1_WAITING_POSITION_X_OFFSET_INCHES);
+    cfgStep1WaitingPositionYOffsetInches = preferences.getFloat("step1YOff", STEP1_WAITING_POSITION_Y_OFFSET_INCHES);
+    cfgStep2WaitingPositionDelayMs = preferences.getULong("step2Del", STEP2_WAITING_POSITION_DELAY_MS);
+    cfgStep3ServoFastSpeed = preferences.getFloat("step3Fast", STEP3_SERVO_FAST_SPEED);
+    cfgStep4InitialRotationDelayMs = preferences.getULong("step4Del", STEP4_INITIAL_ROTATION_DELAY_MS);
+    cfgStep4InitialRotationRev = preferences.getFloat("step4Rot", STEP4_INITIAL_ROTATION_REV);
+    cfgStep5LeftRotationRev = preferences.getFloat("step5Rot", STEP5_LEFT_ROTATION_REV);
+    cfgStep6LeftSideWaitMs = preferences.getULong("step6Wait", STEP6_LEFT_SIDE_WAIT_MS);
+    cfgStep7BackLeftRotationRev = preferences.getFloat("step7Rot", STEP7_BACK_LEFT_ROTATION_REV);
+    cfgStep8BackLeftWaitMs = preferences.getULong("step8Wait", STEP8_BACK_LEFT_WAIT_MS);
+    cfgStep8ServoBackAngleDeg = preferences.getFloat("step8Ang", STEP8_SERVO_BACK_ANGLE_DEG);
+    cfgStep8BackLeftServoSpeed = preferences.getFloat("step8Spd", STEP8_BACK_LEFT_SERVO_SPEED);
+    cfgStep8BackLeftPaintDelayMs = preferences.getULong("step8Del", STEP8_BACK_LEFT_PAINT_DELAY_MS);
+    cfgStep9BackRotationRev = preferences.getFloat("step9Rot", STEP9_BACK_ROTATION_REV);
+    cfgStep10BackSideWaitMs = preferences.getULong("step10Wait", STEP10_BACK_SIDE_WAIT_MS);
+    cfgStep10ServoBackAngleDeg = preferences.getFloat("step10Ang", STEP10_SERVO_BACK_ANGLE_DEG);
+    cfgStep10BackServoSpeed = preferences.getFloat("step10Spd", STEP10_BACK_SERVO_SPEED);
+    cfgStep10BackPaintDelayMs = preferences.getULong("step10Del", STEP10_BACK_PAINT_DELAY_MS);
+    cfgStep11BackRightRotationRev = preferences.getFloat("step11Rot", STEP11_BACK_RIGHT_ROTATION_REV);
+    cfgStep12BackRightWaitMs = preferences.getULong("step12Wait", STEP12_BACK_RIGHT_WAIT_MS);
+    cfgStep12ServoBackAngleDeg = preferences.getFloat("step12Ang", STEP12_SERVO_BACK_ANGLE_DEG);
+    cfgStep12BackRightServoSpeed = preferences.getFloat("step12Spd", STEP12_BACK_RIGHT_SERVO_SPEED);
+    cfgStep12BackRightPaintDelayMs = preferences.getULong("step12Del", STEP12_BACK_RIGHT_PAINT_DELAY_MS);
+    cfgStep13RightRotationRev = preferences.getFloat("step13Rot", STEP13_RIGHT_ROTATION_REV);
+    cfgStep14RightSideWaitMs = preferences.getULong("step14Wait", STEP14_RIGHT_SIDE_WAIT_MS);
+    cfgStep14ServoRightAngleDeg = preferences.getFloat("step14Ang", STEP14_SERVO_RIGHT_ANGLE_DEG);
+    cfgStep14RightServoSpeed = preferences.getFloat("step14Spd", STEP14_RIGHT_SERVO_SPEED);
+    cfgStep14RightPaintDelayMs = preferences.getULong("step14Del", STEP14_RIGHT_PAINT_DELAY_MS);
+    cfgStep15PaintGunOffDelayMs = preferences.getULong("step15Del", STEP15_PAINT_GUN_OFF_DELAY_MS);
+    cfgStep15FinalRotationRev = preferences.getFloat("step15Rot", STEP15_FINAL_ROTATION_REV);
+    cfgStep15FirstRevServoAngleDeg = preferences.getFloat("step15Ang", STEP15_FIRST_REV_SERVO_ANGLE_DEG);
+    cfgStep16SpinServoAngleDeg = preferences.getFloat("step16Ang", STEP16_SPIN_SERVO_ANGLE_DEG);
+    cfgStep18PaintGunOffDelayMs = preferences.getULong("step18Del", STEP18_PAINT_GUN_OFF_DELAY_MS);
+    cfgStep17InitialServoAngleDeg = preferences.getFloat("step17Ang", STEP17_INITIAL_SERVO_ANGLE_DEG);
+    cfgStep17InitialAngleWaitMs = preferences.getULong("step17Wait", STEP17_INITIAL_ANGLE_WAIT_MS);
+    cfgStep17ServoSpeed = preferences.getFloat("step17Spd", STEP17_SERVO_SPEED);
+    preferences.end();
+}
+

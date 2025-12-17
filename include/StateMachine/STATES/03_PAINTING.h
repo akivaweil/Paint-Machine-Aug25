@@ -60,6 +60,51 @@ extern void stopStepper();
 // Y-axis motor speed
 extern long motorSpeedY;
 
+// Painting configuration variables
+extern float cfgServoHomeAngle;
+extern float cfgServoPaintingAngle;
+extern unsigned long cfgServoUpdateIntervalMs;
+extern float cfgServoTargetReachedThresholdDeg;
+extern float cfgServoFarFromTargetThresholdDeg;
+extern float cfgServoMinMovementDeg;
+extern float cfgServoMaxStepSizeDeg;
+extern float cfgStep1WaitingPositionXOffsetInches;
+extern float cfgStep1WaitingPositionYOffsetInches;
+extern unsigned long cfgStep2WaitingPositionDelayMs;
+extern float cfgStep3ServoFastSpeed;
+extern unsigned long cfgStep4InitialRotationDelayMs;
+extern float cfgStep4InitialRotationRev;
+extern float cfgStep5LeftRotationRev;
+extern unsigned long cfgStep6LeftSideWaitMs;
+extern float cfgStep7BackLeftRotationRev;
+extern unsigned long cfgStep8BackLeftWaitMs;
+extern float cfgStep8ServoBackAngleDeg;
+extern float cfgStep8BackLeftServoSpeed;
+extern unsigned long cfgStep8BackLeftPaintDelayMs;
+extern float cfgStep9BackRotationRev;
+extern unsigned long cfgStep10BackSideWaitMs;
+extern float cfgStep10ServoBackAngleDeg;
+extern float cfgStep10BackServoSpeed;
+extern unsigned long cfgStep10BackPaintDelayMs;
+extern float cfgStep11BackRightRotationRev;
+extern unsigned long cfgStep12BackRightWaitMs;
+extern float cfgStep12ServoBackAngleDeg;
+extern float cfgStep12BackRightServoSpeed;
+extern unsigned long cfgStep12BackRightPaintDelayMs;
+extern float cfgStep13RightRotationRev;
+extern unsigned long cfgStep14RightSideWaitMs;
+extern float cfgStep14ServoRightAngleDeg;
+extern float cfgStep14RightServoSpeed;
+extern unsigned long cfgStep14RightPaintDelayMs;
+extern unsigned long cfgStep15PaintGunOffDelayMs;
+extern float cfgStep15FinalRotationRev;
+extern float cfgStep15FirstRevServoAngleDeg;
+extern float cfgStep16SpinServoAngleDeg;
+extern unsigned long cfgStep18PaintGunOffDelayMs;
+extern float cfgStep17InitialServoAngleDeg;
+extern unsigned long cfgStep17InitialAngleWaitMs;
+extern float cfgStep17ServoSpeed;
+
 //╔═══╗ ════════════════════════════════════════════════════════════════ ╔═══╗
 //║ ⚔️ HELPER FUNCTIONS                                                    ║
 //╚═══╝ ════════════════════════════════════════════════════════════════ ╚═══╝

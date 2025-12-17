@@ -1075,6 +1075,23 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       </div>
     </div>
     
+        <div class="card">
+      <div class="collapsible-header" id="paintingConfigHeader" onclick="togglePaintingConfig()">
+            <div class="card-header-content">
+              <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-primary) 0%, #ff8f5a 100%);">🎨</div>
+              <span class="card-title">Painting Config</span>
+            </div>
+            <span class="chevron">&darr;</span>
+      </div>
+      <div class="collapsible-content" id="paintingConfigContent">
+            <div class="card-body" id="paintingConfigBody">
+              <div style="text-align: center; padding: 40px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                Click to load painting configuration...
+              </div>
+            </div>
+      </div>
+    </div>
+    
     <div class="last-update" id="lastUpdate">Last update: --</div>
       </div>
     </div>
@@ -1313,9 +1330,339 @@ const char sensors_html[] PROGMEM = R"rawliteral(
       saveMotorSettings();
     }
     
+    // Load saved painting config on page load
+    function loadPaintingConfig() {
+      fetch('/api/painting/config')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('svHomeAng').value = data.svHomeAng || 130;
+          document.getElementById('svPaintAng').value = data.svPaintAng || 230;
+          document.getElementById('step8Ang').value = data.step8Ang || 160;
+          document.getElementById('step14Ang').value = data.step14Ang || 180;
+          document.getElementById('step15Ang').value = data.step15Ang || 230;
+          document.getElementById('step16Ang').value = data.step16Ang || 200;
+          document.getElementById('step17Ang').value = data.step17Ang || 230;
+          document.getElementById('step2Del').value = data.step2Del || 250;
+          document.getElementById('step4Del').value = data.step4Del || 200;
+          document.getElementById('step6Wait').value = data.step6Wait || 100;
+          document.getElementById('step8Wait').value = data.step8Wait || 200;
+          document.getElementById('step8Del').value = data.step8Del || 200;
+          document.getElementById('step10Wait').value = data.step10Wait || 200;
+          document.getElementById('step10Del').value = data.step10Del || 200;
+          document.getElementById('step12Wait').value = data.step12Wait || 200;
+          document.getElementById('step12Del').value = data.step12Del || 200;
+          document.getElementById('step14Wait').value = data.step14Wait || 200;
+          document.getElementById('step14Del').value = data.step14Del || 200;
+          document.getElementById('step15Del').value = data.step15Del || 100;
+          document.getElementById('step18Del').value = data.step18Del || 5;
+          document.getElementById('step17Wait').value = data.step17Wait || 300;
+          document.getElementById('step3Fast').value = data.step3Fast || 500;
+          document.getElementById('step8Spd').value = data.step8Spd || 80;
+          document.getElementById('step10Spd').value = data.step10Spd || 80;
+          document.getElementById('step12Spd').value = data.step12Spd || 80;
+          document.getElementById('step14Spd').value = data.step14Spd || 80;
+          document.getElementById('step17Spd').value = data.step17Spd || 100;
+          document.getElementById('step4Rot').value = data.step4Rot || 0.5;
+          document.getElementById('step5Rot').value = data.step5Rot || 0.75;
+          document.getElementById('step7Rot').value = data.step7Rot || 0.125;
+          document.getElementById('step9Rot').value = data.step9Rot || 0.125;
+          document.getElementById('step11Rot').value = data.step11Rot || 0.125;
+          document.getElementById('step13Rot').value = data.step13Rot || 0.125;
+          document.getElementById('step15Rot').value = data.step15Rot || 2.25;
+          document.getElementById('step1XOff').value = data.step1XOff || 7.0;
+          document.getElementById('step1YOff').value = data.step1YOff || 0.5;
+          document.getElementById('svUpdInt').value = data.svUpdInt || 10;
+          document.getElementById('svTgtThr').value = data.svTgtThr || 0.1;
+          document.getElementById('svFarThr').value = data.svFarThr || 0.5;
+          document.getElementById('svMinMov').value = data.svMinMov || 0.2;
+          document.getElementById('svMaxStp').value = data.svMaxStp || 1.25;
+        })
+        .catch(error => {
+          console.error('Error loading painting config:', error);
+        });
+    }
+    
+    // Save painting config
+    function savePaintingConfig() {
+      const params = new URLSearchParams();
+      if (document.getElementById('svHomeAng').value) params.append('svHomeAng', document.getElementById('svHomeAng').value);
+      if (document.getElementById('svPaintAng').value) params.append('svPaintAng', document.getElementById('svPaintAng').value);
+      if (document.getElementById('step8Ang').value) params.append('step8Ang', document.getElementById('step8Ang').value);
+      if (document.getElementById('step14Ang').value) params.append('step14Ang', document.getElementById('step14Ang').value);
+      if (document.getElementById('step15Ang').value) params.append('step15Ang', document.getElementById('step15Ang').value);
+      if (document.getElementById('step16Ang').value) params.append('step16Ang', document.getElementById('step16Ang').value);
+      if (document.getElementById('step17Ang').value) params.append('step17Ang', document.getElementById('step17Ang').value);
+      if (document.getElementById('step2Del').value) params.append('step2Del', document.getElementById('step2Del').value);
+      if (document.getElementById('step4Del').value) params.append('step4Del', document.getElementById('step4Del').value);
+      if (document.getElementById('step6Wait').value) params.append('step6Wait', document.getElementById('step6Wait').value);
+      if (document.getElementById('step8Wait').value) params.append('step8Wait', document.getElementById('step8Wait').value);
+      if (document.getElementById('step8Del').value) params.append('step8Del', document.getElementById('step8Del').value);
+      if (document.getElementById('step10Wait').value) params.append('step10Wait', document.getElementById('step10Wait').value);
+      if (document.getElementById('step10Del').value) params.append('step10Del', document.getElementById('step10Del').value);
+      if (document.getElementById('step12Wait').value) params.append('step12Wait', document.getElementById('step12Wait').value);
+      if (document.getElementById('step12Del').value) params.append('step12Del', document.getElementById('step12Del').value);
+      if (document.getElementById('step14Wait').value) params.append('step14Wait', document.getElementById('step14Wait').value);
+      if (document.getElementById('step14Del').value) params.append('step14Del', document.getElementById('step14Del').value);
+      if (document.getElementById('step15Del').value) params.append('step15Del', document.getElementById('step15Del').value);
+      if (document.getElementById('step18Del').value) params.append('step18Del', document.getElementById('step18Del').value);
+      if (document.getElementById('step17Wait').value) params.append('step17Wait', document.getElementById('step17Wait').value);
+      if (document.getElementById('step3Fast').value) params.append('step3Fast', document.getElementById('step3Fast').value);
+      if (document.getElementById('step8Spd').value) params.append('step8Spd', document.getElementById('step8Spd').value);
+      if (document.getElementById('step10Spd').value) params.append('step10Spd', document.getElementById('step10Spd').value);
+      if (document.getElementById('step12Spd').value) params.append('step12Spd', document.getElementById('step12Spd').value);
+      if (document.getElementById('step14Spd').value) params.append('step14Spd', document.getElementById('step14Spd').value);
+      if (document.getElementById('step17Spd').value) params.append('step17Spd', document.getElementById('step17Spd').value);
+      if (document.getElementById('step4Rot').value) params.append('step4Rot', document.getElementById('step4Rot').value);
+      if (document.getElementById('step5Rot').value) params.append('step5Rot', document.getElementById('step5Rot').value);
+      if (document.getElementById('step7Rot').value) params.append('step7Rot', document.getElementById('step7Rot').value);
+      if (document.getElementById('step9Rot').value) params.append('step9Rot', document.getElementById('step9Rot').value);
+      if (document.getElementById('step11Rot').value) params.append('step11Rot', document.getElementById('step11Rot').value);
+      if (document.getElementById('step13Rot').value) params.append('step13Rot', document.getElementById('step13Rot').value);
+      if (document.getElementById('step15Rot').value) params.append('step15Rot', document.getElementById('step15Rot').value);
+      if (document.getElementById('step1XOff').value) params.append('step1XOff', document.getElementById('step1XOff').value);
+      if (document.getElementById('step1YOff').value) params.append('step1YOff', document.getElementById('step1YOff').value);
+      if (document.getElementById('svUpdInt').value) params.append('svUpdInt', document.getElementById('svUpdInt').value);
+      if (document.getElementById('svTgtThr').value) params.append('svTgtThr', document.getElementById('svTgtThr').value);
+      if (document.getElementById('svFarThr').value) params.append('svFarThr', document.getElementById('svFarThr').value);
+      if (document.getElementById('svMinMov').value) params.append('svMinMov', document.getElementById('svMinMov').value);
+      if (document.getElementById('svMaxStp').value) params.append('svMaxStp', document.getElementById('svMaxStp').value);
+      
+      fetch('/api/painting/config?' + params.toString())
+        .then(response => response.text())
+        .then(data => {
+          console.log('Painting config saved:', data);
+        })
+        .catch(error => {
+          console.error('Error saving painting config:', error);
+        });
+    }
+    
+    // Auto-save function called on blur
+    function autoSavePaintingConfig() {
+      savePaintingConfig();
+    }
+    
+    let paintingConfigLoaded = false;
+    
+    function togglePaintingConfig() {
+      const content = document.getElementById('paintingConfigContent');
+      const header = document.getElementById('paintingConfigHeader');
+      if (content && header) {
+        const isExpanding = !content.classList.contains('expanded');
+        content.classList.toggle('expanded');
+        header.classList.toggle('active');
+        
+        // Load config HTML and values only when first expanded
+        if (isExpanding && !paintingConfigLoaded) {
+          loadPaintingConfigHTML();
+          paintingConfigLoaded = true;
+        }
+      }
+    }
+    
+    function loadPaintingConfigHTML() {
+      const body = document.getElementById('paintingConfigBody');
+      if (!body) return;
+      
+      body.innerHTML = `
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Servo Angles</h3>
+            <div class="input-row">
+              <label>Home:</label>
+              <input type="number" id="svHomeAng" step="1" min="0" max="270" placeholder="130" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Painting:</label>
+              <input type="number" id="svPaintAng" step="1" min="0" max="270" placeholder="230" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back (8/10/12):</label>
+              <input type="number" id="step8Ang" step="1" min="0" max="270" placeholder="160" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right (14):</label>
+              <input type="number" id="step14Ang" step="1" min="0" max="270" placeholder="180" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>First Rev (15):</label>
+              <input type="number" id="step15Ang" step="1" min="0" max="270" placeholder="230" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Spin (16):</label>
+              <input type="number" id="step16Ang" step="1" min="0" max="270" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Initial (17):</label>
+              <input type="number" id="step17Ang" step="1" min="0" max="270" placeholder="230" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Delays (ms)</h3>
+            <div class="input-row">
+              <label>Waiting Pos:</label>
+              <input type="number" id="step2Del" step="10" min="0" max="5000" placeholder="250" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Init Rot Delay:</label>
+              <input type="number" id="step4Del" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Left Wait:</label>
+              <input type="number" id="step6Wait" step="10" min="0" max="5000" placeholder="100" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back L Wait:</label>
+              <input type="number" id="step8Wait" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back L Paint:</label>
+              <input type="number" id="step8Del" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Wait:</label>
+              <input type="number" id="step10Wait" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Paint:</label>
+              <input type="number" id="step10Del" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back R Wait:</label>
+              <input type="number" id="step12Wait" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back R Paint:</label>
+              <input type="number" id="step12Del" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right Wait:</label>
+              <input type="number" id="step14Wait" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right Paint:</label>
+              <input type="number" id="step14Del" step="10" min="0" max="5000" placeholder="200" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Gun Off (15):</label>
+              <input type="number" id="step15Del" step="10" min="0" max="5000" placeholder="100" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Gun Off (18):</label>
+              <input type="number" id="step18Del" step="1" min="0" max="5000" placeholder="5" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Init Ang Wait:</label>
+              <input type="number" id="step17Wait" step="10" min="0" max="5000" placeholder="300" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Servo Speeds</h3>
+            <div class="input-row">
+              <label>Fast (3):</label>
+              <input type="number" id="step3Fast" step="10" min="1" max="1000" placeholder="500" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Left:</label>
+              <input type="number" id="step8Spd" step="1" min="1" max="500" placeholder="80" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back:</label>
+              <input type="number" id="step10Spd" step="1" min="1" max="500" placeholder="80" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Right:</label>
+              <input type="number" id="step12Spd" step="1" min="1" max="500" placeholder="80" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right:</label>
+              <input type="number" id="step14Spd" step="1" min="1" max="500" placeholder="80" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Step 17:</label>
+              <input type="number" id="step17Spd" step="1" min="1" max="500" placeholder="100" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Rotations (rev)</h3>
+            <div class="input-row">
+              <label>Initial:</label>
+              <input type="number" id="step4Rot" step="0.01" min="0" max="10" placeholder="0.5" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Left:</label>
+              <input type="number" id="step5Rot" step="0.01" min="0" max="10" placeholder="0.75" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Left:</label>
+              <input type="number" id="step7Rot" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back:</label>
+              <input type="number" id="step9Rot" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Back Right:</label>
+              <input type="number" id="step11Rot" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Right:</label>
+              <input type="number" id="step13Rot" step="0.01" min="0" max="10" placeholder="0.125" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Final:</label>
+              <input type="number" id="step15Rot" step="0.01" min="0" max="10" placeholder="2.25" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+        <div class="position-group">
+          <div class="position-inputs">
+            <h3>Position Offsets</h3>
+            <div class="input-row">
+              <label>Waiting X:</label>
+              <input type="number" id="step1XOff" step="0.1" min="0" max="20" placeholder="7.0" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Waiting Y:</label>
+              <input type="number" id="step1YOff" step="0.1" min="0" max="20" placeholder="0.5" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+          <div class="position-inputs">
+            <h3>Servo Movement</h3>
+            <div class="input-row">
+              <label>Update Int (ms):</label>
+              <input type="number" id="svUpdInt" step="1" min="1" max="100" placeholder="10" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Target Thr (deg):</label>
+              <input type="number" id="svTgtThr" step="0.01" min="0" max="5" placeholder="0.1" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Far Thr (deg):</label>
+              <input type="number" id="svFarThr" step="0.01" min="0" max="5" placeholder="0.5" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Min Mov (deg):</label>
+              <input type="number" id="svMinMov" step="0.01" min="0" max="5" placeholder="0.2" onblur="autoSavePaintingConfig()">
+            </div>
+            <div class="input-row">
+              <label>Max Step (deg):</label>
+              <input type="number" id="svMaxStp" step="0.01" min="0" max="10" placeholder="1.25" onblur="autoSavePaintingConfig()">
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Load values after HTML is inserted
+      loadPaintingConfig();
+    }
+    
     // Load positions and settings when page loads
     loadTestPositions();
     loadMotorSettings();
+    // Note: Painting config is loaded lazily when section is expanded
     loadDeviceStates();
     loadSquareSensingState();
     loadTestModeState();

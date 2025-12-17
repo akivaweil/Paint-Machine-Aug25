@@ -607,6 +607,134 @@ void setupAPIRoutes() {
         }
     });
     
+    // API endpoint for painting configuration (GET to retrieve, GET with params to set)
+    server.on("/api/painting/config", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Check if any parameters are provided to set values
+        bool hasParams = request->hasParam("svHomeAng") || request->hasParam("svPaintAng") || 
+                        request->hasParam("svUpdInt") || request->hasParam("svTgtThr") ||
+                        request->hasParam("svFarThr") || request->hasParam("svMinMov") ||
+                        request->hasParam("svMaxStp") || request->hasParam("step1XOff") ||
+                        request->hasParam("step1YOff") || request->hasParam("step2Del") ||
+                        request->hasParam("step3Fast") || request->hasParam("step4Del") ||
+                        request->hasParam("step4Rot") || request->hasParam("step5Rot") ||
+                        request->hasParam("step6Wait") || request->hasParam("step7Rot") ||
+                        request->hasParam("step8Wait") || request->hasParam("step8Ang") ||
+                        request->hasParam("step8Spd") || request->hasParam("step8Del") ||
+                        request->hasParam("step9Rot") || request->hasParam("step10Wait") ||
+                        request->hasParam("step10Ang") || request->hasParam("step10Spd") ||
+                        request->hasParam("step10Del") || request->hasParam("step11Rot") ||
+                        request->hasParam("step12Wait") || request->hasParam("step12Ang") ||
+                        request->hasParam("step12Spd") || request->hasParam("step12Del") ||
+                        request->hasParam("step13Rot") || request->hasParam("step14Wait") ||
+                        request->hasParam("step14Ang") || request->hasParam("step14Spd") ||
+                        request->hasParam("step14Del") || request->hasParam("step15Del") ||
+                        request->hasParam("step15Rot") || request->hasParam("step15Ang") ||
+                        request->hasParam("step16Ang") || request->hasParam("step18Del") ||
+                        request->hasParam("step17Ang") || request->hasParam("step17Wait") ||
+                        request->hasParam("step17Spd");
+        
+        if (hasParams) {
+            // Set configuration values if provided
+            if (request->hasParam("svHomeAng")) cfgServoHomeAngle = request->getParam("svHomeAng")->value().toFloat();
+            if (request->hasParam("svPaintAng")) cfgServoPaintingAngle = request->getParam("svPaintAng")->value().toFloat();
+            if (request->hasParam("svUpdInt")) cfgServoUpdateIntervalMs = request->getParam("svUpdInt")->value().toInt();
+            if (request->hasParam("svTgtThr")) cfgServoTargetReachedThresholdDeg = request->getParam("svTgtThr")->value().toFloat();
+            if (request->hasParam("svFarThr")) cfgServoFarFromTargetThresholdDeg = request->getParam("svFarThr")->value().toFloat();
+            if (request->hasParam("svMinMov")) cfgServoMinMovementDeg = request->getParam("svMinMov")->value().toFloat();
+            if (request->hasParam("svMaxStp")) cfgServoMaxStepSizeDeg = request->getParam("svMaxStp")->value().toFloat();
+            if (request->hasParam("step1XOff")) cfgStep1WaitingPositionXOffsetInches = request->getParam("step1XOff")->value().toFloat();
+            if (request->hasParam("step1YOff")) cfgStep1WaitingPositionYOffsetInches = request->getParam("step1YOff")->value().toFloat();
+            if (request->hasParam("step2Del")) cfgStep2WaitingPositionDelayMs = request->getParam("step2Del")->value().toInt();
+            if (request->hasParam("step3Fast")) cfgStep3ServoFastSpeed = request->getParam("step3Fast")->value().toFloat();
+            if (request->hasParam("step4Del")) cfgStep4InitialRotationDelayMs = request->getParam("step4Del")->value().toInt();
+            if (request->hasParam("step4Rot")) cfgStep4InitialRotationRev = request->getParam("step4Rot")->value().toFloat();
+            if (request->hasParam("step5Rot")) cfgStep5LeftRotationRev = request->getParam("step5Rot")->value().toFloat();
+            if (request->hasParam("step6Wait")) cfgStep6LeftSideWaitMs = request->getParam("step6Wait")->value().toInt();
+            if (request->hasParam("step7Rot")) cfgStep7BackLeftRotationRev = request->getParam("step7Rot")->value().toFloat();
+            if (request->hasParam("step8Wait")) cfgStep8BackLeftWaitMs = request->getParam("step8Wait")->value().toInt();
+            if (request->hasParam("step8Ang")) cfgStep8ServoBackAngleDeg = request->getParam("step8Ang")->value().toFloat();
+            if (request->hasParam("step8Spd")) cfgStep8BackLeftServoSpeed = request->getParam("step8Spd")->value().toFloat();
+            if (request->hasParam("step8Del")) cfgStep8BackLeftPaintDelayMs = request->getParam("step8Del")->value().toInt();
+            if (request->hasParam("step9Rot")) cfgStep9BackRotationRev = request->getParam("step9Rot")->value().toFloat();
+            if (request->hasParam("step10Wait")) cfgStep10BackSideWaitMs = request->getParam("step10Wait")->value().toInt();
+            if (request->hasParam("step10Ang")) cfgStep10ServoBackAngleDeg = request->getParam("step10Ang")->value().toFloat();
+            if (request->hasParam("step10Spd")) cfgStep10BackServoSpeed = request->getParam("step10Spd")->value().toFloat();
+            if (request->hasParam("step10Del")) cfgStep10BackPaintDelayMs = request->getParam("step10Del")->value().toInt();
+            if (request->hasParam("step11Rot")) cfgStep11BackRightRotationRev = request->getParam("step11Rot")->value().toFloat();
+            if (request->hasParam("step12Wait")) cfgStep12BackRightWaitMs = request->getParam("step12Wait")->value().toInt();
+            if (request->hasParam("step12Ang")) cfgStep12ServoBackAngleDeg = request->getParam("step12Ang")->value().toFloat();
+            if (request->hasParam("step12Spd")) cfgStep12BackRightServoSpeed = request->getParam("step12Spd")->value().toFloat();
+            if (request->hasParam("step12Del")) cfgStep12BackRightPaintDelayMs = request->getParam("step12Del")->value().toInt();
+            if (request->hasParam("step13Rot")) cfgStep13RightRotationRev = request->getParam("step13Rot")->value().toFloat();
+            if (request->hasParam("step14Wait")) cfgStep14RightSideWaitMs = request->getParam("step14Wait")->value().toInt();
+            if (request->hasParam("step14Ang")) cfgStep14ServoRightAngleDeg = request->getParam("step14Ang")->value().toFloat();
+            if (request->hasParam("step14Spd")) cfgStep14RightServoSpeed = request->getParam("step14Spd")->value().toFloat();
+            if (request->hasParam("step14Del")) cfgStep14RightPaintDelayMs = request->getParam("step14Del")->value().toInt();
+            if (request->hasParam("step15Del")) cfgStep15PaintGunOffDelayMs = request->getParam("step15Del")->value().toInt();
+            if (request->hasParam("step15Rot")) cfgStep15FinalRotationRev = request->getParam("step15Rot")->value().toFloat();
+            if (request->hasParam("step15Ang")) cfgStep15FirstRevServoAngleDeg = request->getParam("step15Ang")->value().toFloat();
+            if (request->hasParam("step16Ang")) cfgStep16SpinServoAngleDeg = request->getParam("step16Ang")->value().toFloat();
+            if (request->hasParam("step18Del")) cfgStep18PaintGunOffDelayMs = request->getParam("step18Del")->value().toInt();
+            if (request->hasParam("step17Ang")) cfgStep17InitialServoAngleDeg = request->getParam("step17Ang")->value().toFloat();
+            if (request->hasParam("step17Wait")) cfgStep17InitialAngleWaitMs = request->getParam("step17Wait")->value().toInt();
+            if (request->hasParam("step17Spd")) cfgStep17ServoSpeed = request->getParam("step17Spd")->value().toFloat();
+            
+            // Save to persistent storage
+            savePaintingConfig();
+            
+            request->send(200, "text/plain", "OK");
+            Serial.println("Web Request: Painting config updated");
+        } else {
+            // Return current configuration values as JSON
+            String json = "{";
+            json += "\"svHomeAng\":" + String(cfgServoHomeAngle) + ",";
+            json += "\"svPaintAng\":" + String(cfgServoPaintingAngle) + ",";
+            json += "\"svUpdInt\":" + String(cfgServoUpdateIntervalMs) + ",";
+            json += "\"svTgtThr\":" + String(cfgServoTargetReachedThresholdDeg) + ",";
+            json += "\"svFarThr\":" + String(cfgServoFarFromTargetThresholdDeg) + ",";
+            json += "\"svMinMov\":" + String(cfgServoMinMovementDeg) + ",";
+            json += "\"svMaxStp\":" + String(cfgServoMaxStepSizeDeg) + ",";
+            json += "\"step1XOff\":" + String(cfgStep1WaitingPositionXOffsetInches) + ",";
+            json += "\"step1YOff\":" + String(cfgStep1WaitingPositionYOffsetInches) + ",";
+            json += "\"step2Del\":" + String(cfgStep2WaitingPositionDelayMs) + ",";
+            json += "\"step3Fast\":" + String(cfgStep3ServoFastSpeed) + ",";
+            json += "\"step4Del\":" + String(cfgStep4InitialRotationDelayMs) + ",";
+            json += "\"step4Rot\":" + String(cfgStep4InitialRotationRev) + ",";
+            json += "\"step5Rot\":" + String(cfgStep5LeftRotationRev) + ",";
+            json += "\"step6Wait\":" + String(cfgStep6LeftSideWaitMs) + ",";
+            json += "\"step7Rot\":" + String(cfgStep7BackLeftRotationRev) + ",";
+            json += "\"step8Wait\":" + String(cfgStep8BackLeftWaitMs) + ",";
+            json += "\"step8Ang\":" + String(cfgStep8ServoBackAngleDeg) + ",";
+            json += "\"step8Spd\":" + String(cfgStep8BackLeftServoSpeed) + ",";
+            json += "\"step8Del\":" + String(cfgStep8BackLeftPaintDelayMs) + ",";
+            json += "\"step9Rot\":" + String(cfgStep9BackRotationRev) + ",";
+            json += "\"step10Wait\":" + String(cfgStep10BackSideWaitMs) + ",";
+            json += "\"step10Ang\":" + String(cfgStep10ServoBackAngleDeg) + ",";
+            json += "\"step10Spd\":" + String(cfgStep10BackServoSpeed) + ",";
+            json += "\"step10Del\":" + String(cfgStep10BackPaintDelayMs) + ",";
+            json += "\"step11Rot\":" + String(cfgStep11BackRightRotationRev) + ",";
+            json += "\"step12Wait\":" + String(cfgStep12BackRightWaitMs) + ",";
+            json += "\"step12Ang\":" + String(cfgStep12ServoBackAngleDeg) + ",";
+            json += "\"step12Spd\":" + String(cfgStep12BackRightServoSpeed) + ",";
+            json += "\"step12Del\":" + String(cfgStep12BackRightPaintDelayMs) + ",";
+            json += "\"step13Rot\":" + String(cfgStep13RightRotationRev) + ",";
+            json += "\"step14Wait\":" + String(cfgStep14RightSideWaitMs) + ",";
+            json += "\"step14Ang\":" + String(cfgStep14ServoRightAngleDeg) + ",";
+            json += "\"step14Spd\":" + String(cfgStep14RightServoSpeed) + ",";
+            json += "\"step14Del\":" + String(cfgStep14RightPaintDelayMs) + ",";
+            json += "\"step15Del\":" + String(cfgStep15PaintGunOffDelayMs) + ",";
+            json += "\"step15Rot\":" + String(cfgStep15FinalRotationRev) + ",";
+            json += "\"step15Ang\":" + String(cfgStep15FirstRevServoAngleDeg) + ",";
+            json += "\"step16Ang\":" + String(cfgStep16SpinServoAngleDeg) + ",";
+            json += "\"step18Del\":" + String(cfgStep18PaintGunOffDelayMs) + ",";
+            json += "\"step17Ang\":" + String(cfgStep17InitialServoAngleDeg) + ",";
+            json += "\"step17Wait\":" + String(cfgStep17InitialAngleWaitMs) + ",";
+            json += "\"step17Spd\":" + String(cfgStep17ServoSpeed);
+            json += "}";
+            request->send(200, "application/json", json);
+        }
+    });
+    
     // API endpoint to get cycle state
     server.on("/api/cycle/state", HTTP_GET, [](AsyncWebServerRequest *request){
         extern int getMachineState();

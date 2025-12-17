@@ -37,7 +37,7 @@ Bounce2::Button storagePositionSensor;
 
 // Servo instance
 ServoControl* servo = nullptr;
-float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
+float currentServoAngle = 0.0;  // Track current servo position (initialized after cfg loaded)
 
 // Suction and Paint Gun state
 bool suctionState = false;
@@ -97,6 +97,51 @@ long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
 long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
 float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
 
+// Painting configuration variables (initialized from Painting_Config.h defaults)
+float cfgServoHomeAngle = SERVO_HOME_ANGLE;
+float cfgServoPaintingAngle = SERVO_PAINTING_ANGLE;
+unsigned long cfgServoUpdateIntervalMs = SERVO_UPDATE_INTERVAL_MS;
+float cfgServoTargetReachedThresholdDeg = SERVO_TARGET_REACHED_THRESHOLD_DEG;
+float cfgServoFarFromTargetThresholdDeg = SERVO_FAR_FROM_TARGET_THRESHOLD_DEG;
+float cfgServoMinMovementDeg = SERVO_MIN_MOVEMENT_DEG;
+float cfgServoMaxStepSizeDeg = SERVO_MAX_STEP_SIZE_DEG;
+float cfgStep1WaitingPositionXOffsetInches = STEP1_WAITING_POSITION_X_OFFSET_INCHES;
+float cfgStep1WaitingPositionYOffsetInches = STEP1_WAITING_POSITION_Y_OFFSET_INCHES;
+unsigned long cfgStep2WaitingPositionDelayMs = STEP2_WAITING_POSITION_DELAY_MS;
+float cfgStep3ServoFastSpeed = STEP3_SERVO_FAST_SPEED;
+unsigned long cfgStep4InitialRotationDelayMs = STEP4_INITIAL_ROTATION_DELAY_MS;
+float cfgStep4InitialRotationRev = STEP4_INITIAL_ROTATION_REV;
+float cfgStep5LeftRotationRev = STEP5_LEFT_ROTATION_REV;
+unsigned long cfgStep6LeftSideWaitMs = STEP6_LEFT_SIDE_WAIT_MS;
+float cfgStep7BackLeftRotationRev = STEP7_BACK_LEFT_ROTATION_REV;
+unsigned long cfgStep8BackLeftWaitMs = STEP8_BACK_LEFT_WAIT_MS;
+float cfgStep8ServoBackAngleDeg = STEP8_SERVO_BACK_ANGLE_DEG;
+float cfgStep8BackLeftServoSpeed = STEP8_BACK_LEFT_SERVO_SPEED;
+unsigned long cfgStep8BackLeftPaintDelayMs = STEP8_BACK_LEFT_PAINT_DELAY_MS;
+float cfgStep9BackRotationRev = STEP9_BACK_ROTATION_REV;
+unsigned long cfgStep10BackSideWaitMs = STEP10_BACK_SIDE_WAIT_MS;
+float cfgStep10ServoBackAngleDeg = STEP10_SERVO_BACK_ANGLE_DEG;
+float cfgStep10BackServoSpeed = STEP10_BACK_SERVO_SPEED;
+unsigned long cfgStep10BackPaintDelayMs = STEP10_BACK_PAINT_DELAY_MS;
+float cfgStep11BackRightRotationRev = STEP11_BACK_RIGHT_ROTATION_REV;
+unsigned long cfgStep12BackRightWaitMs = STEP12_BACK_RIGHT_WAIT_MS;
+float cfgStep12ServoBackAngleDeg = STEP12_SERVO_BACK_ANGLE_DEG;
+float cfgStep12BackRightServoSpeed = STEP12_BACK_RIGHT_SERVO_SPEED;
+unsigned long cfgStep12BackRightPaintDelayMs = STEP12_BACK_RIGHT_PAINT_DELAY_MS;
+float cfgStep13RightRotationRev = STEP13_RIGHT_ROTATION_REV;
+unsigned long cfgStep14RightSideWaitMs = STEP14_RIGHT_SIDE_WAIT_MS;
+float cfgStep14ServoRightAngleDeg = STEP14_SERVO_RIGHT_ANGLE_DEG;
+float cfgStep14RightServoSpeed = STEP14_RIGHT_SERVO_SPEED;
+unsigned long cfgStep14RightPaintDelayMs = STEP14_RIGHT_PAINT_DELAY_MS;
+unsigned long cfgStep15PaintGunOffDelayMs = STEP15_PAINT_GUN_OFF_DELAY_MS;
+float cfgStep15FinalRotationRev = STEP15_FINAL_ROTATION_REV;
+float cfgStep15FirstRevServoAngleDeg = STEP15_FIRST_REV_SERVO_ANGLE_DEG;
+float cfgStep16SpinServoAngleDeg = STEP16_SPIN_SERVO_ANGLE_DEG;
+unsigned long cfgStep18PaintGunOffDelayMs = STEP18_PAINT_GUN_OFF_DELAY_MS;
+float cfgStep17InitialServoAngleDeg = STEP17_INITIAL_SERVO_ANGLE_DEG;
+unsigned long cfgStep17InitialAngleWaitMs = STEP17_INITIAL_ANGLE_WAIT_MS;
+float cfgStep17ServoSpeed = STEP17_SERVO_SPEED;
+
 // Apply motor settings to motors
 void applyMotorSettings() {
     if (motorX) {
@@ -135,6 +180,9 @@ void initializeWebServer() {
     
     // Load saved skip painting state
     loadSkipPaintingState();
+    
+    // Load saved painting config
+    loadPaintingConfig();
     
     // Initialize sensor pins
     initializeSensors();
