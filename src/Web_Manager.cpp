@@ -1,15 +1,14 @@
-#include <Arduino.h>
-#include <WiFi.h>
-#include <ESPAsyncWebServer.h>
-#include <Bounce2.h>
 #include "Web_Manager.h"
-#include "config/Config.h"
-#include "config/Pin_Definitions.h"
+#include "ServoControl.h"
+#include "StateMachine/FUNCTIONS/HomeSwitch.h"
 #include "StateMachine/FUNCTIONS/StepperMotor.h"
 #include "StateMachine/FUNCTIONS/StorageMotor.h"
-#include "StateMachine/FUNCTIONS/HomeSwitch.h"
-#include "ServoControl.h"
-#include "Paint_Motor_Controller.h"
+#include "config/Config.h"
+#include "config/Pin_Definitions.h"
+#include <Arduino.h>
+#include <Bounce2.h>
+#include <ESPAsyncWebServer.h>
+#include <WiFi.h>
 
 //* ************************************************************************
 //* ************************ WEB MANAGER ***********************************
@@ -22,22 +21,24 @@ AsyncWebServer server(80);
 bool sensorsInitialized = false;
 
 // Motor instances
-StepperMotor* motorX = nullptr;
-StepperMotor* motorY = nullptr;
-StepperMotor* motorFork = nullptr;
-StorageMotor* motorStorage = nullptr;
+// Motor instances
+StepperMotor *motorX = nullptr;
+StepperMotor *motorY = nullptr;
+StepperMotor *motorFork = nullptr;
+StepperMotor *motorPaintRotation = nullptr;
+StorageMotor *motorStorage = nullptr;
 
 // Home switch instances
-HomeSwitch* homeSwitchX = nullptr;
-HomeSwitch* homeSwitchY = nullptr;
-HomeSwitch* homeSwitchFork = nullptr;
+HomeSwitch *homeSwitchX = nullptr;
+HomeSwitch *homeSwitchY = nullptr;
+HomeSwitch *homeSwitchFork = nullptr;
 
 // Storage Position Sensor (Bounce2 instance)
 Bounce2::Button storagePositionSensor;
 
 // Servo instance
-ServoControl* servo = nullptr;
-float currentServoAngle = SERVO_HOME_ANGLE;  // Track current servo position
+ServoControl *servo = nullptr;
+float currentServoAngle = SERVO_HOME_ANGLE; // Track current servo position
 
 // Suction and Paint Gun state
 bool suctionState = false;
@@ -53,32 +54,36 @@ float testPos2Y = 0.0;
 float testPos2Fork = 0.0;
 
 // Position 1 height selection (1-8, where 8 = a8/lowest, 1 = a1/highest)
-int selectedPosition1Height = 8;  // Default to a8 (lowest position)
+int selectedPosition1Height = 8; // Default to a8 (lowest position)
 
 // Column tracking (0-5, where 0 = column A, 5 = column F)
 // -1 indicates storage has not been homed
-int currentColumn = -1;  // Current column position (set during homing, -1 = not homed)
-int selectedColumn = 0;  // Selected column for test cycle (default: column A)
+int currentColumn =
+    -1; // Current column position (set during homing, -1 = not homed)
+int selectedColumn = 0; // Selected column for test cycle (default: column A)
 
 // Test All mode tracking
-bool testAllMode = false;  // Flag to track if we're in "test all" mode
-int currentTestAllHeight = 1;  // Track which height we're currently testing (1-8)
-int testAllColumnCount = 1;  // Number of columns to test (1-6)
-int testAllStartColumn = 0;  // Starting column position (from physical position)
-int testAllCurrentColumnIndex = 0;  // Current column index in the test sequence (0 to testAllColumnCount-1)
+bool testAllMode = false; // Flag to track if we're in "test all" mode
+int currentTestAllHeight =
+    1;                      // Track which height we're currently testing (1-8)
+int testAllColumnCount = 1; // Number of columns to test (1-6)
+int testAllStartColumn = 0; // Starting column position (from physical position)
+int testAllCurrentColumnIndex =
+    0; // Current column index in the test sequence (0 to testAllColumnCount-1)
 
-// Square sensing toggle (enables/disables wood_present_sensor check during test cycle)
-bool squareSensingEnabled = true;  // Default to enabled
+// Square sensing toggle (enables/disables wood_present_sensor check during test
+// cycle)
+bool squareSensingEnabled = true; // Default to enabled
 
 // Test mode toggle (disables paint gun and pressure pot during paint cycle)
-bool testModeEnabled = false;  // Default to disabled
+bool testModeEnabled = false; // Default to disabled
 
 // Skip painting toggle (skips painting state entirely during cycle)
-bool skipPaintingEnabled = false;  // Default to disabled
+bool skipPaintingEnabled = false; // Default to disabled
 
 // Cycle control state
-bool cyclePaused = false;  // Tracks if cycle is paused
-bool cycleCancelled = false;  // Tracks if cycle should be cancelled
+bool cyclePaused = false;    // Tracks if cycle is paused
+bool cycleCancelled = false; // Tracks if cycle should be cancelled
 
 // Motor speed and acceleration settings
 long motorSpeedX = X_MAX_SPEED;
@@ -94,71 +99,75 @@ long motorAccelStorage = STORAGE_MOTOR_ACCEL;
 long storageMotorStepsPerClick = STORAGE_MOTOR_STEPS_PER_CLICK;
 long storageMotorTrimDistance = STORAGE_MOTOR_HOMING_TRIM;
 long paintRotationMotorStepsPerClick = PAINT_ROTATION_MOTOR_STEPS_PER_CLICK;
-long paintRotationMotorStepsPerRevOutput = PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
-float servoSpeed = 30.0;  // Servo speed in degrees per second (default 30 = 50% of typical 60)
+long paintRotationMotorStepsPerRevOutput =
+    PAINT_ROTATION_MOTOR_STEPS_PER_REV_OUTPUT;
+float servoSpeed =
+    30.0; // Servo speed in degrees per second (default 30 = 50% of typical 60)
 
 // Apply motor settings to motors
 void applyMotorSettings() {
-    if (motorX) {
-        motorX->setSpeed(motorSpeedX);
-        motorX->setAcceleration(motorAccelX);
-    }
-    if (motorY) {
-        motorY->setSpeed(motorSpeedY);
-        motorY->setAcceleration(motorAccelY);
-    }
-    if (motorFork) {
-        motorFork->setSpeed(motorSpeedFork);
-        motorFork->setAcceleration(motorAccelFork);
-    }
+  if (motorX) {
+    motorX->setSpeed(motorSpeedX);
+    motorX->setAcceleration(motorAccelX);
+  }
+  if (motorY) {
+    motorY->setSpeed(motorSpeedY);
+    motorY->setAcceleration(motorAccelY);
+  }
+  if (motorFork) {
+    motorFork->setSpeed(motorSpeedFork);
+    motorFork->setAcceleration(motorAccelFork);
     if (motorStorage) {
-        motorStorage->setSpeed(motorSpeedStorage);
-        motorStorage->setAcceleration(motorAccelStorage);
+      motorStorage->setSpeed(motorSpeedStorage);
+      motorStorage->setAcceleration(motorAccelStorage);
     }
     // Apply paint rotation motor settings
-    setStepperSpeed(motorSpeedPaintRotation);
-    setStepperAcceleration(motorAccelPaintRotation);
+    if (motorPaintRotation) {
+      motorPaintRotation->setSpeed(motorSpeedPaintRotation);
+      motorPaintRotation->setAcceleration(motorAccelPaintRotation);
+    }
+  }
 }
 
 void initializeWebServer() {
-    // Load saved test position values
-    loadTestPositions();
-    
-    // Load saved motor settings
-    loadMotorSettings();
-    
-    // Load saved square sensing state
-    loadSquareSensingState();
-    
-    // Load saved test mode state
-    loadTestModeState();
-    
-    // Load saved skip painting state
-    loadSkipPaintingState();
-    
-    // Initialize sensor pins
-    initializeSensors();
-    
-    // Initialize motors
-    initializeMotors();
-    
-    // Apply saved motor settings to motors
-    applyMotorSettings();
+  // Load saved test position values
+  loadTestPositions();
 
-    // Setup all API routes
-    setupAPIRoutes();
+  // Load saved motor settings
+  loadMotorSettings();
 
-    server.begin();
-    Serial.println("Web Server initialized");
-    Serial.println("Sensor Dashboard available at /");
+  // Load saved square sensing state
+  loadSquareSensingState();
+
+  // Load saved test mode state
+  loadTestModeState();
+
+  // Load saved skip painting state
+  loadSkipPaintingState();
+
+  // Initialize sensor pins
+  initializeSensors();
+
+  // Initialize motors
+  initializeMotors();
+
+  // Apply saved motor settings to motors
+  applyMotorSettings();
+
+  // Setup all API routes
+  setupAPIRoutes();
+
+  server.begin();
+  Serial.println("Web Server initialized");
+  Serial.println("Sensor Dashboard available at /");
 }
 
 void updateWebServer() {
-    // Update Bounce2 sensors
-    storagePositionSensor.update();
-    
-    // Run storage motor (AccelStepper needs run() called regularly)
-    if (motorStorage) {
-        motorStorage->run();
-    }
+  // Update Bounce2 sensors
+  storagePositionSensor.update();
+
+  // Run storage motor (AccelStepper needs run() called regularly)
+  if (motorStorage) {
+    motorStorage->run();
+  }
 }

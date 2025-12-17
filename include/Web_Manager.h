@@ -2,8 +2,8 @@
 #define WEB_MANAGER_H
 
 #include <Arduino.h>
-#include <ESPAsyncWebServer.h>
 #include <Bounce2.h>
+#include <ESPAsyncWebServer.h>
 
 // Forward declarations
 class ServoControl;
@@ -16,15 +16,16 @@ extern AsyncWebServer server;
 
 // External global variables
 extern bool sensorsInitialized;
-extern StepperMotor* motorX;
-extern StepperMotor* motorY;
-extern StepperMotor* motorFork;
-extern StorageMotor* motorStorage;
-extern HomeSwitch* homeSwitchX;
-extern HomeSwitch* homeSwitchY;
-extern HomeSwitch* homeSwitchFork;
+extern StepperMotor *motorX;
+extern StepperMotor *motorY;
+extern StepperMotor *motorFork;
+extern StepperMotor *motorPaintRotation;
+extern StorageMotor *motorStorage;
+extern HomeSwitch *homeSwitchX;
+extern HomeSwitch *homeSwitchY;
+extern HomeSwitch *homeSwitchFork;
 extern Bounce2::Button storagePositionSensor;
-extern ServoControl* servo;
+extern ServoControl *servo;
 extern float currentServoAngle;
 extern bool suctionState;
 extern bool paintGunState;
@@ -36,8 +37,9 @@ extern float testPos2X;
 extern float testPos2Y;
 extern float testPos2Fork;
 extern int selectedPosition1Height;
-extern int currentColumn;  // Current column position (0-5, where 0=A, 5=F)
-extern int selectedColumn;  // Selected column for test cycle (0-5, where 0=A, 5=F)
+extern int currentColumn; // Current column position (0-5, where 0=A, 5=F)
+extern int
+    selectedColumn; // Selected column for test cycle (0-5, where 0=A, 5=F)
 extern bool testAllMode;
 extern int currentTestAllHeight;
 extern int testAllColumnCount;
@@ -88,13 +90,34 @@ extern void loadSkipPaintingState();
 extern void initializeSensors();
 extern void initializeMotors();
 extern void setServoAngle(float angle);
-extern void enablePaintRotationMotor();
-extern void disablePaintRotationMotor();
-extern bool isPaintRotationMotorRunning();
+extern void setServoAngle(float angle);
 extern bool isSquarePresent();
 extern String getSensorStatesJSON();
 
 // API Routes function
 extern void setupAPIRoutes();
+
+// API Handlers
+void handleRoot(AsyncWebServerRequest *request);
+void handleSensorStates(AsyncWebServerRequest *request);
+void handleStorageClockwise(AsyncWebServerRequest *request);
+void handleMove(AsyncWebServerRequest *request);
+void handleHome(AsyncWebServerRequest *request);
+void handleTestPositions(AsyncWebServerRequest *request);
+void handleTestAll(AsyncWebServerRequest *request);
+void handleTest(AsyncWebServerRequest *request);
+void handlePositions(AsyncWebServerRequest *request);
+void handleMotorSettings(AsyncWebServerRequest *request);
+void handleServo(AsyncWebServerRequest *request);
+void handleSuction(AsyncWebServerRequest *request);
+void handlePaintGun(AsyncWebServerRequest *request);
+void handlePressurePot(AsyncWebServerRequest *request);
+void handleDeviceStates(AsyncWebServerRequest *request);
+void handleSquareSensing(AsyncWebServerRequest *request);
+void handleTestMode(AsyncWebServerRequest *request);
+void handleSkipPainting(AsyncWebServerRequest *request);
+void handleCycleState(AsyncWebServerRequest *request);
+void handleCyclePause(AsyncWebServerRequest *request);
+void handleCycleCancel(AsyncWebServerRequest *request);
 
 #endif // WEB_MANAGER_H
