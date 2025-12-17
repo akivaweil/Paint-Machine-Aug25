@@ -1099,60 +1099,17 @@ void paintingState() {
     }
     
     //! ************************************************************************
-    //! STEP 18: MOVE SERVO TO 210°, ROTATE 2.25 REVS, MOVE SERVO TO 170° AFTER 1 REV
+    //! STEP 16: ROTATE 1.25 REVOLUTIONS
     //! ************************************************************************
     else if (step == 16) {
-        // Start moving servo to first angle (210°) (non-blocking)
-        if (!servoAt180Complete) {
-            startServoMoveToAngle(STEP15_FIRST_REV_SERVO_ANGLE_DEG);
-            servoAt180Complete = true;
-        }
-        
-        // Start rotation once servo reaches angle (can happen simultaneously)
-        if (!finalRotationStarted && servoTargetAngle < 0 && !isStepperRunning()) {
-            step15RotationStartPosition = getStepperPosition();
+        // Start rotation
+        if (!finalRotationStarted) {
             moveStepper((long)(paintRotationMotorStepsPerRevOutput * STEP15_FINAL_ROTATION_REV));
             finalRotationStarted = true;
         }
         
-        // Check if 1 revolution is complete and move servo to 170°
-        if (finalRotationStarted && !step15ServoMovedTo170) {
-            long currentPosition = getStepperPosition();
-            long positionChange = abs(currentPosition - step15RotationStartPosition);
-            long oneRevSteps = paintRotationMotorStepsPerRevOutput;
-            
-            if (positionChange >= oneRevSteps) {
-                // 1 revolution complete, move servo to 170°
-                startServoMoveToAngle(STEP16_SPIN_SERVO_ANGLE_DEG);
-                step15ServoMovedTo170 = true;
-            }
-        }
-        
-        // Wait for full rotation to complete
-        if (finalRotationStarted && !isStepperRunning()) {
-            step = 17;
-        } else {
-            updateServoMovement();
-            updateOTA();
-            if (cycleCancelled) return;
-            while (cyclePaused && !cycleCancelled) {
-                handlePause();
-                updateOTA();
-                delay(10);
-            }
-            handlePause();
-            if (cycleCancelled) return;
-            delay(1);
-        }
-    }
-    
-    //! ************************************************************************
-    //! STEP 19: WAIT FOR SERVO TO REACH 170° (IF NOT ALREADY THERE)
-    //! ************************************************************************
-    else if (step == 17) {
-        // Servo should already be moving to 170° from step 16, just wait for it
-        if (servoTargetAngle < 0) {
-            // Servo movement complete
+        // Wait for rotation to complete
+        if (!isStepperRunning()) {
             step = 18;
         } else {
             updateServoMovement();
