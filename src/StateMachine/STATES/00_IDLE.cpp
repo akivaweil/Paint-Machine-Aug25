@@ -66,16 +66,17 @@ void idleState() {
         }
     }
     
-    // Check start button (debounced) - only when not moving
+    // Check test button - activate paint gun while pressed
     if (!isMovingToPosition) {
         unsigned long currentTime = millis();
         if (currentTime - lastButtonCheck >= 50) {  // Check every 50ms
             bool buttonState = digitalRead(TEST_BUTTON_PIN);
             
-            // Button is active HIGH (pulldown), so check for rising edge
-            if (lastButtonState == LOW && buttonState == HIGH) {
-                // Button pressed - start test cycle
-                setMachineState(STATE_PICK_PLACE);
+            // Button is active HIGH (pulldown) - activate paint gun while pressed
+            if (buttonState == HIGH) {
+                digitalWrite(PAINT_GUN_PIN, HIGH);
+            } else {
+                digitalWrite(PAINT_GUN_PIN, LOW);
             }
             
             lastButtonState = buttonState;
