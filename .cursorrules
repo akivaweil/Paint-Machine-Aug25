@@ -1,0 +1,37 @@
+# Project Context
+- **Framework**: PlatformIO with Arduino
+- **Board**: ESP32-S3 (esp32-s3-devkitc-1)
+- **Language**: C++
+- **Build System**: PlatformIO (`platformio.ini`)
+
+# Coding Style & Standards
+- **C++ Standards**: Use modern C++ features where applicable (auto, nullptr, lambdas) but respect Arduino constraints.
+- **Naming Conventions**:
+  - Classes: `PascalCase` (e.g., `PaintMotorController`)
+  - Methods/Functions: `camelCase` (e.g., `moveArmToPosition`)
+  - Variables: `camelCase` (e.g., `stepperSpeed`)
+  - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_SPEED_LIMIT`)
+- **Headers**: Place `.h` files in `include/` and implementation `.cpp` files in `src/`.
+- **Arduino Specifics**:
+  - Use `Serial.println()` for debug logging.
+  - Avoid blocking `delay()` in the main loop; prefer non-blocking timers (checking `millis()`) or state machines.
+
+# Project Specifics
+- **Libraries**:
+  - Stepper Motors: Use `FastAccelStepper` for the first 4 motors; use `AccelStepper` for all other motors.
+  - Web Server: `ESPAsyncWebServer`, `AsyncTCP`
+  - Input: `Bounce2`
+- **Deployment**:
+  - Project uses OTA (Over-The-Air) updates.
+  - `upload_protocol = espota`
+  - Maintain `platformio.ini` dependencies carefully.
+
+# Workflow
+- **Automation**:
+  - After making code changes, ALWAYS build and upload the firmware (`platformio run --target upload`).
+  - Upon successful upload, ALWAYS push changes to the repository (`git push`), unless explicitly instructed otherwise.
+
+# Best Practices
+- **State Machines**: Ensure state transitions are clean and logged.
+- **Async Web**: Be careful with memory management in async web callbacks; avoid long operations inside callbacks.
+- **Hardware Safety**: When modifying motor movement code, verify bounds and acceleration settings to preventing physical crashes.
