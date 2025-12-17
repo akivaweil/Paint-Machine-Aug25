@@ -31,6 +31,7 @@
   - After making code changes, ALWAYS build and upload the firmware (`platformio run --target upload`).
   - Upon successful upload, ALWAYS push changes to the repository (`git push`), unless explicitly instructed otherwise.
   - **Commit Messages**: Keep them short and to the point.
+  - **New Threads**: At the beginning of a new message thread, ensure all pending changes are pushed, then create and switch to a new branch for the new topic.
 
 # Best Practices
 - **State Machines**: Ensure state transitions are clean and logged.
